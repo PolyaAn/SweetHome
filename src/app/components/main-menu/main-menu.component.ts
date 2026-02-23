@@ -108,7 +108,7 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
         .filter((w: MainWidget) => !w.hide)
         .sort((a: MainWidget, b: MainWidget) => a.order - b.order)
     );
-    const widgetIndex: number = mainWidgets.findIndex((w) => w.id === widget.id);
+    const widgetIndex: number = mainWidgets.findIndex((w) => w.alias === widget.alias);
     const swapIndex: number = position === MoveEnum.LEFT ? widgetIndex - 1 : widgetIndex + 1;
     mainWidgets[widgetIndex].order = mainWidgets[swapIndex].order;
     mainWidgets[swapIndex].order = widget.order;
@@ -119,7 +119,7 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
   hide(widget: MainWidget): void {
     const mainWidgets: MainWidget[] = this.ss.getValue(this.mms.mainWidgets$.value)
       .map((w: MainWidget) => {
-        if (w.id === widget.id) {
+        if (w.alias === widget.alias) {
           w.hide = !w.hide;
         }
         return w;
@@ -131,7 +131,7 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
   changeSize(widget: MainWidget): void {
     const widgets: MainWidget[] = this.mms.mainWidgets$.value;
     widgets.map((w: MainWidget) => {
-      if (w.id === widget.id) {
+      if (w.alias === widget.alias) {
         w.size = w.size === 3 ? 1 : w.size + 1;
       }
       return w;
@@ -165,7 +165,7 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
       return;
     }
 
-    if (widget.id === 'health') {
+    if (widget.alias === 'health') {
       this.router.navigate(['/health-module']);
     }
   }

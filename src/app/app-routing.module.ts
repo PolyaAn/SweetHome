@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MainMenuComponent } from "./components/main-menu/main-menu.component";
+import { LoginComponent } from "./modules/auth/login.component";
 
 const routes: Routes = [
   {
@@ -14,6 +15,13 @@ const routes: Routes = [
     //     canActivate: [AuthGuard],
     //   },
     // ],
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
+    data: {
+      title: 'Авторизация',
+    },
   },
   {
     path: 'movie',

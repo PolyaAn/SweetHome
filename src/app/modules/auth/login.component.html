@@ -1,0 +1,22 @@
+<section class="login-page">
+  <div class="login-card">
+    <h1>Авторизация</h1>
+    <p class="subtitle">Войдите, чтобы продолжить работу с приложением.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="field-label" for="email">Почта</label>
+      <input id="email" type="email" formControlName="email" placeholder="example@mail.com"/>
+      <div class="error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+        Введите корректную почту
+      </div>
+
+      <label class="field-label" for="password">Пароль</label>
+      <input id="password" type="password" formControlName="password" placeholder="Минимум 6 символов"/>
+      <div class="error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+        Пароль должен быть не короче 6 символов
+      </div>
+
+      <button type="submit" [disabled]="form.invalid">Войти</button>
+    </form>
+  </div>
+</section>

@@ -1,4 +1,5 @@
 export interface MainWidget {
+  alias: string;
   id: string;
   order: number;
   name: string;

@@ -45,7 +45,7 @@ export class NewWidgetModalComponent extends BaseComponent implements OnInit {
 
   //  среди всех виджетов ищем тот, который ранее был скрыт, и меняем его видимость
   setWidgetView(checked: boolean, widget: MainWidget): void {
-    const changedWidget: MainWidget | undefined = this.changedWidgetsHidden.find((w: MainWidget) => w.id === widget.id);
+    const changedWidget: MainWidget | undefined = this.changedWidgetsHidden.find((w: MainWidget) => w.alias === widget.alias);
     if (changedWidget) {
       changedWidget.hide = !checked;
     }

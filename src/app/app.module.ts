@@ -7,6 +7,7 @@ import { MainMenuComponent } from "./components/main-menu/main-menu.component";
 import { HeaderComponent } from "./components/header/header.component";
 import { RouterOutlet } from "@angular/router";
 import { AppRoutingModule } from "./app-routing.module";
+import { HttpClientModule } from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { AppRoutingModule } from "./app-routing.module";
     MainMenuComponent,
     HeaderComponent,
     AppRoutingModule,
-    RouterOutlet
+    RouterOutlet,
+    HttpClientModule
   ],
   providers: [
     provideAnimationsAsync()

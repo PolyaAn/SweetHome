@@ -2,7 +2,8 @@ import { MainWidget, UserInfo } from "../models/main-menu.model";
 
 export const MainWidgetsMock: MainWidget[] = [
   {
-    id: 'home',
+    alias: 'home',
+    id: '',
     order: 1,
     name: 'Дом',
     icon: 'home',
@@ -10,7 +11,8 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   },
   {
-    id: 'movies',
+    alias: 'movies',
+    id: '',
     order: 2,
     name: 'Кино',
     icon: 'movie',
@@ -18,7 +20,8 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   },
   {
-    id: 'books',
+    alias: 'books',
+    id: '',
     order: 3,
     name: 'Книги',
     icon: 'book',
@@ -26,7 +29,8 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   },
   {
-    id: 'trips',
+    alias: 'trips',
+    id: '',
     order: 4,
     name: 'Путешествия',
     icon: 'public',
@@ -34,7 +38,8 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   },
   {
-    id: 'coins',
+    alias: 'coins',
+    id: '',
     order: 6,
     name: 'Монеты',
     icon: 'toll',
@@ -42,7 +47,8 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   },
   {
-    id: 'health',
+    alias: 'health',
+    id: '',
     order: 7,
     name: 'Здоровье',
     icon: 'health_and_safety',

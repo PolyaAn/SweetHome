@@ -10,8 +10,16 @@
   overflow: auto;
 }
 
+.app-content.no-header {
+  padding-top: 0;
+}
+
 @media only screen and (max-width: 767px) {
   .app-content {
     padding-top: 64px;
+  }
+
+  .app-content.no-header {
+    padding-top: 0;
   }
 }

@@ -1,0 +1,63 @@
+@import '../../styles/shared-styles';
+
+.login-page {
+  min-height: calc(100vh - 76px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  @include ui-glass-surface(0, transparent, rgba(245, 141, 74, 0.12));
+}
+
+.login-card {
+  @include ui-glass-surface(24px);
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  color: #f9f1e6;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  color: rgba(249, 241, 230, 0.74);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-label {
+  font-size: 14px;
+  color: #f2dcc3;
+}
+
+input {
+  @include ui-input-field;
+}
+
+.error {
+  font-size: 12px;
+  color: #ffb68f;
+  margin-top: -6px;
+}
+
+button {
+  margin-top: 10px;
+  height: 42px;
+  @include ui-primary-button(12px);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
