@@ -23,7 +23,8 @@ export interface Health {
   date: string;
   healthDictionary: HealthDictionary[];
   weight?: string;
-  bloodPressure?: string;
+  bloodPressureTop?: string;
+  bloodPressureBottom?: string;
   bloodSugar?: string;
   water?: string;
   temperature?: string;

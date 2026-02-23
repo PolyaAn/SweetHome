@@ -75,7 +75,12 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
       return this.draftHealth.weight || null;
     }
     if (sectionId === 'blood-pressure') {
-      return this.draftHealth.bloodPressure || null;
+      const top: string | undefined = this.draftHealth.bloodPressureTop;
+      const bottom: string | undefined = this.draftHealth.bloodPressureBottom;
+      if (!top && !bottom) {
+        return null;
+      }
+      return `${top || ''}/${bottom || ''}`;
     }
     if (sectionId === 'blood-sugar') {
       return this.draftHealth.bloodSugar || null;
@@ -130,7 +135,7 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
       this.draftHealth = {...this.draftHealth, weight: trimmedValue};
     }
     if (sectionId === 'blood-pressure') {
-      this.draftHealth = {...this.draftHealth, bloodPressure: trimmedValue};
+      return;
     }
     if (sectionId === 'blood-sugar') {
       this.draftHealth = {...this.draftHealth, bloodSugar: trimmedValue};
@@ -150,6 +155,26 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     this.draftHealth = {
       ...this.draftHealth,
       monthlies: value,
+    };
+  }
+
+  setBloodPressureTop(value: string): void {
+    if (!this.draftHealth) {
+      return;
+    }
+    this.draftHealth = {
+      ...this.draftHealth,
+      bloodPressureTop: value.trim(),
+    };
+  }
+
+  setBloodPressureBottom(value: string): void {
+    if (!this.draftHealth) {
+      return;
+    }
+    this.draftHealth = {
+      ...this.draftHealth,
+      bloodPressureBottom: value.trim(),
     };
   }
 

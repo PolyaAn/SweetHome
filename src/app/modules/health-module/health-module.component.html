@@ -23,11 +23,24 @@
 
       <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.id)">
         <input
-          *ngIf="section.id !== 'monthlies'"
+          *ngIf="section.id !== 'monthlies' && section.id !== 'blood-pressure'"
           class="health-input"
           [value]="getSectionValue(section.id) || ''"
           (input)="setFieldValue(section.id, $any($event.target).value)"
         />
+        <div class="health-pressure-edit" *ngIf="section.id === 'blood-pressure'">
+          <input
+            class="health-input"
+            [value]="draftHealth.bloodPressureTop || ''"
+            (input)="setBloodPressureTop($any($event.target).value)"
+          />
+          <span class="health-pressure-separator">/</span>
+          <input
+            class="health-input"
+            [value]="draftHealth.bloodPressureBottom || ''"
+            (input)="setBloodPressureBottom($any($event.target).value)"
+          />
+        </div>
         <label *ngIf="section.id === 'monthlies'" class="health-checkbox">
           <input
             type="checkbox"
