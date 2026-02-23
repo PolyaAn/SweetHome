@@ -1,0 +1,24 @@
+<div class="top">
+  <div class="left">
+    <ng-container *ngIf="isMainPage; else backButton">
+      {{ user?.name?.toUpperCase() }}
+    </ng-container>
+    <ng-template #backButton>
+      <mat-icon
+        (click)="goBack()"
+        class="icon back-icon"
+        aria-hidden="false"
+        aria-label="Назад"
+        fontIcon="arrow_back">
+      </mat-icon>
+    </ng-template>
+  </div>
+  <div class="right" *ngIf="isMainPage">
+    <mat-icon (click)="editMainPage()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Example home icon"
+              fontIcon="settings">
+    </mat-icon>
+  </div>
+</div>

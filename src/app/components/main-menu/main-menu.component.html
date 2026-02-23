@@ -1,0 +1,81 @@
+<app-main-info [ngClass]="{ 'mobile-hidden': isPhoneView && mobileTab !== 'info' }"></app-main-info>
+<div class="widgets-block" [ngClass]="{ 'mobile-hidden': isPhoneView && mobileTab !== 'menu' }">
+  <div *ngIf="mms.mainWidgets$ | async" class="widgets">
+    <div *ngFor="let widget of (mms.mainWidgets$ | async)"
+         class="widget"
+         (click)="openWidget(widget)"
+         [style.order]="widget.order"
+         [style.display]="widget.hide ? 'none' : 'flex'"
+         [ngClass]="{ edit: editMode, one: widget.size === 1, two: widget.size === 2, three: widget.size === 3}">
+      <div *ngIf="editMode" (click)="changeSize(widget)" class="widget-size">
+        <div class="widget-size-one" [ngClass]="{ selected: widget.size === 1 }"></div>
+        <div class="widget-size-two" [ngClass]="{ selected: widget.size === 2 }"></div>
+        <div class="widget-size-three" [ngClass]="{ selected: widget.size === 3 }"></div>
+      </div>
+
+      <mat-icon *ngIf="editMode"
+                (click)="move(MoveEnum.LEFT, widget)"
+                class="left-icon pulse-left"
+                aria-hidden="false"
+                aria-label="Example home icon"
+                fontIcon="keyboard_arrow_left">
+      </mat-icon>
+      <mat-icon class="icon"
+                [ngClass]="{ edit: editMode }"
+                aria-hidden="false"
+                aria-label="Example home icon"
+                [fontIcon]="widget.icon">
+      </mat-icon>
+
+      <div>
+        {{widget.name}}
+      </div>
+
+      <mat-icon *ngIf="editMode"
+                (click)="move(MoveEnum.RIGHT, widget)"
+                class="right-icon pulse-right"
+                aria-hidden="false"
+                aria-label="Example home icon"
+                fontIcon="keyboard_arrow_right">
+      </mat-icon>
+      <mat-icon *ngIf="editMode"
+                (click)="hide(widget)"
+                class="hide-icon"
+                aria-hidden="false"
+                aria-label="Example home icon"
+                fontIcon="visibility_off">
+      </mat-icon>
+    </div>
+  </div>
+  <div *ngIf="editMode && hiddenWidgets" class="add-widget"
+       (click)="openAddWidgetModal()">
+    Добавить виджет
+  </div>
+  <div *ngIf="editMode" class="button-block">
+    <div *ngIf="editMode" class="close"
+         (click)="saveChanges()">
+      Отменить изменения
+    </div>
+    <div *ngIf="editMode" class="save-widget"
+         (click)="saveChanges()">
+      Сохранить изменения
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isPhoneView" class="mobile-bottom-menu">
+  <button
+    type="button"
+    class="mobile-tab"
+    [ngClass]="{ active: mobileTab === 'menu' }"
+    (click)="setMobileTab('menu')">
+    Меню
+  </button>
+  <button
+    type="button"
+    class="mobile-tab"
+    [ngClass]="{ active: mobileTab === 'info' }"
+    (click)="setMobileTab('info')">
+    Информация
+  </button>
+</div>

@@ -1,0 +1,27 @@
+<div class="modern-form-modal" cdkTrapFocus>
+  <div mat-dialog-title class="modern-form-modal__title">Добавить виджеты</div>
+  <div class="modern-form-modal__subtitle">
+    Выберите элементы, которые нужно вернуть на главный экран.
+  </div>
+
+  <mat-dialog-content class="modern-form-modal__content">
+    <div *ngIf="defaultHiddenWidgets.length; else emptyState" class="widget-options">
+      <label class="widget-option" *ngFor="let hiddenWidget of defaultHiddenWidgets">
+        <mat-checkbox
+          class="widget-checkbox"
+          (change)="setWidgetView($event.checked, hiddenWidget)">
+          {{ hiddenWidget.name }}
+        </mat-checkbox>
+      </label>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">Скрытых виджетов сейчас нет</div>
+    </ng-template>
+  </mat-dialog-content>
+
+  <div class="buttons modern-form-modal__actions">
+    <button mat-button class="action-button ghost" (click)="close()">Отменить</button>
+    <button mat-button class="action-button primary" (click)="saveWidgetsHide()">Добавить</button>
+  </div>
+</div>

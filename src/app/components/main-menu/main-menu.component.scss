@@ -1,0 +1,406 @@
+@import '../../styles/utils';
+
+:host {
+  top: 76px;
+  padding: 24px 36px;
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(245, 141, 74, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+
+  @include adaptivePhone {
+    padding: 16px;
+    flex-direction: column;
+    padding-bottom: 92px;
+  }
+
+  .mobile-hidden {
+    @include adaptivePhone {
+      display: none !important;
+    }
+  }
+
+  .widgets-block {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: fit-content;
+
+    .widgets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      height: fit-content;
+
+      @include adaptivePhone {
+        flex: 0;
+      }
+
+      .widget {
+        @include font-24;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        color: #f7ecdd;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background:
+          radial-gradient(circle at 92% 8%, rgba(245, 141, 74, 0.18), transparent 48%),
+          linear-gradient(155deg, #2b3138, #1d2228);
+        box-shadow:
+          0 10px 22px rgba(0, 0, 0, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.11);
+        height: 132px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+        @include adaptivePhone {
+          @include font-14;
+          gap: 8px;
+          height: calc(33vw - 22px);
+        }
+
+        &:hover {
+          border-color: rgba(245, 141, 74, 0.48);
+          box-shadow:
+            0 12px 24px rgba(0, 0, 0, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        }
+
+        .widget-size {
+          width: 48px;
+          height: 12px;
+          max-width: 64px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 2px;
+
+          position: absolute;
+          left: 16px;
+          top: 16px;
+
+          @include adaptivePhone {
+            width: 24px;
+            height: 8px;
+          }
+
+          &-one {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.36);
+            flex: 1;
+
+            @include adaptivePhone {
+              height: 8px;
+            }
+          }
+
+          &-two {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.36) ;
+            flex: 2;
+
+            @include adaptivePhone {
+              height: 8px;
+            }
+          }
+
+          &-three {
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.36);
+            flex: 3;
+
+            @include adaptivePhone {
+              height: 8px;
+            }
+          }
+
+          .selected {
+            height: 12px;
+            background-color: #ffd6b0;
+
+            @include adaptivePhone {
+              height: 10px;
+            }
+          }
+        }
+
+        &.one {
+          flex-basis: calc(33.333% - 13px);
+        }
+
+        &.two {
+          flex-basis: calc(66.666% - 7px);
+        }
+
+        &.three {
+          flex-basis: calc(100%);
+        }
+
+        &.edit {
+          position: relative;
+          color: rgba(247, 236, 221, 0.72);
+        }
+
+        .icon {
+          @include icon-64;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          @include adaptivePhone {
+            @include icon-36;
+          }
+        }
+
+        .pulse::before {
+          font-size: 64px;
+          animation: pulse 2.5s linear infinite;
+        }
+
+        .pulse::after {
+          font-size: 64px;
+          animation: pulse 2.5s linear infinite;
+          animation-delay: 0.25s;
+        }
+
+        @keyframes pulse {
+          0% {
+            opacity: 1;
+            font-size: 64px;
+          }
+          50% {
+            opacity: 0.6;
+            font-size: 54px;
+          }
+          100% {
+            opacity: 1;
+            font-size: 64px;
+          }
+        }
+
+        .left-icon {
+          @include icon-64;
+          position: absolute;
+          left: 0;
+          color: #ffddba;
+
+          @include adaptivePhone {
+            @include icon-36;
+          }
+        }
+
+        .pulse-left::before {
+          position: absolute;
+          left: 0;
+          animation: pulse-left 2.5s linear infinite;
+        }
+
+        .pulse-left::after {
+          position: absolute;
+          left: 0;
+          animation: pulse-left 2.5s linear infinite;
+          animation-delay: 0.25s;
+        }
+
+        @keyframes pulse-left {
+          0% {
+            opacity: 1;
+            left: -10px;
+          }
+          50% {
+            opacity: 0.6;
+            left: 0;
+          }
+          100% {
+            opacity: 1;
+            left: -10px;
+          }
+        }
+
+        .right-icon {
+          @include icon-64;
+          position: absolute;
+          right: 0;
+          color: #ffddba;
+
+          @include adaptivePhone {
+            @include icon-36;
+          }
+        }
+
+        .pulse-right::before {
+          position: absolute;
+          right: 0;
+          animation: pulse-right 2.5s linear infinite;
+        }
+
+        .pulse-right::after {
+          position: absolute;
+          right: 0;
+          animation: pulse-right 2.5s linear infinite;
+          animation-delay: 0.25s;
+        }
+
+        @keyframes pulse-right {
+          0% {
+            opacity: 1;
+            right: -10px;
+          }
+          50% {
+            opacity: 0.6;
+            right: 0;
+          }
+          100% {
+            opacity: 1;
+            right: -10px;
+          }
+        }
+
+        .hide-icon {
+          @include icon-36;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          color: #ffddba;
+
+          @include adaptivePhone {
+            @include icon-24;
+          }
+        }
+      }
+    }
+
+    .add-widget {
+      @include font-24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 22px;
+      color: #d2b28f;
+      border: 1px dashed rgba(255, 255, 255, 0.42);
+      background:
+        linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+        radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+      height: var(--main-bautton-height);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        border-color: rgba(245, 141, 74, 0.7);
+        box-shadow: 0 10px 19px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .button-block {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+
+      @include adaptivePhone {
+        flex-direction: column;
+      }
+
+      .close {
+        flex: 1;
+        @include font-24;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #d2b28f;
+        border-radius: 22px;
+        border: 1px dashed rgba(255, 255, 255, 0.42);
+        background:
+          linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+          radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+        height: var(--main-bautton-height);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+        @include adaptivePhone {
+          @include font-16;
+          padding: 16px 0;
+        }
+
+        &:hover {
+          transform: translateY(-1px);
+          border-color: rgba(245, 141, 74, 0.7);
+          box-shadow: 0 10px 19px rgba(0, 0, 0, 0.2);
+        }
+      }
+
+      .save-widget {
+        flex: 1;
+        @include font-24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fffaf3;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, #db5d2b, #a33d1a);
+        box-shadow: 0 8px 14px rgba(87, 27, 12, 0.22);
+        height: var(--main-bautton-height);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        @include adaptivePhone {
+          @include font-16;
+          padding: 18px 0;
+        }
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 18px rgba(87, 27, 12, 0.26);
+        }
+      }
+    }
+  }
+
+  .mobile-bottom-menu {
+    display: none;
+
+    @include adaptivePhone {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 14px;
+      z-index: 30;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background:
+        radial-gradient(circle at 90% 10%, rgba(245, 141, 74, 0.2), transparent 52%),
+        linear-gradient(150deg, rgba(36, 41, 48, 0.96), rgba(22, 26, 32, 0.96));
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  .mobile-tab {
+    @include font-16;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #d5b796;
+    background-color: rgba(255, 255, 255, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+    &.active {
+      color: #fff6eb;
+      border-color: rgba(245, 141, 74, 0.7);
+      background: linear-gradient(135deg, #db5d2b, #a33d1a);
+      box-shadow: 0 8px 14px rgba(87, 27, 12, 0.24);
+    }
+  }
+}

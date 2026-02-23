@@ -1,0 +1,65 @@
+@import '../../styles/utils';
+
+:host {
+  color: #f9f1e6;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  position: relative;
+  z-index: 3;
+
+  @include adaptivePhone {
+    height: 76px;
+  }
+
+  .top {
+    @include font-36;
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 36px;
+    background:
+      radial-gradient(circle at 92% 10%, rgba(245, 141, 74, 0.24), transparent 44%),
+      linear-gradient(145deg, #2a2f37, #1b2027);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    @include adaptivePhone {
+      @include font-24;
+      padding: 16px;
+    }
+
+    .left {
+      font-weight: 700;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .icon {
+      @include icon-48;
+      padding: 6px;
+      border-radius: 14px;
+      color: #f8e4cb;
+      background-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+      @include adaptivePhone {
+        @include icon-24;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+        background-color: rgba(245, 141, 74, 0.18);
+        box-shadow: 0 6px 13px rgba(0, 0, 0, 0.18);
+      }
+    }
+
+    .back-icon {
+      margin-left: -6px;
+    }
+  }
+}

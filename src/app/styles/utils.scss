@@ -1,0 +1,164 @@
+:root {
+  // ПРИБРАТЬСЯ В ПЕРЕМЕННЫХ
+  --header-background: #2d2d2d;
+  --widget-background: #2d2d2d;
+  --color-button-background: #730c00;
+  //--color-button-background: #5e0000;
+  --light-grey: #e0dcdc;
+  --light-text: #e0dcdc;
+  --grey: #606060;
+  --light-grey-50: rgba(224, 220, 220, 0.50);
+  --light-grey-60: rgba(224, 220, 220, 0.60);
+  --light-text-60: rgba(224, 220, 220, 0.60);
+  --dark: #2d2d2d;
+  --button-light-background: #ffffff;
+
+  --shadow-base: 0px 5px 10px 0px rgba(0, 0, 0, 0.2);
+  --icon-size: 36px; // нужно использовать
+  --main-bautton-height: calc(10vh - 11px);
+  --border-radius-24: 24px;
+
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-24: 24px;
+  --font-size-36: 36px;
+  --font-size-48: 48px;
+
+  --letter-spacing-1: 1px;
+  --letter-spacing-2: 2px;
+  --letter-spacing-3: 3px;
+}
+
+@mixin font-14 {
+  letter-spacing: var(--letter-spacing-1);
+  font-size: var(--font-size-14);
+}
+
+@mixin font-16 {
+  letter-spacing: var(--letter-spacing-1);
+  font-size: var(--font-size-16);
+}
+
+@mixin font-24 {
+  letter-spacing: var(--letter-spacing-2);
+  font-size: var(--font-size-24);
+}
+
+@mixin font-36 {
+  letter-spacing: var(--letter-spacing-3);
+  font-size: var(--font-size-36);
+}
+
+@mixin font-48 {
+  letter-spacing: var(--letter-spacing-3);
+  font-size: var(--font-size-48);
+}
+
+@mixin icon-24 {
+  height: 24px;
+  width: 24px;
+  font-size: 24px;
+}
+
+@mixin icon-36 {
+  height: 36px;
+  width: 36px;
+  font-size: 36px;
+}
+
+@mixin icon-48 {
+  height: 48px;
+  width: 48px;
+  font-size: 48px;
+}
+
+@mixin icon-60 {
+  height: 60px;
+  width: 60px;
+  font-size: 60px;
+}
+
+@mixin icon-64 {
+  height: 64px;
+  width: 64px;
+  font-size: 64px;
+}
+
+@mixin dashed-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-24);
+  color: var(--grey);
+  border: var(--grey) 1px dashed;
+}
+
+@mixin line-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-24);
+  color: var(--grey);
+  border: var(--color-button-background) 1px solid;
+}
+
+@mixin light-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-24);
+  color: var(--grey);
+  background-color: var(--light-grey);
+}
+
+@mixin button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-24);
+  color: var(--light-text);
+  background-color: var(--widget-background);
+}
+
+@mixin color-button {
+  @include button;
+  color: var(--light-text);
+  background-color: var(--color-button-background);
+}
+
+@mixin adaptivePhone() {
+  @include adaptiveMax(767px) {
+    @content;
+  }
+}
+
+@mixin adaptiveTablet() {
+  @include adaptive(768px, 1024px) {
+    @content;
+  }
+}
+
+@mixin adaptiveDevices() {
+  @include adaptiveMax(1024px) {
+    @content;
+  }
+}
+
+@mixin adaptiveLaptop() {
+  @include adaptiveMax(1439px) {
+    @content;
+  }
+}
+
+@mixin adaptive($min, $max) {
+  @media only screen and (min-width: $min) and (max-width: $max) {
+    @content;
+  }
+}
+
+@mixin adaptiveMax($media) {
+  @media only screen and (max-width: $media) {
+    @content;
+  }
+}
+
