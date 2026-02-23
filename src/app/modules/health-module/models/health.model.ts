@@ -20,7 +20,7 @@ export interface HealthDictionary {
 }
 
 export interface Health {
-  data: string;
+  date: string;
   healthDictionary: HealthDictionary[];
   weight?: string;
   bloodPressure?: string;
