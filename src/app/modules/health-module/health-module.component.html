@@ -18,18 +18,18 @@
         <button *ngIf="section.averageValue" type="button" class="average-add-button">+</button>
       </div>
 
-      <div class="health-section__value" *ngIf="!section.dictionary && !isEditing(section.id)" (click)="startEdit(section.id)">
-        {{ getSectionValue(section.id) || section.defaultValue }}
+      <div class="health-section__value" *ngIf="!section.dictionary && !isEditing(section.alias)" (click)="startEdit(section.alias)">
+        {{ getSectionValue(section.alias) || section.defaultValue }}
       </div>
 
-      <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.id)">
+      <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.alias)">
         <input
-          *ngIf="section.id !== 'monthlies' && section.id !== 'blood-pressure'"
+          *ngIf="section.alias !== 'monthlies' && section.alias !== 'blood-pressure'"
           class="health-input"
-          [value]="getSectionValue(section.id) || ''"
-          (input)="setFieldValue(section.id, $any($event.target).value)"
+          [value]="getSectionValue(section.alias) || ''"
+          (input)="setFieldValue(section.alias, $any($event.target).value)"
         />
-        <div class="health-pressure-edit" *ngIf="section.id === 'blood-pressure'">
+        <div class="health-pressure-edit" *ngIf="section.alias === 'blood-pressure'">
           <input
             class="health-input"
             [value]="draftHealth.bloodPressureTop || ''"
@@ -42,10 +42,10 @@
             (input)="setBloodPressureBottom($any($event.target).value)"
           />
         </div>
-        <label *ngIf="section.id === 'monthlies'" class="health-checkbox">
+        <label *ngIf="section.alias === 'monthlies'" class="health-checkbox">
           <input
             type="checkbox"
-            [checked]="getSectionValue(section.id) === 'Да'"
+            [checked]="getSectionValue(section.alias) === 'Да'"
             (change)="setMonthlies($any($event.target).checked)"
           />
           <span>Есть отметка</span>

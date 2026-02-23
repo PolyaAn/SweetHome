@@ -2,7 +2,8 @@ import { Health, HealthDictionary, HealthSection } from "../models/health.model"
 
 export const HealthSectionsMock: HealthSection[] = [
   {
-    id: 'mood',
+    id: '',
+    alias: 'mood',
     order: 5,
     name: 'Настроение',
     hide: false,
@@ -10,7 +11,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'activity',
+    id: '',
+    alias: 'activity',
     order: 6,
     name: 'Физическая активность',
     hide: false,
@@ -18,7 +20,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'weight',
+    id: '',
+    alias: 'weight',
     order: 1,
     name: 'Вес',
     hide: false,
@@ -28,7 +31,8 @@ export const HealthSectionsMock: HealthSection[] = [
     averageValue: true,
   },
   {
-    id: 'blood-pressure',
+    id: '',
+    alias: 'blood-pressure',
     order: 2,
     name: 'АД',
     hide: false,
@@ -38,7 +42,8 @@ export const HealthSectionsMock: HealthSection[] = [
     averageValue: true,
   },
   {
-    id: 'blood-sugar',
+    id: '',
+    alias: 'blood-sugar',
     order: 3,
     name: 'Сахар',
     hide: false,
@@ -48,7 +53,8 @@ export const HealthSectionsMock: HealthSection[] = [
     averageValue: true,
   },
   {
-    id: 'water',
+    id: '',
+    alias: 'water',
     order: 4,
     name: 'Вода',
     hide: false,
@@ -57,7 +63,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: false,
   },
   {
-    id: 'temperature',
+    id: '',
+    alias: 'temperature',
     order: 7,
     name: 'Температура',
     hide: false,
@@ -67,7 +74,8 @@ export const HealthSectionsMock: HealthSection[] = [
     averageValue: true,
   },
   {
-    id: 'other',
+    id: '',
+    alias: 'other',
     order: 8,
     name: 'Другое',
     hide: false,
@@ -75,7 +83,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'symptoms',
+    id: '',
+    alias: 'symptoms',
     order: 9,
     name: 'Симптомы',
     hide: false,
@@ -83,7 +92,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'digestion',
+    id: '',
+    alias: 'digestion',
     order: 10,
     name: 'Пищеворение',
     hide: false,
@@ -91,7 +101,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'sex',
+    id: '',
+    alias: 'sex',
     order: 11,
     name: 'Секс',
     hide: false,
@@ -99,7 +110,8 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: true,
   },
   {
-    id: 'monthlies',
+    id: '',
+    alias: 'monthlies',
     order: 12,
     name: 'Женский цикл',
     hide: false,
@@ -108,7 +120,7 @@ export const HealthSectionsMock: HealthSection[] = [
   },
 ];
 
-export const DefaultHealthDictionaryMock: HealthDictionary[] = [
+export const DefaultHealthDictionary: HealthDictionary[] = [
   {
     id: 'calm',
     name: 'Спокойствие',
@@ -412,7 +424,7 @@ export const HealthDictionaryMock: HealthDictionary[] = [
     id: 'joy',
     name: 'Радость',
     healthSection: 'mood',
-    value: true,
+    value: false,
   },
   {
     id: 'high-energy',
@@ -436,7 +448,7 @@ export const HealthDictionaryMock: HealthDictionary[] = [
     id: 'irritation',
     name: 'Раздражение',
     healthSection: 'mood',
-    value: true,
+    value: false,
   },
   {
     id: 'sadness',
@@ -694,8 +706,8 @@ export const HealthDictionaryMock: HealthDictionary[] = [
 
 export const DefaultHealth: Health = {
   date: '01.04.2026',
-  healthDictionary: HealthDictionaryMock,
-  weight: '60',
+  healthDictionary: DefaultHealthDictionary,
+  weight: '61',
   bloodPressureTop: '120',
   bloodPressureBottom: '80',
   bloodSugar: '4,6',

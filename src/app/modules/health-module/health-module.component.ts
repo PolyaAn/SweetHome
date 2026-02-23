@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { BaseComponent } from "../../components/base/base.component";
-import { Health, HealthDictionary, HealthSection } from "./models/health.model";
-import { DefaultHealth, HealthSectionsMock } from "./mocks/health.mock";
+import { Health, HealthApi, HealthDictionary, HealthSection } from "./models/health.model";
+import { DefaultHealth } from "./mocks/health.mock";
 import { HealthModuleService } from "./services/health-module.service";
 import { takeUntil } from "rxjs";
 import { SharedService } from "../../shared/services/shared.service";
@@ -21,13 +21,23 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     super();
   }
 
-  readonly sections: HealthSection[] = HealthSectionsMock
-    .filter((section: HealthSection) => !section.hide)
-    .sort((a: HealthSection, b: HealthSection) => a.order - b.order);
   draftHealth: Health | null = null;
+  healthSections: HealthSection[] | null = null;
   editingSectionId: string | null = null;
   selectedDate: string = this.toIsoDate(new Date());
   isPhone: boolean = this.ss.isPhone;
+
+  get sections(): HealthSection[] {
+    this.healthSections = this.cloneHealthSections(this.hs.healthSections$.value);
+    if (!this.healthSections?.length) {
+      return [];
+    }
+
+    return this.healthSections
+      .filter((section: HealthSection) => !section.hide)
+      .slice()
+      .sort((a: HealthSection, b: HealthSection) => a.order - b.order);
+  }
 
   ngOnInit(): void {
     this.loadHealthInfo(this.selectedDate);
@@ -51,8 +61,8 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     this.hs.getHealthInfo(date)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (health: Health) => {
-          this.draftHealth = this.cloneHealth(health);
+        next: (health: HealthApi) => {
+          this.draftHealth = this.cloneHealth(health.health);
           this.cdr.markForCheck();
         },
       });
@@ -205,7 +215,7 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   }
 
   trackBySectionId(_: number, section: HealthSection): string {
-    return section.id;
+    return section.alias;
   }
 
   trackByDictionaryId(_: number, item: HealthDictionary): string {
@@ -213,6 +223,10 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   }
 
   private cloneHealth(health: Health): Health {
+    return JSON.parse(JSON.stringify(health));
+  }
+
+  private cloneHealthSections(health: HealthSection[]): HealthSection[] {
     return JSON.parse(JSON.stringify(health));
   }
 

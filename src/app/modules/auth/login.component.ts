@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
+import { AuthService } from "./services/auth.service";
 
 @Component({
   selector: 'app-login',
@@ -17,11 +18,12 @@ import { Router } from "@angular/router";
 export class LoginComponent {
   constructor(
     private router: Router,
+    private authService: AuthService,
   ) {
   }
 
   form: FormGroup = new FormGroup({
-    email: new FormControl('user@example.com', [Validators.required, Validators.email]),
+    email: new FormControl('user3@example.com', [Validators.required, Validators.email]),
     password: new FormControl('String3.', [Validators.required, Validators.minLength(6)]),
   });
 
@@ -30,6 +32,11 @@ export class LoginComponent {
       this.form.markAllAsTouched();
       return;
     }
-    this.router.navigate(['/main']);
+    this.authService.login(this.form.value.email, this.form.value.password)
+      .subscribe((isAuth: boolean) => {
+        if (isAuth) {
+          this.router.navigate(['/main']);
+        }
+      });
   }
 }

@@ -1,6 +1,7 @@
 
 export interface HealthSection {
   id: string;
+  alias: string;
   order: number;
   name: string;
   defaultValue?: string;
@@ -13,6 +14,7 @@ export interface HealthSection {
 export type HealthSectionType = 'rating' | 'type' | 'number' | 'big-number' | 'day-boolean';
 
 export interface HealthDictionary {
+  // id: string;
   id: string;
   name: string;
   healthSection: string;
@@ -29,4 +31,9 @@ export interface Health {
   water?: string;
   temperature?: string;
   monthlies?: boolean;
+}
+
+export interface HealthApi {
+  health: Health;
+  healthSections: HealthSection[];
 }
