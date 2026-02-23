@@ -21,9 +21,10 @@ export interface HealthDictionary {
 
 export interface Health {
   data: string;
-  healthDictionary: HealthDictionary;
+  healthDictionary: HealthDictionary[];
   weight?: string;
   bloodPressure?: string;
+  bloodSugar?: string;
   water?: string;
   temperature?: string;
   monthlies?: boolean;

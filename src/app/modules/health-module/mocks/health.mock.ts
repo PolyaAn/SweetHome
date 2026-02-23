@@ -41,7 +41,7 @@ export const HealthSectionsMock: HealthSection[] = [
     name: 'Сахар',
     hide: false,
     type: 'number',
-    defaultValue: '1,5',
+    defaultValue: '5,0',
     dictionary: false,
   },
   {
@@ -103,16 +103,6 @@ export const HealthSectionsMock: HealthSection[] = [
     dictionary: false,
   },
 ];
-
-export const HealthMock: Health = {
-  data: '01.04.2026',
-  healthDictionary: HealthDictionary,
-  weight?: string;
-  bloodPressure?: string;
-  water?: string;
-  temperature?: string;
-  monthlies?: boolean;
-};
 
 export const HealthDictionaryMock: HealthDictionary[] = [
   {
@@ -213,3 +203,14 @@ export const HealthDictionaryMock: HealthDictionary[] = [
     value: false,
   },
 ];
+
+export const HealthMock: Health = {
+  data: '01.04.2026',
+  healthDictionary: HealthDictionaryMock,
+  weight: '56,8',
+  bloodPressure: '120/80',
+  bloodSugar: '4,6',
+  water: '1,7',
+  temperature: '36,6',
+  monthlies: false,
+};
