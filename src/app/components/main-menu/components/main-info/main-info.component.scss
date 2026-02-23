@@ -1,4 +1,5 @@
 @import '../../../../styles/utils';
+@import '../../../../styles/shared-styles';
 
 :host {
   flex: 1;
@@ -10,20 +11,13 @@
 
 .home-assistant {
   min-height: 160px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  @include ui-glass-surface(24px, rgba(255, 255, 255, 0.16), rgba(245, 141, 74, 0.14));
   color: #f7ecdd;
   display: flex;
   align-items: center;
   justify-content: center;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  background:
-    radial-gradient(circle at 14% 12%, rgba(245, 141, 74, 0.14), transparent 42%),
-    linear-gradient(150deg, #2b3138, #1d2228);
-  box-shadow:
-    0 10px 22px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.11);
 
   @include adaptivePhone {
     min-height: 96px;

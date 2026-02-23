@@ -1,4 +1,3 @@
-import { HealthDictionaryMock } from "../mocks/health.mock";
 
 export interface HealthSection {
   id: string;
@@ -8,6 +7,7 @@ export interface HealthSection {
   hide: boolean;
   type: HealthSectionType;
   dictionary: boolean;
+  averageValue?: boolean;
 }
 
 export type HealthSectionType = 'rating' | 'type' | 'number' | 'big-number' | 'day-boolean';

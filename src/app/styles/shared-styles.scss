@@ -1,0 +1,123 @@
+@mixin ui-glass-surface(
+  $radius: 20px,
+  $border-color: rgba(255, 255, 255, 0.16),
+  $accent-color: rgba(245, 141, 74, 0.18)
+) {
+  border-radius: $radius;
+  border: 1px solid $border-color;
+  background:
+    radial-gradient(circle at 92% 8%, $accent-color, transparent 48%),
+    linear-gradient(155deg, #2b3138, #1d2228);
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11);
+}
+
+@mixin ui-dashed-button($radius: 22px) {
+  border-radius: $radius;
+  color: #d2b28f;
+  border: 1px dashed rgba(255, 255, 255, 0.42);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+}
+
+@mixin ui-ghost-button($radius: 12px) {
+  border-radius: $radius;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #d2b28f;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+@mixin ui-primary-button($radius: 12px) {
+  border-radius: $radius;
+  color: #fffaf3;
+  border: 1px solid rgba(245, 141, 74, 0.65);
+  background: #db5d2b;
+}
+
+@mixin ui-tag-button {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #d2b28f;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+@mixin ui-mobile-float-panel {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  z-index: 40;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(245, 141, 74, 0.2), transparent 52%),
+    linear-gradient(150deg, rgba(36, 41, 48, 0.96), rgba(22, 26, 32, 0.96));
+  backdrop-filter: blur(8px);
+}
+
+@mixin ui-sections-grid($min-width: 260px, $gap: 16px) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+@mixin ui-section-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+@mixin ui-section-value {
+  margin-bottom: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffddba;
+}
+
+@mixin ui-input-field {
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #f9f1e6;
+}
+
+@mixin ui-inline-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@mixin ui-tags-wrap($gap: 8px) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $gap;
+}
+
+@mixin ui-tag-active {
+  color: #fff7ec;
+  border-color: rgba(245, 141, 74, 0.65);
+  background: #db5d2b;
+}
+
+@mixin ui-mobile-bottom-fade($height: 104px) {
+  display: none;
+
+  @media only screen and (max-width: 767px) {
+    display: block;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: $height;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+    pointer-events: none;
+    z-index: 20;
+  }
+}

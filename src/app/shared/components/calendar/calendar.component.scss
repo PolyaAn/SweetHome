@@ -1,0 +1,102 @@
+@import '../../../styles/shared-styles';
+
+.health-calendar {
+  @include ui-glass-surface(20px);
+  padding: 12px;
+}
+
+.health-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.health-calendar__month {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f7ecdd;
+}
+
+.calendar-nav {
+  width: 34px;
+  height: 34px;
+  @include ui-ghost-button(10px);
+  cursor: pointer;
+}
+
+.health-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  color: rgba(247, 236, 221, 0.7);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.health-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-day {
+  height: 34px;
+  @include ui-tag-button;
+  padding: 0;
+  color: #f7ecdd;
+  cursor: pointer;
+}
+
+.calendar-day.outside {
+  opacity: 0.45;
+}
+
+.calendar-day.active {
+  @include ui-tag-active;
+}
+
+.health-calendar.no-frame {
+  border: 0;
+  border-radius: 0;
+}
+
+.health-calendar.light-theme {
+  border-color: rgba(205, 156, 118, 0.38);
+  background:
+    radial-gradient(circle at 92% 8%, rgba(245, 141, 74, 0.12), transparent 48%),
+    linear-gradient(155deg, #fffaf5, #f7efe5);
+  box-shadow: none;
+}
+
+.health-calendar.light-theme .health-calendar__month {
+  color: #5f3b26;
+}
+
+.health-calendar.light-theme .calendar-weekday {
+  color: rgba(95, 59, 38, 0.7);
+}
+
+.health-calendar.light-theme .calendar-nav {
+  border-color: rgba(205, 156, 118, 0.45);
+  color: #8c5233;
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+.health-calendar.light-theme .calendar-day {
+  border-color: rgba(205, 156, 118, 0.36);
+  color: #5f3b26;
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+.health-calendar.light-theme .calendar-day.active {
+  color: #fff8ef;
+  border-color: rgba(219, 93, 43, 0.78);
+  background: #db5d2b;
+}

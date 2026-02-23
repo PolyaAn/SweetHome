@@ -6,7 +6,7 @@ import { UserInfo } from "../main-menu/models/main-menu.model";
 import { MatIcon } from "@angular/material/icon";
 import { NgIf } from "@angular/common";
 import { Location } from "@angular/common";
-import { NavigationEnd, Router } from "@angular/router";
+import { ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
 
 @Component({
   selector: 'app-header',
@@ -31,9 +31,11 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   user: UserInfo | undefined;
   isMainPage: boolean = false;
+  pageTitle: string = '';
 
   ngOnInit(): void {
     this.isMainPage = this.router.url.startsWith('/main');
+    this.pageTitle = this.getCurrentPageTitle();
     this.routeWatcher();
     this.getUserInfo();
   }
@@ -60,9 +62,20 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isMainPage = this.router.url.startsWith('/main');
+          this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
         },
       });
+  }
+
+  private getCurrentPageTitle(): string {
+    let snapshot: ActivatedRouteSnapshot = this.router.routerState.snapshot.root;
+
+    while (snapshot.firstChild) {
+      snapshot = snapshot.firstChild;
+    }
+
+    return snapshot.data?.['title'] || '';
   }
 
   editMainPage(): void {

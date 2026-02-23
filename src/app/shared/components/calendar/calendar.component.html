@@ -1,0 +1,25 @@
+<div class="health-calendar" [ngClass]="{ 'light-theme': isLightTheme, 'no-frame': noFrame }">
+  <div class="health-calendar__header">
+    <button type="button" class="calendar-nav" (click)="prevMonth()">‹</button>
+    <div class="health-calendar__month">{{ monthLabel }}</div>
+    <button type="button" class="calendar-nav" (click)="nextMonth()">›</button>
+  </div>
+
+  <div class="health-calendar__weekdays">
+    <div class="calendar-weekday" *ngFor="let weekDay of weekDays">{{ weekDay }}</div>
+  </div>
+
+  <div class="health-calendar__grid">
+    <button
+      type="button"
+      class="calendar-day"
+      *ngFor="let day of calendarDays; trackBy: trackByCalendarDate"
+      [ngClass]="{
+        outside: !day.inCurrentMonth,
+        active: day.iso === selectedDate
+      }"
+      (click)="selectDate(day)">
+      {{ day.day }}
+    </button>
+  </div>
+</div>

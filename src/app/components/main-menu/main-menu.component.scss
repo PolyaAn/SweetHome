@@ -1,4 +1,5 @@
 @import '../../styles/utils';
+@import '../../styles/shared-styles';
 
 :host {
   top: 76px;
@@ -49,14 +50,7 @@
         align-items: center;
         justify-content: center;
         color: #f7ecdd;
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background:
-          radial-gradient(circle at 92% 8%, rgba(245, 141, 74, 0.18), transparent 48%),
-          linear-gradient(155deg, #2b3138, #1d2228);
-        box-shadow:
-          0 10px 22px rgba(0, 0, 0, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.11);
+        @include ui-glass-surface(24px);
         height: 132px;
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
@@ -282,13 +276,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 22px;
-      color: #d2b28f;
-      border: 1px dashed rgba(255, 255, 255, 0.42);
-      background:
-        linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-        radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+      @include ui-dashed-button(22px);
       height: var(--main-bautton-height);
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
@@ -315,13 +303,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #d2b28f;
-        border-radius: 22px;
-        border: 1px dashed rgba(255, 255, 255, 0.42);
-        background:
-          linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-          radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+        @include ui-dashed-button(22px);
         height: var(--main-bautton-height);
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
@@ -343,10 +325,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fffaf3;
-        border-radius: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: linear-gradient(135deg, #db5d2b, #a33d1a);
+        @include ui-primary-button(22px);
         box-shadow: 0 8px 14px rgba(87, 27, 12, 0.22);
         height: var(--main-bautton-height);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -371,19 +350,10 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      position: fixed;
-      left: 16px;
-      right: 16px;
-      bottom: 14px;
+      @include ui-mobile-float-panel;
       z-index: 30;
-      padding: 10px;
       border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background:
-        radial-gradient(circle at 90% 10%, rgba(245, 141, 74, 0.2), transparent 52%),
-        linear-gradient(150deg, rgba(36, 41, 48, 0.96), rgba(22, 26, 32, 0.96));
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
-      backdrop-filter: blur(8px);
     }
   }
 
@@ -399,7 +369,7 @@
     &.active {
       color: #fff6eb;
       border-color: rgba(245, 141, 74, 0.7);
-      background: linear-gradient(135deg, #db5d2b, #a33d1a);
+      background: #db5d2b;
       box-shadow: 0 8px 14px rgba(87, 27, 12, 0.24);
     }
   }

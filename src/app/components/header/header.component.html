@@ -4,13 +4,16 @@
       {{ user?.name?.toUpperCase() }}
     </ng-container>
     <ng-template #backButton>
-      <mat-icon
-        (click)="goBack()"
-        class="icon back-icon"
-        aria-hidden="false"
-        aria-label="Назад"
-        fontIcon="arrow_back">
-      </mat-icon>
+      <div class="back-title-block">
+        <mat-icon
+          (click)="goBack()"
+          class="icon back-icon"
+          aria-hidden="false"
+          aria-label="Назад"
+          fontIcon="arrow_back">
+        </mat-icon>
+        <h1 class="page-title">{{ pageTitle }}</h1>
+      </div>
     </ng-template>
   </div>
   <div class="right" *ngIf="isMainPage">

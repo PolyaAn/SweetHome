@@ -1,3 +1,60 @@
+<app-calendar
+  *ngIf="draftHealth"
+  [selectedDate]="selectedDate"
+  [theme]="'light'"
+  [noFrame]="true"
+  (selectedDateChange)="onDateSelect($event)">
+</app-calendar>
+
+<div class="selected-date-badge" *ngIf="isPhone && draftHealth">
+  {{ formattedSelectedDate }}
+</div>
+
 <section class="health-module">
-  <h1>Health Module</h1>
+  <div class="health-sections" *ngIf="draftHealth">
+    <article class="health-section" *ngFor="let section of sections; trackBy: trackBySectionId">
+      <div class="health-section__header">
+        <h2>{{ section.name }} {{section.averageValue ? '(среднее значение)' : ''}}</h2>
+      </div>
+
+      <div class="health-section__value" *ngIf="!section.dictionary && !isEditing(section.id)" (click)="startEdit(section.id)">
+        {{ getSectionValue(section.id) || section.defaultValue }}
+      </div>
+
+      <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.id)">
+        <input
+          *ngIf="section.id !== 'monthlies'"
+          class="health-input"
+          [value]="getSectionValue(section.id) || ''"
+          (input)="setFieldValue(section.id, $any($event.target).value)"
+        />
+        <label *ngIf="section.id === 'monthlies'" class="health-checkbox">
+          <input
+            type="checkbox"
+            [checked]="getSectionValue(section.id) === 'Да'"
+            (change)="setMonthlies($any($event.target).checked)"
+          />
+          <span>Есть отметка</span>
+        </label>
+      </div>
+
+      <div class="health-tags" *ngIf="section.dictionary">
+        <button
+          type="button"
+          class="health-tag"
+          *ngFor="let item of getSectionDictionary(section.id); trackBy: trackByDictionaryId"
+          [ngClass]="{ active: item.value }"
+          (click)="toggleDictionaryValue(item.id)">
+          {{ item.name }}
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="health-actions" *ngIf="draftHealth">
+    <button type="button" class="health-action ghost" (click)="clear()">Отчистить</button>
+    <button type="button" class="health-action ghost cancel-action" (click)="cancel()">Отменить</button>
+    <button type="button" class="health-action primary" (click)="save()">Сохранить</button>
+  </div>
+  <div class="health-top-fade"></div>
 </section>

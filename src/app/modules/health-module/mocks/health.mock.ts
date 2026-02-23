@@ -3,7 +3,7 @@ import { Health, HealthDictionary, HealthSection } from "../models/health.model"
 export const HealthSectionsMock: HealthSection[] = [
   {
     id: 'mood',
-    order: 1,
+    order: 5,
     name: 'Настроение',
     hide: false,
     type: 'rating',
@@ -11,7 +11,7 @@ export const HealthSectionsMock: HealthSection[] = [
   },
   {
     id: 'activity',
-    order: 2,
+    order: 6,
     name: 'Физическая активность',
     hide: false,
     type: 'type',
@@ -19,34 +19,37 @@ export const HealthSectionsMock: HealthSection[] = [
   },
   {
     id: 'weight',
-    order: 3,
+    order: 1,
     name: 'Вес',
     hide: false,
     type: 'number',
     defaultValue: '60',
     dictionary: false,
+    averageValue: true,
   },
   {
     id: 'blood-pressure',
-    order: 4,
+    order: 2,
     name: 'АД',
     hide: false,
     type: 'big-number',
     defaultValue: '36,6',
     dictionary: false,
+    averageValue: true,
   },
   {
     id: 'blood-sugar',
-    order: 5,
+    order: 3,
     name: 'Сахар',
     hide: false,
     type: 'number',
     defaultValue: '5,0',
     dictionary: false,
+    averageValue: true,
   },
   {
     id: 'water',
-    order: 6,
+    order: 4,
     name: 'Вода',
     hide: false,
     type: 'number',
@@ -61,6 +64,7 @@ export const HealthSectionsMock: HealthSection[] = [
     type: 'number',
     defaultValue: '36,6',
     dictionary: false,
+    averageValue: true,
   },
   {
     id: 'other',
@@ -104,7 +108,7 @@ export const HealthSectionsMock: HealthSection[] = [
   },
 ];
 
-export const HealthDictionaryMock: HealthDictionary[] = [
+export const DefaultHealthDictionaryMock: HealthDictionary[] = [
   {
     id: 'calm',
     name: 'Спокойствие',
@@ -395,6 +399,309 @@ export const HealthDictionaryMock: HealthDictionary[] = [
     value: false,
   },
 ];
+
+export const HealthDictionaryMock: HealthDictionary[] = [
+  {
+    id: 'calm',
+    name: 'Спокойствие',
+    healthSection: 'mood',
+    value: false,
+
+  },
+  {
+    id: 'joy',
+    name: 'Радость',
+    healthSection: 'mood',
+    value: true,
+  },
+  {
+    id: 'high-energy',
+    name: 'Много энергии',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'playfulness',
+    name: 'Игривость',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'mood-swings',
+    name: 'Перепады настроения',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'irritation',
+    name: 'Раздражение',
+    healthSection: 'mood',
+    value: true,
+  },
+  {
+    id: 'sadness',
+    name: 'Грусть',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'anxiety',
+    name: 'Тревога',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'depression',
+    name: 'Подавленность',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'guilt',
+    name: 'Чувство вины',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'obsessive-thoughts',
+    name: 'Навязчивые мысли',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'low-energy',
+    name: 'Мало энергии',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'apathy',
+    name: 'Апатия',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'confusion',
+    name: 'Растерянность',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'self-criticism',
+    name: 'Жесткая самокритика',
+    healthSection: 'mood',
+    value: false,
+  },
+  {
+    id: 'no-training',
+    name: 'Тренировки не было',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'yoga',
+    name: 'Йога',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'gym',
+    name: 'Тренажерный зал',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'aerobics',
+    name: 'Аэробика и танцы',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'swimming',
+    name: 'Плавание',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'running',
+    name: 'Бег',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'cycling',
+    name: 'Велосипед',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'walking',
+    name: 'Ходьба',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'team-sports',
+    name: 'Командный спорт',
+    healthSection: 'activity',
+    value: false,
+  },
+  {
+    id: 'stress',
+    name: 'Стресс',
+    healthSection: 'other',
+    value: false,
+  },
+  {
+    id: 'alcohol',
+    name: 'Алкоголь',
+    healthSection: 'other',
+    value: false,
+  },
+  {
+    id: 'meditation',
+    name: 'Медитация',
+    healthSection: 'other',
+    value: false,
+  },
+  {
+    id: 'disease',
+    name: 'Болезнь или травма',
+    healthSection: 'other',
+    value: false,
+  },
+  {
+    id: 'abdominal-pain',
+    name: 'Боль в животе',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'lower-abdominal-pain',
+    name: 'Боли внизу живота',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'headache',
+    name: 'Головная боль',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'acne',
+    name: 'Прыщи',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'back-pain',
+    name: 'Боль в спине',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'fatigue',
+    name: 'Физическаая усталость',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'increased-appetite',
+    name: 'Повышенный аппетит',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'insomnia',
+    name: 'Бессонница',
+    healthSection: 'symptoms',
+    value: false,
+  },
+  {
+    id: 'nausea',
+    name: 'Тошнота',
+    healthSection: 'digestion',
+    value: false,
+  },
+  {
+    id: 'bloating',
+    name: 'Вздутие',
+    healthSection: 'digestion',
+    value: false,
+  },
+  {
+    id: 'diarrhea',
+    name: 'Диарея',
+    healthSection: 'digestion',
+    value: false,
+  },
+  {
+    id: 'constipation',
+    name: 'Запор',
+    healthSection: 'digestion',
+    value: false,
+  },
+  {
+    id: 'high-libido',
+    name: 'Сильное желание',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'medium-libido',
+    name: 'Среднее желание',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'low-libido',
+    name: 'Слабое желание',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'no-sex',
+    name: 'Секса не было',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'sex-with-protection',
+    name: 'Секс с защитой',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'sex-without-protection',
+    name: 'Секс без защиты',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'masturbation',
+    name: 'Мастурбация',
+    healthSection: 'sex',
+    value: false,
+  },
+  {
+    id: 'orgasm',
+    name: 'Оргазм',
+    healthSection: 'sex',
+    value: false,
+  },
+];
+
+export const DefaultHealth: Health = {
+  date: '01.04.2026',
+  healthDictionary: HealthDictionaryMock,
+  weight: '60',
+  bloodPressure: '120/80',
+  bloodSugar: '4,6',
+  water: '1,5',
+  temperature: '36,6',
+  monthlies: false,
+};
 
 export const HealthMock: Health = {
   date: '01.04.2026',

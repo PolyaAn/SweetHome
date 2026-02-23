@@ -1,4 +1,5 @@
 @import '../../../../styles/utils';
+@import '../../../../styles/shared-styles';
 
 :host {
   display: block;
@@ -91,13 +92,11 @@
 }
 
 .action-button.ghost {
+  @include ui-ghost-button(12px);
   color: #f7e4cc;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  background-color: rgba(255, 255, 255, 0.06);
 }
 
 .action-button.primary {
-  color: #fffaf3;
-  background: linear-gradient(135deg, #db5d2b, #a33d1a);
+  @include ui-primary-button(12px);
   box-shadow: 0 8px 14px rgba(87, 27, 12, 0.22);
 }

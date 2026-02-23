@@ -55,7 +55,7 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
   }
 
   private updateViewportMode(): void {
-    const isPhone: boolean = window.innerWidth < 768;
+    const isPhone: boolean = this.ss.isPhone;
     if (this.isPhoneView !== isPhone) {
       this.isPhoneView = isPhone;
       if (!isPhone) {
