@@ -1,74 +1,77 @@
-<app-calendar
-  *ngIf="draftHealth"
-  [selectedDate]="selectedDate"
-  [theme]="'light'"
-  [noFrame]="true"
-  (selectedDateChange)="onDateSelect($event)">
-</app-calendar>
+<app-loader [loading]="isLoading" [minHeight]="isPhone ? '280px' : '360px'" [label]="'Загружаем данные'">
+  <app-calendar
+    *ngIf="draftHealth"
+    [selectedDate]="selectedDate"
+    [theme]="'light'"
+    [noFrame]="true"
+    (selectedDateChange)="onDateSelect($event)">
+  </app-calendar>
 
-<div class="selected-date-badge" *ngIf="isPhone && draftHealth">
-  {{ formattedSelectedDate }}
-</div>
+  <div class="selected-date-badge" *ngIf="isPhone && draftHealth">
+    {{ formattedSelectedDate }}
+  </div>
 
-<section class="health-module">
-  <div class="health-sections" *ngIf="draftHealth">
-    <article class="health-section" *ngFor="let section of sections; trackBy: trackBySectionId">
-      <div class="health-section__header">
-        <h2>{{ section.name }} {{section.averageValue ? '(среднее значение)' : ''}}</h2>
-        <button *ngIf="section.averageValue" type="button" class="average-add-button">+</button>
-      </div>
-
-      <div class="health-section__value" *ngIf="!section.dictionary && !isEditing(section.alias)" (click)="startEdit(section.alias)">
-        {{ getSectionValue(section.alias) || section.defaultValue }}
-      </div>
-
-      <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.alias)">
-        <input
-          *ngIf="section.alias !== 'monthlies' && section.alias !== 'blood-pressure'"
-          class="health-input"
-          [value]="getSectionValue(section.alias) || ''"
-          (input)="setFieldValue(section.alias, $any($event.target).value)"
-        />
-        <div class="health-pressure-edit" *ngIf="section.alias === 'blood-pressure'">
-          <input
-            class="health-input"
-            [value]="draftHealth.bloodPressureTop || ''"
-            (input)="setBloodPressureTop($any($event.target).value)"
-          />
-          <span class="health-pressure-separator">/</span>
-          <input
-            class="health-input"
-            [value]="draftHealth.bloodPressureBottom || ''"
-            (input)="setBloodPressureBottom($any($event.target).value)"
-          />
+  <section class="health-module">
+    <div class="health-sections" *ngIf="draftHealth">
+      <article class="health-section" *ngFor="let section of sections; trackBy: trackBySectionId">
+        <div class="health-section__header">
+          <h2>{{ section.name }} {{ section.averageValue ? '(среднее значение)' : '' }}</h2>
+          <button *ngIf="section.averageValue" type="button" class="average-add-button">+</button>
         </div>
-        <label *ngIf="section.alias === 'monthlies'" class="health-checkbox">
+
+        <div class="health-section__value" *ngIf="!section.dictionary && !isEditing(section.alias)"
+             (click)="startEdit(section.alias)">
+          {{ getSectionValue(section.alias) || "--"}}
+        </div>
+
+        <div class="health-section__edit" *ngIf="!section.dictionary && isEditing(section.alias)">
           <input
-            type="checkbox"
-            [checked]="getSectionValue(section.alias) === 'Да'"
-            (change)="setMonthlies($any($event.target).checked)"
+            *ngIf="section.alias !== 'monthlies' && section.alias !== 'blood-pressure'"
+            class="health-input"
+            [value]="getSectionValue(section.alias) || ''"
+            (input)="setFieldValue(section.alias, $any($event.target).value)"
           />
-          <span>Есть отметка</span>
-        </label>
-      </div>
+          <div class="health-pressure-edit" *ngIf="section.alias === 'blood-pressure'">
+            <input
+              class="health-input"
+              [value]="draftHealth.bloodPressureTop || ''"
+              (input)="setBloodPressureTop($any($event.target).value)"
+            />
+            <span class="health-pressure-separator">/</span>
+            <input
+              class="health-input"
+              [value]="draftHealth.bloodPressureBottom || ''"
+              (input)="setBloodPressureBottom($any($event.target).value)"
+            />
+          </div>
+          <label *ngIf="section.alias === 'monthlies'" class="health-checkbox">
+            <input
+              type="checkbox"
+              [checked]="getSectionValue(section.alias) === 'Да'"
+              (change)="setMonthlies($any($event.target).checked)"
+            />
+            <span>Есть отметка</span>
+          </label>
+        </div>
 
-      <div class="health-tags" *ngIf="section.dictionary">
-        <button
-          type="button"
-          class="health-tag"
-          *ngFor="let item of getSectionDictionary(section.id); trackBy: trackByDictionaryId"
-          [ngClass]="{ active: item.value }"
-          (click)="toggleDictionaryValue(item.id)">
-          {{ item.name }}
-        </button>
-      </div>
-    </article>
-  </div>
+        <div class="health-tags" *ngIf="section.dictionary">
+          <button
+            type="button"
+            class="health-tag"
+            *ngFor="let item of getSectionDictionary(section.id); trackBy: trackByDictionaryId"
+            [ngClass]="{ active: item.value }"
+            (click)="toggleDictionaryValue(item.id)">
+            {{ item.name }}
+          </button>
+        </div>
+      </article>
+    </div>
 
-  <div class="health-actions" *ngIf="draftHealth">
-    <button type="button" class="health-action ghost" (click)="clear()">Отчистить</button>
-    <button type="button" class="health-action ghost cancel-action" (click)="cancel()">Отменить</button>
-    <button type="button" class="health-action primary" (click)="save()">Сохранить</button>
-  </div>
-  <div class="health-top-fade"></div>
-</section>
+    <div class="health-actions" *ngIf="draftHealth">
+      <button type="button" class="health-action ghost" (click)="clear()">Отчистить</button>
+      <button type="button" class="health-action ghost cancel-action" (click)="cancel()">Отменить</button>
+      <button type="button" class="health-action primary" (click)="save()">Сохранить</button>
+    </div>
+    <div class="health-top-fade"></div>
+  </section>
+</app-loader>

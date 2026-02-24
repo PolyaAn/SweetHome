@@ -22,7 +22,9 @@ export class MainManuService {
   mainWidgets$: BehaviorSubject<MainWidget[]> = new BehaviorSubject<MainWidget[]>([]);
 
   getWidgets(): Observable<MainWidget[]> {
-    return this.http.get<MainWidget[]>(`${environment.apiHost}/api/Widgets`).pipe(
+    return this.http.get<MainWidget[]>(`${environment.apiHost}/api/Widgets`, {
+      withCredentials: true,
+    }).pipe(
       tap((widgets: MainWidget[]) => {
         this.defaultMainWidgets$.next(this.ss.getValue(widgets));
         this.mainWidgets$.next(this.ss.getValue(widgets));

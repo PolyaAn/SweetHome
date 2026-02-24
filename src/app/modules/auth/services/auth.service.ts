@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpResponse } from "@angular/common/http";
 import { BehaviorSubject, catchError, map, Observable, of, tap } from "rxjs";
 import { environment } from "../../../../environments/environment";
 
@@ -18,8 +18,11 @@ export class AuthService {
     return this.http.post(`${environment.apiHost}/Account/Login`, {
       email,
       password,
+    }, {
+      withCredentials: true,
+      observe: 'response',
     }).pipe(
-      map(() => true),
+      map((response: HttpResponse<unknown>) => response.ok),
       catchError(() => of(false)),
       tap((isAuth: boolean) => this.isAuthenticated$.next(isAuth))
     );

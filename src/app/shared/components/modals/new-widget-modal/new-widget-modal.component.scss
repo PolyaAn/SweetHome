@@ -15,12 +15,12 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fcf7f0;
+  color: $color-sand-7;
 }
 
 .modern-form-modal__subtitle {
   margin-bottom: 18px;
-  color: #f5e8d6;
+  color: $color-sand-4;
   font-size: 14px;
   line-height: 1.45;
 }
@@ -30,9 +30,9 @@
   border-radius: 18px;
   padding: 12px;
   background:
-    radial-gradient(circle at 8% 0%, rgba(245, 134, 64, 0.16), transparent 55%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.16);
+    radial-gradient(circle at 8% 0%, $alpha-accent-16-alt, transparent 55%),
+    linear-gradient(160deg, $alpha-white-10, $alpha-white-02);
+  border: 1px solid $alpha-white-16;
 }
 
 .widget-options {
@@ -47,11 +47,11 @@
   min-height: 48px;
   border-radius: 12px;
   padding: 0 10px;
-  color: #fdf7ef;
+  color: $color-sand-6;
   transition: background-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: $alpha-white-10;
     transform: translateX(4px);
   }
 }
@@ -63,9 +63,9 @@
 .empty-state {
   padding: 28px 16px;
   text-align: center;
-  color: #f7d7b4;
+  color: $color-sand-3;
   border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.38);
+  border: 1px dashed $alpha-white-38;
 }
 
 .modern-form-modal__actions {
@@ -93,10 +93,10 @@
 
 .action-button.ghost {
   @include ui-ghost-button(12px);
-  color: #f7e4cc;
+  color: $color-sand-2;
 }
 
 .action-button.primary {
   @include ui-primary-button(12px);
-  box-shadow: 0 8px 14px rgba(87, 27, 12, 0.22);
+  box-shadow: 0 8px 14px $alpha-brown-deep-22;
 }

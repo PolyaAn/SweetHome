@@ -1,48 +1,228 @@
+// Base palette
+$color-white: #ffffff;
+$color-black: #000000;
+
+$color-bg-deep-1: #1a1e24;
+$color-bg-deep-2: #1b2027;
+$color-bg-deep-3: #1d2228;
+$color-bg-deep-4: #2a2f37;
+$color-bg-deep-5: #2b3138;
+
+$color-accent-main: #db5d2b;
+$color-accent-soft: #f58d4a;
+$color-accent-cream: #ffd6b0;
+$color-accent-peach: #ffb68f;
+
+$color-text-main: #f9f1e6;
+$color-text-soft: #f7ecdd;
+$color-text-soft-2: #f8e4cb;
+$color-text-accent: #ffddba;
+$color-text-light: #fff7ec;
+$color-text-light-2: #fffaf3;
+$color-text-light-3: #fff8ef;
+$color-text-light-4: #fffaf5;
+
+$color-sand-1: #f7efe5;
+$color-sand-2: #f7e4cc;
+$color-sand-3: #f7d7b4;
+$color-sand-4: #f5e8d6;
+$color-sand-5: #f2dcc3;
+$color-sand-6: #fdf7ef;
+$color-sand-7: #fcf7f0;
+
+$color-brown-1: #5f3b26;
+$color-brown-2: #8c5233;
+$color-gold-1: #d2b28f;
+$color-gold-2: #d5b796;
+$color-neutral-1: #2d2d2d;
+$color-neutral-2: #606060;
+$color-danger-1: #730c00;
+$color-danger-2: #5e0000;
+$color-gray-soft: #e0dcdc;
+
+// Alpha palette
+$alpha-white-1: rgba(255, 255, 255, 1);
+$alpha-white-72: rgba(255, 255, 255, 0.72);
+$alpha-white-42: rgba(255, 255, 255, 0.42);
+$alpha-white-38: rgba(255, 255, 255, 0.38);
+$alpha-white-36: rgba(255, 255, 255, 0.36);
+$alpha-white-28: rgba(255, 255, 255, 0.28);
+$alpha-white-25: rgba(255, 255, 255, 0.25);
+$alpha-white-24: rgba(255, 255, 255, 0.24);
+$alpha-white-20: rgba(255, 255, 255, 0.2);
+$alpha-white-16: rgba(255, 255, 255, 0.16);
+$alpha-white-15: rgba(255, 255, 255, 0.15);
+$alpha-white-14: rgba(255, 255, 255, 0.14);
+$alpha-white-11: rgba(255, 255, 255, 0.11);
+$alpha-white-10: rgba(255, 255, 255, 0.1);
+$alpha-white-08: rgba(255, 255, 255, 0.08);
+$alpha-white-06: rgba(255, 255, 255, 0.06);
+$alpha-white-04: rgba(255, 255, 255, 0.04);
+$alpha-white-03: rgba(255, 255, 255, 0.03);
+$alpha-white-02: rgba(255, 255, 255, 0.02);
+$alpha-white-00: rgba(255, 255, 255, 0);
+
+$alpha-black-45: rgba(0, 0, 0, 0.45);
+$alpha-black-24: rgba(0, 0, 0, 0.24);
+$alpha-black-22: rgba(0, 0, 0, 0.22);
+$alpha-black-20: rgba(0, 0, 0, 0.2);
+$alpha-black-18: rgba(0, 0, 0, 0.18);
+
+$alpha-accent-78: rgba(219, 93, 43, 0.78);
+$alpha-accent-75: rgba(245, 141, 74, 0.75);
+$alpha-accent-70: rgba(245, 141, 74, 0.7);
+$alpha-accent-68: rgba(245, 141, 74, 0.68);
+$alpha-accent-65: rgba(245, 141, 74, 0.65);
+$alpha-accent-48: rgba(245, 141, 74, 0.48);
+$alpha-accent-30: rgba(245, 141, 74, 0.3);
+$alpha-accent-24: rgba(245, 141, 74, 0.24);
+$alpha-accent-20: rgba(245, 141, 74, 0.2);
+$alpha-accent-18: rgba(245, 141, 74, 0.18);
+$alpha-accent-14: rgba(245, 141, 74, 0.14);
+$alpha-accent-12: rgba(245, 141, 74, 0.12);
+$alpha-accent-10: rgba(245, 141, 74, 0.1);
+$alpha-accent-16-alt: rgba(245, 134, 64, 0.16);
+
+$alpha-sand-74: rgba(249, 241, 230, 0.74);
+$alpha-sand-72: rgba(247, 236, 221, 0.72);
+$alpha-sand-70: rgba(247, 236, 221, 0.7);
+$alpha-sand-70-alt: rgba(249, 232, 209, 0.7);
+
+$alpha-brown-70: rgba(95, 59, 38, 0.7);
+$alpha-brown-45: rgba(205, 156, 118, 0.45);
+$alpha-brown-38: rgba(205, 156, 118, 0.38);
+$alpha-brown-36: rgba(205, 156, 118, 0.36);
+$alpha-brown-deep-26: rgba(87, 27, 12, 0.26);
+$alpha-brown-deep-24: rgba(87, 27, 12, 0.24);
+$alpha-brown-deep-22: rgba(87, 27, 12, 0.22);
+
+$alpha-panel-top: rgba(36, 41, 48, 0.96);
+$alpha-panel-bottom: rgba(22, 26, 32, 0.96);
+$alpha-gray-soft-60: rgba(224, 220, 220, 0.60);
+$alpha-gray-soft-50: rgba(224, 220, 220, 0.50);
+
+// Material palette bridge
+$mat-color-black: #000;
+$mat-color-white: #fff;
+$mat-color-neutral-212121: #212121;
+$mat-color-neutral-333333: #333333;
+$mat-color-neutral-424242: #424242;
+$mat-color-neutral-616161: #616161;
+$mat-color-neutral-757575: #757575;
+$mat-color-neutral-b0b0b0: #b0b0b0;
+$mat-color-neutral-b9b9b9: #b9b9b9;
+$mat-color-neutral-bdbdbd: #bdbdbd;
+$mat-color-neutral-e0e0e0: #e0e0e0;
+$mat-color-neutral-eeeeee: #eeeeee;
+$mat-color-neutral-fafafa: #fafafa;
+
+$mat-color-primary: #673ab7;
+$mat-color-primary-dark: #311b92;
+$mat-color-primary-mid: #5e35b1;
+$mat-color-primary-light: #9575cd;
+
+$mat-color-accent: #ffb300;
+$mat-color-accent-dark: #ff6f00;
+$mat-color-accent-light: #ffd54f;
+$mat-color-accent-alt-rgb: rgba(249, 171, 0, 0.2);
+
+$mat-color-warn: #f44336;
+$mat-color-warn-dark: #b71c1c;
+$mat-color-warn-mid: #e53935;
+$mat-color-warn-light: #e57373;
+
+$mat-color-success: #46a35e;
+$mat-color-success-light: #a8dab5;
+
+$mat-alpha-black-00: rgba(0, 0, 0, 0);
+$mat-alpha-black-04: rgba(0, 0, 0, 0.04);
+$mat-alpha-black-06: rgba(0, 0, 0, 0.06);
+$mat-alpha-black-10: rgba(0, 0, 0, 0.1);
+$mat-alpha-black-12: rgba(0, 0, 0, 0.12);
+$mat-alpha-black-14: rgba(0, 0, 0, 0.14);
+$mat-alpha-black-18: rgba(0, 0, 0, 0.18);
+$mat-alpha-black-20: rgba(0, 0, 0, 0.2);
+$mat-alpha-black-24: rgba(0, 0, 0, 0.24);
+$mat-alpha-black-26: rgba(0, 0, 0, 0.26);
+$mat-alpha-black-32: rgba(0, 0, 0, 0.32);
+$mat-alpha-black-38: rgba(0, 0, 0, 0.38);
+$mat-alpha-black-42: rgba(0, 0, 0, 0.42);
+$mat-alpha-black-54: rgba(0, 0, 0, 0.54);
+$mat-alpha-black-60: rgba(0, 0, 0, 0.6);
+$mat-alpha-black-87: rgba(0, 0, 0, 0.87);
+
+$mat-alpha-white-10: rgba(255, 255, 255, 0.1);
+$mat-alpha-white-87: rgba(255, 255, 255, 0.87);
+
+$mat-alpha-primary-05: rgba(103, 58, 183, 0.05);
+$mat-alpha-primary-10: rgba(103, 58, 183, 0.1);
+$mat-alpha-primary-20: rgba(103, 58, 183, 0.2);
+$mat-alpha-primary-25: rgba(103, 58, 183, 0.25);
+$mat-alpha-primary-30: rgba(103, 58, 183, 0.3);
+$mat-alpha-primary-40: rgba(103, 58, 183, 0.4);
+$mat-alpha-primary-87: rgba(103, 58, 183, 0.87);
+
+$mat-alpha-accent-05: rgba(255, 215, 64, 0.05);
+$mat-alpha-accent-10: rgba(255, 215, 64, 0.1);
+$mat-alpha-accent-20: rgba(255, 215, 64, 0.2);
+$mat-alpha-accent-25: rgba(255, 215, 64, 0.25);
+$mat-alpha-accent-30: rgba(255, 215, 64, 0.3);
+$mat-alpha-accent-40: rgba(255, 215, 64, 0.4);
+$mat-alpha-accent-87: rgba(255, 215, 64, 0.87);
+
+$mat-alpha-warn-05: rgba(244, 67, 54, 0.05);
+$mat-alpha-warn-10: rgba(244, 67, 54, 0.1);
+$mat-alpha-warn-20: rgba(244, 67, 54, 0.2);
+$mat-alpha-warn-25: rgba(244, 67, 54, 0.25);
+$mat-alpha-warn-30: rgba(244, 67, 54, 0.3);
+$mat-alpha-warn-40: rgba(244, 67, 54, 0.4);
+$mat-alpha-warn-87: rgba(244, 67, 54, 0.87);
+
 @mixin ui-glass-surface(
   $radius: 20px,
-  $border-color: rgba(255, 255, 255, 0.16),
-  $accent-color: rgba(245, 141, 74, 0.18)
+  $border-color: $alpha-white-16,
+  $accent-color: $alpha-accent-18
 ) {
   border-radius: $radius;
   border: 1px solid $border-color;
   background:
     radial-gradient(circle at 92% 8%, $accent-color, transparent 48%),
-    linear-gradient(155deg, #2b3138, #1d2228);
+    linear-gradient(155deg, $color-bg-deep-5, $color-bg-deep-3);
   box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.11);
+    0 10px 20px $alpha-black-18,
+    inset 0 1px 0 $alpha-white-11;
 }
 
 @mixin ui-dashed-button($radius: 22px) {
   border-radius: $radius;
-  color: #d2b28f;
-  border: 1px dashed rgba(255, 255, 255, 0.42);
+  color: $color-gold-1;
+  border: 1px dashed $alpha-white-42;
   background:
-    linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    radial-gradient(circle at 90% 0%, rgba(245, 141, 74, 0.18), transparent 50%);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+    linear-gradient(150deg, $alpha-white-08, $alpha-white-02),
+    radial-gradient(circle at 90% 0%, $alpha-accent-18, transparent 50%);
+  box-shadow: 0 8px 16px $alpha-black-18;
 }
 
 @mixin ui-ghost-button($radius: 12px) {
   border-radius: $radius;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  color: #d2b28f;
-  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid $alpha-white-28;
+  color: $color-gold-1;
+  background-color: $alpha-white-06;
 }
 
 @mixin ui-primary-button($radius: 12px) {
   border-radius: $radius;
-  color: #fffaf3;
-  border: 1px solid rgba(245, 141, 74, 0.65);
-  background: #db5d2b;
+  color: $color-text-light-2;
+  border: 1px solid $alpha-accent-65;
+  background: $color-accent-main;
 }
 
 @mixin ui-tag-button {
   padding: 6px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #d2b28f;
-  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid $alpha-white-25;
+  color: $color-gold-1;
+  background-color: $alpha-white-04;
 }
 
 @mixin ui-mobile-float-panel {
@@ -53,10 +233,10 @@
   z-index: 40;
   padding: 10px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid $alpha-white-20;
   background:
-    radial-gradient(circle at 90% 10%, rgba(245, 141, 74, 0.2), transparent 52%),
-    linear-gradient(150deg, rgba(36, 41, 48, 0.96), rgba(22, 26, 32, 0.96));
+    radial-gradient(circle at 90% 10%, $alpha-accent-20, transparent 52%),
+    linear-gradient(150deg, $alpha-panel-top, $alpha-panel-bottom);
   backdrop-filter: blur(8px);
 }
 
@@ -76,16 +256,16 @@
   margin-bottom: 12px;
   font-size: 24px;
   font-weight: 700;
-  color: #ffddba;
+  color: $color-text-accent;
 }
 
 @mixin ui-input-field {
   height: 40px;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #f9f1e6;
+  border: 1px solid $alpha-white-25;
+  background-color: $alpha-white-08;
+  color: $color-text-main;
 }
 
 @mixin ui-inline-check {
@@ -101,9 +281,9 @@
 }
 
 @mixin ui-tag-active {
-  color: #fff7ec;
-  border-color: rgba(245, 141, 74, 0.65);
-  background: #db5d2b;
+  color: $color-text-light;
+  border-color: $alpha-accent-65;
+  background: $color-accent-main;
 }
 
 @mixin ui-mobile-bottom-fade($height: 104px) {
@@ -116,8 +296,11 @@
     right: 16px;
     bottom: 0;
     height: $height;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+    background: linear-gradient(180deg, $alpha-white-00, $alpha-white-1);
     pointer-events: none;
     z-index: 20;
   }
 }
+
+$loader-accent-color: $color-accent-main;
+$loader-spinner-track-color: $alpha-white-25;

@@ -1,0 +1,12 @@
+<div class="loader" [style.min-height]="minHeight">
+  <div class="loader__content">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="loader__overlay" *ngIf="loading" role="status" aria-live="polite" [attr.aria-label]="label">
+    <div class="loader__overlay-content">
+      <div class="loader__spinner" aria-hidden="true"></div>
+      <span class="loader__label">{{ label }}</span>
+    </div>
+  </div>
+</div>

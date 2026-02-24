@@ -1,19 +1,21 @@
+@import './shared-styles';
+
 :root {
   // ПРИБРАТЬСЯ В ПЕРЕМЕННЫХ
-  --header-background: #2d2d2d;
-  --widget-background: #2d2d2d;
-  --color-button-background: #730c00;
-  //--color-button-background: #5e0000;
-  --light-grey: #e0dcdc;
-  --light-text: #e0dcdc;
-  --grey: #606060;
-  --light-grey-50: rgba(224, 220, 220, 0.50);
-  --light-grey-60: rgba(224, 220, 220, 0.60);
-  --light-text-60: rgba(224, 220, 220, 0.60);
-  --dark: #2d2d2d;
-  --button-light-background: #ffffff;
+  --header-background: #{$color-neutral-1};
+  --widget-background: #{$color-neutral-1};
+  --color-button-background: #{$color-danger-1};
+  //--color-button-background: #{$color-danger-2};
+  --light-grey: #{$color-gray-soft};
+  --light-text: #{$color-gray-soft};
+  --grey: #{$color-neutral-2};
+  --light-grey-50: #{$alpha-gray-soft-50};
+  --light-grey-60: #{$alpha-gray-soft-60};
+  --light-text-60: #{$alpha-gray-soft-60};
+  --dark: #{$color-neutral-1};
+  --button-light-background: #{$color-white};
 
-  --shadow-base: 0px 5px 10px 0px rgba(0, 0, 0, 0.2);
+  --shadow-base: 0px 5px 10px 0px #{$alpha-black-20};
   --icon-size: 36px; // нужно использовать
   --main-bautton-height: calc(10vh - 11px);
   --border-radius-24: 24px;
@@ -161,4 +163,3 @@
     @content;
   }
 }
-

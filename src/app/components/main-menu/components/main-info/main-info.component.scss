@@ -11,8 +11,8 @@
 
 .home-assistant {
   min-height: 160px;
-  @include ui-glass-surface(24px, rgba(255, 255, 255, 0.16), rgba(245, 141, 74, 0.14));
-  color: #f7ecdd;
+  @include ui-glass-surface(24px, $alpha-white-16, $alpha-accent-14);
+  color: $color-text-soft;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -25,8 +25,8 @@ const routes: Routes = [
   },
   {
     path: 'movie',
-    redirectTo: 'main',
-    pathMatch: 'full',
+    loadChildren: () =>
+      import('./modules/movie-module/movie-module.module').then((m) => m.MovieModuleModule),
   },
   {
     path: 'health-module',

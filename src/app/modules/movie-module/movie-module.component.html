@@ -1,0 +1,87 @@
+<section class="movie-module">
+  <div class="movie-filters">
+    <div class="movie-search-row">
+      <input
+        type="text"
+        class="movie-filter-input"
+        [value]="searchQuery"
+        (input)="onSearchChange($any($event.target).value)"
+        placeholder="Поиск по названию и комментарию"
+      />
+      <button
+        type="button"
+        class="movie-filter-toggle"
+        *ngIf="isPhone"
+        (click)="togglePhoneFilters()"
+        [attr.aria-label]="showPhoneFilters ? 'Скрыть фильтры' : 'Показать фильтры'">
+        <mat-icon [fontIcon]="showPhoneFilters ? 'filter_alt_off' : 'filter_alt'"></mat-icon>
+      </button>
+    </div>
+    <div class="movie-filter-range" *ngIf="!isPhone || showPhoneFilters">
+      <span class="movie-filter-label">Рейтинг</span>
+      <div class="movie-filter-fields">
+        <label class="movie-filter-field">
+          <span class="movie-filter-label">от</span>
+          <select
+            class="movie-filter-select"
+            [value]="minRating"
+            (change)="onMinRatingChange($any($event.target).value)">
+            <option value="">Любой</option>
+            <option *ngFor="let rating of [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]" [value]="rating">{{ rating }}</option>
+          </select>
+        </label>
+        <label class="movie-filter-field">
+          <span class="movie-filter-label">до</span>
+          <select
+            class="movie-filter-select"
+            [value]="maxRating"
+            (change)="onMaxRatingChange($any($event.target).value)">
+            <option value="">Любой</option>
+            <option *ngFor="let rating of [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]" [value]="rating">{{ rating }}</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <label class="movie-filter-field movie-filter-genre" *ngIf="!isPhone || showPhoneFilters">
+      <span class="movie-filter-label">Жанр</span>
+      <select
+        class="movie-filter-select"
+        [value]="selectedGenreId"
+        (change)="onGenreChange($any($event.target).value)">
+        <option value="all">Любой жанр</option>
+        <option *ngFor="let genre of genreOptions" [value]="genre.id">{{ genre.name }}</option>
+      </select>
+    </label>
+  </div>
+
+  <p *ngIf="!movies.length">Фильмы не найдены</p>
+  <p *ngIf="movies.length && !filteredMovies.length">По вашему запросу ничего не найдено</p>
+
+  <div class="movie-list" *ngIf="filteredMovies.length">
+    <article class="movie-item" *ngFor="let movie of filteredMovies">
+      <div class="movie-item__head">
+        <h3>{{ movie.name }}</h3>
+        <span class="movie-rating">Рейтинг: {{ movie.rating }}</span>
+      </div>
+      <div class="movie-meta">
+        <span>{{ movie.types }}</span>
+        <span *ngIf="getGenres(movie).length">{{ getGenresLabel(movie) }}</span>
+      </div>
+      <p
+        #commentBlock
+        class="movie-comment"
+        [attr.data-movie-id]="movie.id"
+        [class.expanded]="isCommentExpanded(movie.id)"
+        *ngIf="movie.comment">
+        {{ movie.comment }}
+      </p>
+      <button
+        type="button"
+        class="movie-comment-toggle"
+        *ngIf="movie.comment && showToggle(movie.id)"
+        (click)="toggleComment(movie.id)">
+        {{ isCommentExpanded(movie.id) ? 'Свернуть' : 'Показать еще' }}
+      </button>
+    </article>
+  </div>
+</section>

@@ -22,12 +22,12 @@ export class HealthModuleService {
 
   getHealthInfo(date: string): Observable<HealthApi> {
     return this.http.get<HealthApi>(`${environment.apiHost}/api/Health`, {
+      withCredentials: true,
       params: {
         date,
       },
     }).pipe(
       tap((healthInfo: HealthApi) => {
-        console.log(healthInfo);
         this.healthInfo$.next(this.ss.getValue(healthInfo.health));
         this.healthSections$.next(this.ss.getValue(healthInfo.healthSections));
       })

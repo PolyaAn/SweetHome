@@ -1,10 +1,11 @@
 @import '../../styles/utils';
+@import '../../styles/shared-styles';
 
 :host {
-  color: #f9f1e6;
+  color: $color-text-main;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 24px $alpha-black-18;
   position: fixed;
   top: 0;
   right: 0;
@@ -26,9 +27,9 @@
     justify-content: space-between;
     padding: 14px 24px;
     background:
-      radial-gradient(circle at 92% 10%, rgba(245, 141, 74, 0.24), transparent 44%),
-      linear-gradient(145deg, #2a2f37, #1b2027);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      radial-gradient(circle at 92% 10%, $alpha-accent-24, transparent 44%),
+      linear-gradient(145deg, $color-bg-deep-4, $color-bg-deep-2);
+    border-bottom: 1px solid $alpha-white-16;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 
@@ -39,7 +40,7 @@
 
     .left {
       font-weight: 700;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+      text-shadow: 0 2px 12px $alpha-black-45;
     }
 
     .back-title-block {
@@ -52,9 +53,9 @@
       @include icon-36;
       padding: 5px;
       border-radius: 14px;
-      color: #f8e4cb;
-      background-color: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.24);
+      color: $color-text-soft-2;
+      background-color: $alpha-white-08;
+      border: 1px solid $alpha-white-24;
       cursor: pointer;
       transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -64,8 +65,8 @@
 
       &:hover {
         transform: translateY(-1px);
-        background-color: rgba(245, 141, 74, 0.18);
-        box-shadow: 0 6px 13px rgba(0, 0, 0, 0.18);
+        background-color: $alpha-accent-18;
+        box-shadow: 0 6px 13px $alpha-black-18;
       }
     }
 
@@ -76,7 +77,7 @@
     .page-title {
       @include font-24;
       margin: 0;
-      color: #f9f1e6;
+      color: $color-text-main;
       letter-spacing: 0.05em;
       text-transform: uppercase;
 

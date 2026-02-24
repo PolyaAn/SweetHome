@@ -7,7 +7,8 @@ import { MainMenuComponent } from "./components/main-menu/main-menu.component";
 import { HeaderComponent } from "./components/header/header.component";
 import { RouterOutlet } from "@angular/router";
 import { AppRoutingModule } from "./app-routing.module";
-import { HttpClientModule } from "@angular/common/http";
+import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
+import { CredentialsInterceptor } from "./interceptors/credentials.interceptor";
 
 @NgModule({
   declarations: [
@@ -22,7 +23,12 @@ import { HttpClientModule } from "@angular/common/http";
     HttpClientModule
   ],
   providers: [
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CredentialsInterceptor,
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent]
 })

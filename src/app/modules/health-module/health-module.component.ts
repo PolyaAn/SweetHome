@@ -3,7 +3,7 @@ import { BaseComponent } from "../../components/base/base.component";
 import { Health, HealthApi, HealthDictionary, HealthSection } from "./models/health.model";
 import { DefaultHealth } from "./mocks/health.mock";
 import { HealthModuleService } from "./services/health-module.service";
-import { takeUntil } from "rxjs";
+import { finalize, takeUntil } from "rxjs";
 import { SharedService } from "../../shared/services/shared.service";
 
 @Component({
@@ -26,6 +26,7 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   editingSectionId: string | null = null;
   selectedDate: string = this.toIsoDate(new Date());
   isPhone: boolean = this.ss.isPhone;
+  isLoading: boolean = false;
 
   get sections(): HealthSection[] {
     this.healthSections = this.cloneHealthSections(this.hs.healthSections$.value);
@@ -58,8 +59,15 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   }
 
   private loadHealthInfo(date: string): void {
+    this.isLoading = true;
     this.hs.getHealthInfo(date)
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe({
         next: (health: HealthApi) => {
           this.draftHealth = this.cloneHealth(health.health);
@@ -193,8 +201,15 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
       return;
     }
 
+    this.isLoading = true;
     this.hs.setHealthInfo(this.draftHealth)
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe({
         next: (health: Health) => {
           this.draftHealth = this.cloneHealth(health);

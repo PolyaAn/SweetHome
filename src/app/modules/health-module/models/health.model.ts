@@ -4,7 +4,6 @@ export interface HealthSection {
   alias: string;
   order: number;
   name: string;
-  defaultValue?: string;
   hide: boolean;
   type: HealthSectionType;
   dictionary: boolean;
