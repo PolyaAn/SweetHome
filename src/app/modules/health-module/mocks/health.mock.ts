@@ -705,14 +705,14 @@ export const HealthDictionaryMock: HealthDictionary[] = [
 ];
 
 export const DefaultHealth: Health = {
-  date: '01.04.2026',
+  date: '',
   healthDictionary: DefaultHealthDictionary,
-  weight: '61',
-  bloodPressureTop: '120',
-  bloodPressureBottom: '80',
-  bloodSugar: '4,6',
-  water: '1,5',
-  temperature: '36,6',
+  weight: '',
+  bloodPressureTop: '',
+  bloodPressureBottom: '',
+  bloodSugar: '',
+  water: '',
+  temperature: '',
   monthlies: false,
 };
 
