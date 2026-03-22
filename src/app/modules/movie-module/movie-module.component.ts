@@ -13,7 +13,7 @@ import { BaseComponent } from "../../components/base/base.component";
 import { Movie, MovieGenre } from "./models/movie.model";
 import { MovieModuleService } from "./services/movie-module.service";
 import { takeUntil } from "rxjs";
-import { SharedService } from "../../shared/services/shared.service";
+import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
 
 @Component({
   selector: 'app-movie-module',
@@ -33,19 +33,36 @@ export class MovieModuleComponent extends BaseComponent implements OnInit, After
   @ViewChildren('commentBlock') commentBlocks!: QueryList<ElementRef<HTMLElement>>;
 
   movies: Movie[] = [];
+  readonly ratingOptions: number[] = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
   searchQuery: string = '';
   selectedGenreId: string = 'all';
-  minRating: string = '';
-  maxRating: string = '';
+  minRating: string = String(Math.min(...this.ratingOptions));
+  maxRating: string = String(Math.max(...this.ratingOptions));
   showPhoneFilters: boolean = false;
   expandedComments: Record<string, boolean> = {};
   canToggleComments: Record<string, boolean> = {};
+  viewMode: MovieViewMode = 'list';
 
   get isPhone(): boolean {
     return this.ss.isPhone;
   }
 
   ngOnInit(): void {
+    this.ss.movieViewMode$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (mode: MovieViewMode) => {
+          this.viewMode = mode;
+          if (mode === 'grid') {
+            setTimeout(() => this.updateCommentToggleMap());
+          } else {
+            this.canToggleComments = {};
+            this.expandedComments = {};
+          }
+          this.cdr.markForCheck();
+        },
+      });
+
     this.ms.getMoviesInfo()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
@@ -83,11 +100,11 @@ export class MovieModuleComponent extends BaseComponent implements OnInit, After
     const maxRatingValue: number | null = this.maxRating ? Number(this.maxRating) : null;
 
     return this.movies.filter((movie: Movie) => {
-      if (minRatingValue !== null && movie.rating < minRatingValue) {
+      if (minRatingValue !== null && movie.rating && movie.rating < minRatingValue) {
         return false;
       }
 
-      if (maxRatingValue !== null && movie.rating > maxRatingValue) {
+      if (maxRatingValue !== null && movie.rating && movie.rating > maxRatingValue) {
         return false;
       }
 

@@ -43,6 +43,12 @@
       text-shadow: 0 2px 12px $alpha-black-45;
     }
 
+    .right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .back-title-block {
       display: flex;
       align-items: center;

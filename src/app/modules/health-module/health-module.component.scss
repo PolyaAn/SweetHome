@@ -29,7 +29,7 @@
   gap: 20px;
 
   @media only screen and (max-width: 767px) {
-    padding-bottom: 114px;
+    padding-bottom: 126px;
   }
 }
 
@@ -41,10 +41,6 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-
-  @media only screen and (max-width: 767px) {
-    @include ui-mobile-float-panel;
-  }
 }
 
 .health-action {
@@ -65,6 +61,42 @@
 
 .health-sections {
   @include ui-sections-grid(260px, 16px);
+}
+
+.health-stats-placeholder {
+  @include ui-glass-surface(20px);
+  padding: 20px;
+  text-align: center;
+  color: $color-text-soft;
+  font-weight: 600;
+}
+
+.health-mode-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+  @media only screen and (max-width: 767px) {
+    @include ui-mobile-float-panel;
+  }
+}
+
+.health-mode-menu__item {
+  height: 44px;
+  border: 1px solid $alpha-accent-48;
+  border-radius: 12px;
+  background: $alpha-white-06;
+  color: $color-text-main;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.health-mode-menu__item.active {
+  border-color: $alpha-accent-75;
+  background: $color-accent-main;
+  color: $color-text-light;
 }
 
 .health-section {

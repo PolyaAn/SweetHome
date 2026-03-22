@@ -1,0 +1,93 @@
+@import '../../styles/shared-styles';
+
+.movie-add {
+  padding: 16px;
+  @include ui-glass-surface(16px);
+  border-radius: 0;
+  border: none;
+  display: grid;
+  gap: 12px;
+  color: $color-text-main;
+}
+
+.movie-add-card {
+  //@include ui-glass-surface(16px);
+  display: grid;
+  gap: 8px;
+  //padding: 16px;
+  color: $color-text-main;
+}
+
+.movie-add-card h2 {
+  margin: 0;
+  @include ui-section-title;
+}
+
+.movie-add-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+  @media only screen and (max-width: 767px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.movie-add-field {
+  display: grid;
+  gap: 6px;
+}
+
+.movie-add-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: $alpha-sand-72;
+}
+
+.movie-add-field input,
+.movie-add-field select,
+.movie-add-field textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid $alpha-white-24;
+  border-radius: 10px;
+  background: $alpha-white-06;
+  color: $color-text-main;
+  padding: 10px 12px;
+
+  &:focus {
+    outline: none;
+    border-color: $alpha-accent-65;
+    background: $alpha-white-08;
+  }
+}
+
+.movie-add-field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.movie-add-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.movie-add-genre {
+  @include ui-tag-button;
+  cursor: pointer;
+}
+
+.movie-add-genre.active {
+  @include ui-tag-active;
+}
+
+.movie-add-submit {
+  @include ui-primary-button(12px);
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  justify-self: end;
+  padding: 0 16px;
+}

@@ -3,11 +3,13 @@ import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { SharedService } from '../../../shared/services/shared.service';
 import { Movie } from "../models/movie.model";
 import { MovieMock } from "../mocks/movie.mock";
+import { Router } from "@angular/router";
 
 @Injectable()
 export class MovieModuleService {
   constructor(
     public ss: SharedService,
+    private router: Router,
   ) {
   }
 
@@ -24,12 +26,11 @@ export class MovieModuleService {
     );
   }
 
-  setMovieInfo(movieInfo: Movie[]): Observable<Movie[]> {
-    return of(this.ss.getValue(movieInfo)).pipe(
-      tap((updatedMovieInfo: Movie[]) => {
-        this.movieStore = this.ss.getValue(updatedMovieInfo);
-        this.movieInfo$.next(this.ss.getValue(this.movieStore));
-      })
-    );
+  setMovieInfo(movie: Movie): void {
+    const moviesInfo: Movie[] = this.ss.getValue(this.movieInfo$.value);
+    moviesInfo.push(movie);
+    this.movieInfo$.next(this.ss.getValue(moviesInfo));
+    this.router.navigate(['/movie']);
+    // return this.movieInfo$;
   }
 }

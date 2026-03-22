@@ -1,0 +1,43 @@
+<section class="movie-add">
+  <form class="movie-add-card" [formGroup]="form" (ngSubmit)="submit()">
+    <label class="movie-add-field">
+      <span>Название</span>
+      <input type="text" formControlName="name" placeholder="Введите название" />
+    </label>
+
+    <div class="movie-add-row">
+      <label class="movie-add-field">
+        <span>Тип</span>
+        <select formControlName="types">
+          <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+        </select>
+      </label>
+
+      <label class="movie-add-field">
+        <span>Рейтинг</span>
+        <input type="number" min="1" max="10" step="0.1" formControlName="rating" placeholder="1-10" />
+      </label>
+    </div>
+
+    <div class="movie-add-field">
+      <span>Жанры</span>
+      <div class="movie-add-genres">
+        <button
+          *ngFor="let genre of genreOptions"
+          type="button"
+          class="movie-add-genre"
+          [class.active]="isGenreSelected(genre.id)"
+          (click)="toggleGenre(genre.id)">
+          {{ genre.name }}
+        </button>
+      </div>
+    </div>
+
+    <label class="movie-add-field">
+      <span>Комментарий</span>
+      <textarea formControlName="comment" rows="4" placeholder="Ваш комментарий"></textarea>
+    </label>
+
+    <button class="movie-add-submit" type="submit">Сохранить</button>
+  </form>
+</section>

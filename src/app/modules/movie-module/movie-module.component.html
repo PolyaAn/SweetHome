@@ -18,32 +18,40 @@
       </button>
     </div>
     <div class="movie-filter-range" *ngIf="!isPhone || showPhoneFilters">
-      <span class="movie-filter-label">Рейтинг</span>
+      <span>Рейтинг</span>
       <div class="movie-filter-fields">
         <label class="movie-filter-field">
-          <span class="movie-filter-label">от</span>
+          <span>от</span>
           <select
             class="movie-filter-select"
             [value]="minRating"
             (change)="onMinRatingChange($any($event.target).value)">
-            <option value="">Любой</option>
-            <option *ngFor="let rating of [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]" [value]="rating">{{ rating }}</option>
+            <option
+              *ngFor="let rating of ratingOptions"
+              [value]="rating"
+              [selected]="(rating + '') === minRating">
+              {{ rating }}
+            </option>
           </select>
         </label>
         <label class="movie-filter-field">
-          <span class="movie-filter-label">до</span>
+          <span>до</span>
           <select
             class="movie-filter-select"
             [value]="maxRating"
             (change)="onMaxRatingChange($any($event.target).value)">
-            <option value="">Любой</option>
-            <option *ngFor="let rating of [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]" [value]="rating">{{ rating }}</option>
+            <option
+              *ngFor="let rating of ratingOptions"
+              [value]="rating"
+              [selected]="(rating + '') === maxRating">
+              {{ rating }}
+            </option>
           </select>
         </label>
       </div>
     </div>
     <label class="movie-filter-field movie-filter-genre" *ngIf="!isPhone || showPhoneFilters">
-      <span class="movie-filter-label">Жанр</span>
+      <span>Жанр</span>
       <select
         class="movie-filter-select"
         [value]="selectedGenreId"
@@ -58,30 +66,47 @@
   <p *ngIf="movies.length && !filteredMovies.length">По вашему запросу ничего не найдено</p>
 
   <div class="movie-list" *ngIf="filteredMovies.length">
-    <article class="movie-item" *ngFor="let movie of filteredMovies">
-      <div class="movie-item__head">
-        <h3>{{ movie.name }}</h3>
-        <span class="movie-rating">Рейтинг: {{ movie.rating }}</span>
+    <article class="movie-item" [class.movie-item--grid]="viewMode !== 'grid'" *ngFor="let movie of filteredMovies">
+      <div class="movie-item__head" [class.movie-item__head--grid]="viewMode !== 'grid'">
+        <div class="movie-item__title">
+          <h3>{{ movie.name }}</h3>
+        </div>
+        <span class="movie-rating">{{ movie.types }}
+          <span *ngIf="movie.rating"> |</span>
+          <span *ngIf="movie.rating" class="rating"> {{ movie.rating }}</span>
+<!--          <button-->
+<!--            *ngIf="!movie.rating"-->
+<!--            type="button"-->
+<!--            class="movie-rating-add"-->
+<!--            aria-label="Добавить рейтинг">-->
+<!--            +-->
+<!--          </button>-->
+        </span>
       </div>
-      <div class="movie-meta">
-        <span>{{ movie.types }}</span>
-        <span *ngIf="getGenres(movie).length">{{ getGenresLabel(movie) }}</span>
+      <div class="movie-meta" [class.movie-meta--grid]="viewMode !== 'grid'">
+        <div class="movie-meta-genres" *ngIf="getGenres(movie).length">
+          <span class="movie-meta-genre" [class.movie-meta-genre--grid]="viewMode !== 'grid'" *ngFor="let genre of getGenres(movie)">
+            {{ genre.name.toLocaleLowerCase() }}
+          </span>
+        </div>
       </div>
+      <div *ngIf="viewMode === 'grid'">
       <p
         #commentBlock
         class="movie-comment"
         [attr.data-movie-id]="movie.id"
         [class.expanded]="isCommentExpanded(movie.id)"
-        *ngIf="movie.comment">
+        *ngIf="viewMode === 'grid' && movie.comment">
         {{ movie.comment }}
       </p>
       <button
         type="button"
         class="movie-comment-toggle"
-        *ngIf="movie.comment && showToggle(movie.id)"
+        *ngIf="viewMode === 'grid' && movie.comment && showToggle(movie.id)"
         (click)="toggleComment(movie.id)">
         {{ isCommentExpanded(movie.id) ? 'Свернуть' : 'Показать еще' }}
       </button>
+      </div>
     </article>
   </div>
 </section>

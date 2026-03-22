@@ -2,7 +2,7 @@
 export interface Movie {
   id: string;
   name: string;
-  rating: number;
+  rating?: number;
   types: MovieType;
   genre: MovieGenre[];
   comment: string;

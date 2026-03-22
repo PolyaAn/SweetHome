@@ -27,6 +27,7 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   selectedDate: string = this.toIsoDate(new Date());
   isPhone: boolean = this.ss.isPhone;
   isLoading: boolean = false;
+  activeTab: 'data' | 'stats' = 'data';
 
   get sections(): HealthSection[] {
     this.healthSections = this.cloneHealthSections(this.hs.healthSections$.value);
@@ -80,7 +81,6 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     if (!this.draftHealth) {
       return [];
     }
-
     return this.draftHealth.healthDictionary.filter((item: HealthDictionary) => item.healthSection === sectionId);
   }
 
@@ -147,6 +147,8 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     if (!this.draftHealth) {
       return;
     }
+    console.log(sectionId);
+    console.log(value);
 
     const trimmedValue: string = value.trim();
     if (sectionId === 'weight') {
@@ -200,7 +202,7 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
     if (!this.draftHealth) {
       return;
     }
-
+    console.log(this.draftHealth);
     this.isLoading = true;
     this.hs.setHealthInfo(this.draftHealth)
       .pipe(
@@ -211,8 +213,8 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        next: (health: Health) => {
-          this.draftHealth = this.cloneHealth(health);
+        next: (healthInfo: HealthApi) => {
+          this.draftHealth = this.cloneHealth(healthInfo.health);
           this.editingSectionId = null;
           this.cdr.markForCheck();
         },
@@ -227,6 +229,10 @@ export class HealthModuleComponent extends BaseComponent implements OnInit {
   clear(): void {
     this.draftHealth = this.cloneHealth(DefaultHealth);
     this.editingSectionId = null;
+  }
+
+  setTab(tab: 'data' | 'stats'): void {
+    this.activeTab = tab;
   }
 
   trackBySectionId(_: number, section: HealthSection): string {

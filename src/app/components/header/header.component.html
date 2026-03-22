@@ -16,11 +16,26 @@
       </div>
     </ng-template>
   </div>
-  <div class="right" *ngIf="isMainPage">
-    <mat-icon (click)="editMainPage()"
+  <div class="right">
+    <mat-icon *ngIf="isMoviePage"
+              (click)="addMovie()"
               class="icon"
               aria-hidden="false"
-              aria-label="Example home icon"
+              aria-label="Добавить фильм"
+              fontIcon="add">
+    </mat-icon>
+    <mat-icon *ngIf="isMoviePage"
+              (click)="toggleMovieViewMode()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Переключить вид списка"
+              [fontIcon]="movieViewMode === 'list' ? 'grid_view' : 'view_agenda'">
+    </mat-icon>
+    <mat-icon *ngIf="isMainPage"
+              (click)="editMainPage()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Настройки"
               fontIcon="settings">
     </mat-icon>
   </div>

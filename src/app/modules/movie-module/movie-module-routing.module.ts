@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MovieModuleComponent } from './movie-module.component';
+import { MovieAddComponent } from "./movie-add.component";
 
 const routes: Routes = [
   {
@@ -8,6 +9,13 @@ const routes: Routes = [
     component: MovieModuleComponent,
     data: {
       title: 'Кино',
+    },
+  },
+  {
+    path: 'add',
+    component: MovieAddComponent,
+    data: {
+      title: 'Добавить фильм',
     },
   },
 ];

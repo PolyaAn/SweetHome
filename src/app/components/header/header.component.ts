@@ -7,6 +7,7 @@ import { MatIcon } from "@angular/material/icon";
 import { NgIf } from "@angular/common";
 import { Location } from "@angular/common";
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
+import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
 
 @Component({
   selector: 'app-header',
@@ -25,17 +26,22 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     private router: Router,
     private location: Location,
     private cdr: ChangeDetectorRef,
+    private ss: SharedService,
   ) {
     super();
   }
 
   user: UserInfo | undefined;
   isMainPage: boolean = false;
+  isMoviePage: boolean = false;
   pageTitle: string = '';
+  movieViewMode: MovieViewMode = 'list';
 
   ngOnInit(): void {
     this.isMainPage = this.router.url.startsWith('/main');
+    this.isMoviePage = this.router.url.startsWith('/movie');
     this.pageTitle = this.getCurrentPageTitle();
+    this.watchMovieViewMode();
     this.routeWatcher();
     this.getUserInfo();
   }
@@ -62,7 +68,19 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isMainPage = this.router.url.startsWith('/main');
+          this.isMoviePage = this.router.url.startsWith('/movie');
           this.pageTitle = this.getCurrentPageTitle();
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  private watchMovieViewMode(): void {
+    this.ss.movieViewMode$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (mode: MovieViewMode) => {
+          this.movieViewMode = mode;
           this.cdr.markForCheck();
         },
       });
@@ -84,5 +102,14 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  toggleMovieViewMode(): void {
+    const nextMode: MovieViewMode = this.movieViewMode === 'list' ? 'grid' : 'list';
+    this.ss.setMovieViewMode(nextMode);
+  }
+
+  addMovie(): void {
+    this.router.navigate(['/movie/add']);
   }
 }

@@ -12,7 +12,13 @@
   </div>
 
   <section class="health-module">
-    <div class="health-sections" *ngIf="draftHealth">
+    <div class="health-actions" *ngIf="draftHealth">
+      <button type="button" class="health-action ghost" (click)="clear()">Отчистить</button>
+      <button type="button" class="health-action ghost cancel-action" (click)="cancel()">Отменить</button>
+      <button type="button" class="health-action primary" (click)="save()">Сохранить</button>
+    </div>
+
+    <div class="health-sections" *ngIf="draftHealth && activeTab === 'data'">
       <article class="health-section" *ngFor="let section of sections; trackBy: trackBySectionId">
         <div class="health-section__header">
           <h2>{{ section.name }} {{ section.averageValue ? '(среднее значение)' : '' }}</h2>
@@ -58,7 +64,7 @@
           <button
             type="button"
             class="health-tag"
-            *ngFor="let item of getSectionDictionary(section.id); trackBy: trackByDictionaryId"
+            *ngFor="let item of getSectionDictionary(section.alias); trackBy: trackByDictionaryId"
             [ngClass]="{ active: item.value }"
             (click)="toggleDictionaryValue(item.id)">
             {{ item.name }}
@@ -67,10 +73,25 @@
       </article>
     </div>
 
-    <div class="health-actions" *ngIf="draftHealth">
-      <button type="button" class="health-action ghost" (click)="clear()">Отчистить</button>
-      <button type="button" class="health-action ghost cancel-action" (click)="cancel()">Отменить</button>
-      <button type="button" class="health-action primary" (click)="save()">Сохранить</button>
+    <div class="health-stats-placeholder" *ngIf="draftHealth && activeTab === 'stats'">
+      Статистика будет добавлена в этом разделе.
+    </div>
+
+    <div class="health-mode-menu" *ngIf="draftHealth">
+      <button
+        type="button"
+        class="health-mode-menu__item"
+        [class.active]="activeTab === 'data'"
+        (click)="setTab('data')">
+        Данные
+      </button>
+      <button
+        type="button"
+        class="health-mode-menu__item"
+        [class.active]="activeTab === 'stats'"
+        (click)="setTab('stats')">
+        Статистика
+      </button>
     </div>
     <div class="health-top-fade"></div>
   </section>
