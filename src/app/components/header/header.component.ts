@@ -34,12 +34,14 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   user: UserInfo | undefined;
   isMainPage: boolean = false;
   isMoviePage: boolean = false;
+  isMovieListPage: boolean = false;
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
 
   ngOnInit(): void {
     this.isMainPage = this.router.url.startsWith('/main');
     this.isMoviePage = this.router.url.startsWith('/movie');
+    this.isMovieListPage = this.router.url === '/movie';
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
     this.routeWatcher();
@@ -69,6 +71,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
         next: () => {
           this.isMainPage = this.router.url.startsWith('/main');
           this.isMoviePage = this.router.url.startsWith('/movie');
+          this.isMovieListPage = this.router.url === '/movie';
           this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
         },

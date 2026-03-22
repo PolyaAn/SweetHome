@@ -1,6 +1,9 @@
 
-export interface Movie {
+export interface Movie extends StartMovie{
   id: string;
+}
+
+export interface StartMovie {
   name: string;
   rating?: number;
   types: MovieType;

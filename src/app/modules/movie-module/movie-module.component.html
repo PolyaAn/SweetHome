@@ -67,7 +67,10 @@
 
   <div class="movie-list" *ngIf="filteredMovies.length">
     <article class="movie-item" [class.movie-item--grid]="viewMode !== 'grid'" *ngFor="let movie of filteredMovies">
-      <div class="movie-item__head" [class.movie-item__head--grid]="viewMode !== 'grid'">
+      <div
+        class="movie-item__head"
+        [class.movie-item__head--grid]="viewMode !== 'grid'"
+        (click)="openMovieEdit(movie.id)">
         <div class="movie-item__title">
           <h3>{{ movie.name }}</h3>
         </div>

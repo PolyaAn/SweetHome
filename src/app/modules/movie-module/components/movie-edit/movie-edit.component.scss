@@ -1,6 +1,6 @@
-@import '../../styles/shared-styles';
+@import '../../../../styles/shared-styles';
 
-.movie-add {
+.movie-edit {
   padding: 16px;
   @include ui-glass-surface(16px);
   border-radius: 0;
@@ -10,20 +10,18 @@
   color: $color-text-main;
 }
 
-.movie-add-card {
-  //@include ui-glass-surface(16px);
+.movie-edit-card {
   display: grid;
   gap: 8px;
-  //padding: 16px;
   color: $color-text-main;
 }
 
-.movie-add-card h2 {
+.movie-edit-card h2 {
   margin: 0;
   @include ui-section-title;
 }
 
-.movie-add-row {
+.movie-edit-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -33,20 +31,20 @@
   }
 }
 
-.movie-add-field {
+.movie-edit-field {
   display: grid;
   gap: 6px;
 }
 
-.movie-add-field > span {
+.movie-edit-field > span {
   font-size: 12px;
   font-weight: 600;
   color: $alpha-sand-72;
 }
 
-.movie-add-field input,
-.movie-add-field select,
-.movie-add-field textarea {
+.movie-edit-field input,
+.movie-edit-field select,
+.movie-edit-field textarea {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -63,31 +61,33 @@
   }
 }
 
-.movie-add-field textarea {
+.movie-edit-field textarea {
   resize: vertical;
   min-height: 96px;
 }
 
-.movie-add-genres {
+.movie-edit-genres {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.movie-add-genre {
+.movie-edit-genre {
   @include ui-tag-button;
   cursor: pointer;
 }
 
-.movie-add-genre.active {
+.movie-edit-genre.active {
   @include ui-tag-active;
 }
 
-.movie-add-submit {
+.movie-edit-submit {
   @include ui-primary-button(12px);
   height: 40px;
+  width: 100%;
   border: none;
   cursor: pointer;
-  justify-self: end;
-  padding: 0 16px;
+  justify-self: stretch;
+  margin-top: 8px;
+  padding: 8px 12px;
 }

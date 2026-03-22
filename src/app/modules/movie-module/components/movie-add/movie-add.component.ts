@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { Movie, MovieGenre, MovieType } from "./models/movie.model";
-import { MovieGenreMock } from "./mocks/movie.mock";
-import { MovieModuleService } from "./services/movie-module.service";
+import { Movie, MovieGenre, MovieType, StartMovie } from "../../models/movie.model";
+import { MovieGenreMock } from "../../mocks/movie.mock";
+import { MovieModuleService } from "../../services/movie-module.service";
 
 type MovieAddForm = FormGroup;
 
@@ -53,8 +53,7 @@ export class MovieAddComponent {
     const ratingRaw: string = String(this.form.get('rating')?.value || '').trim();
     const ratingNum: number | null = ratingRaw ? Number(ratingRaw) : null;
 
-    const movie: Movie = {
-      id: Date.now().toString(),
+    const movie: StartMovie = {
       name: String(this.form.get('name')?.value || '').trim(),
       types: this.form.get('types')?.value as MovieType,
       genre: this.genreOptions.filter((genre: MovieGenre) => this.selectedGenreIds.has(genre.id)),

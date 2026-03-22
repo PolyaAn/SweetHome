@@ -14,6 +14,7 @@ import { Movie, MovieGenre } from "./models/movie.model";
 import { MovieModuleService } from "./services/movie-module.service";
 import { takeUntil } from "rxjs";
 import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-movie-module',
@@ -26,6 +27,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit, After
     private ms: MovieModuleService,
     private cdr: ChangeDetectorRef,
     private ss: SharedService,
+    private router: Router,
   ) {
     super();
   }
@@ -146,6 +148,10 @@ export class MovieModuleComponent extends BaseComponent implements OnInit, After
 
   togglePhoneFilters(): void {
     this.showPhoneFilters = !this.showPhoneFilters;
+  }
+
+  openMovieEdit(movieId: string): void {
+    this.router.navigate(['/movie/edit', movieId]);
   }
 
   @HostListener('window:resize')

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { SharedService } from '../../../shared/services/shared.service';
-import { Movie } from "../models/movie.model";
+import { Movie, StartMovie } from "../models/movie.model";
 import { MovieMock } from "../mocks/movie.mock";
 import { Router } from "@angular/router";
 
@@ -13,24 +13,36 @@ export class MovieModuleService {
   ) {
   }
 
-  private movieStore: Movie[] = [];
+  private movieStore: Movie[] = MovieMock;
   movieInfo$: BehaviorSubject<Movie[]> = new BehaviorSubject<Movie[]>(this.ss.getValue(this.movieStore));
 
   getMoviesInfo(): Observable<Movie[]> {
-    return of(this.ss.getValue(this.movieStore)).pipe(
-      tap((movieInfo: Movie[]) => {
-        movieInfo = MovieMock;
-        this.movieInfo$.next(this.ss.getValue(movieInfo));
-        console.log(this.movieInfo$.value);
-      })
-    );
+    return this.movieInfo$;
   }
 
-  setMovieInfo(movie: Movie): void {
+  setMovieInfo(movie: StartMovie): void {
+    const genMovie: Movie = {id: Date.now().toString(), ...movie};
     const moviesInfo: Movie[] = this.ss.getValue(this.movieInfo$.value);
-    moviesInfo.push(movie);
+    moviesInfo.push(genMovie);
     this.movieInfo$.next(this.ss.getValue(moviesInfo));
     this.router.navigate(['/movie']);
-    // return this.movieInfo$;
+  }
+
+  getMovieById(movieId: string): Movie | undefined {
+    return this.ss.getValue(this.movieInfo$.value).find((movie: Movie) => movie.id === movieId);
+  }
+
+  updateMovieInfo(movieId: string, movieData: StartMovie): void {
+    const moviesInfo: Movie[] = this.ss.getValue(this.movieInfo$.value).map((movie: Movie) => {
+      if (movie.id === movieId) {
+        return {
+          id: movie.id,
+          ...movieData,
+        };
+      }
+      return movie;
+    });
+    this.movieInfo$.next(this.ss.getValue(moviesInfo));
+    this.router.navigate(['/movie']);
   }
 }
