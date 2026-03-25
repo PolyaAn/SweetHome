@@ -1,8 +1,8 @@
 <section class="register-page">
   <div class="register-card">
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label class="field-label" for="name">Имя</label>
-      <input id="name" type="text" formControlName="name" placeholder="Ваше имя"/>
+      <label class="field-label" for="name">Логин (будет виден другим пользователям)</label>
+      <input id="name" type="text" formControlName="name" placeholder="Логин"/>
       <div class="error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
         Введите имя (минимум 2 символа)
       </div>

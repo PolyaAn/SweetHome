@@ -42,7 +42,7 @@ export class AuthService {
   }
 
   register(name: string, email: string, password: string, confirmPassword: string): Observable<RegisterResult> {
-    return this.http.post(`${environment.apiHost}/Account/Register`, {
+    return this.http.post(`${environment.apiHost}/api/Account/Register`, {
       name,
       email,
       password,

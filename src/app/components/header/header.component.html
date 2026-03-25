@@ -38,5 +38,12 @@
               aria-label="Настройки"
               fontIcon="settings">
     </mat-icon>
+    <mat-icon *ngIf="isMainPage"
+              (click)="logout()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Выйти"
+              fontIcon="logout">
+    </mat-icon>
   </div>
 </div>

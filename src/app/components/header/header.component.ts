@@ -8,6 +8,7 @@ import { NgIf } from "@angular/common";
 import { Location } from "@angular/common";
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
 import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
+import { AuthService } from "../../modules/auth/services/auth.service";
 
 @Component({
   selector: 'app-header',
@@ -27,6 +28,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     private location: Location,
     private cdr: ChangeDetectorRef,
     private ss: SharedService,
+    private authService: AuthService,
   ) {
     super();
   }
@@ -114,5 +116,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   addMovie(): void {
     this.router.navigate(['/movie/add']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
