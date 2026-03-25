@@ -9,6 +9,7 @@ import { RouterOutlet } from "@angular/router";
 import { AppRoutingModule } from "./app-routing.module";
 import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { CredentialsInterceptor } from "./interceptors/credentials.interceptor";
+import { ToastComponent } from "./shared/components/toast/toast.component";
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { CredentialsInterceptor } from "./interceptors/credentials.interceptor";
     BrowserModule,
     MainMenuComponent,
     HeaderComponent,
+    ToastComponent,
     AppRoutingModule,
     RouterOutlet,
     HttpClientModule

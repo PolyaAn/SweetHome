@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
-import { AuthService } from "./services/auth.service";
+import { AuthService, LoginResult } from "../services/auth.service";
+import { ToastService } from "../../../shared/services/toast.service";
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private authService: AuthService,
+    private toastService: ToastService,
   ) {
   }
 
@@ -33,10 +35,17 @@ export class LoginComponent {
       return;
     }
     this.authService.login(this.form.value.email, this.form.value.password)
-      .subscribe((isAuth: boolean) => {
-        if (isAuth) {
+      .subscribe((result: LoginResult) => {
+        if (result.isAuth) {
           this.router.navigate(['/main']);
+          return;
         }
+
+        this.toastService.error(result.errorMessage || 'Ошибка авторизации');
       });
+  }
+
+  goToRegister(): void {
+    this.router.navigate(['/register']);
   }
 }

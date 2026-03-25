@@ -1,7 +1,12 @@
-@import '../../styles/shared-styles';
+@import '../../../styles/shared-styles';
+
+:host {
+  display: block;
+  min-height: 100vh;
+}
 
 .login-page {
-  min-height: calc(100vh - 76px);
+  min-height: calc(100vh - 48px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,9 +60,23 @@ button {
   height: 42px;
   @include ui-primary-button(12px);
   cursor: pointer;
+  width: 100%;
 }
 
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.actions {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.register-button {
+  margin-top: 0;
+  @include ui-ghost-button(12px);
+  color: $color-text-soft;
+  border-color: $alpha-white-24;
 }

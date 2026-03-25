@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MainMenuComponent } from "./components/main-menu/main-menu.component";
-import { LoginComponent } from "./modules/auth/login.component";
+import { LoginComponent } from "./modules/auth/login/login.component";
+import { RegisterComponent } from "./modules/auth/register/register.component";
 
 const routes: Routes = [
   {
@@ -21,6 +22,13 @@ const routes: Routes = [
     component: LoginComponent,
     data: {
       title: 'Авторизация',
+    },
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    data: {
+      title: 'Регистрация',
     },
   },
   {
