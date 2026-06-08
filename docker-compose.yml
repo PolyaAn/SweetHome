@@ -1,0 +1,11 @@
+services:
+  frontend:
+    image: ${SWEETHOME_FRONTEND_IMAGE:-sweethome-frontend:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
