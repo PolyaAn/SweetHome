@@ -1,0 +1,47 @@
+<main class="page">
+  <header class="topbar">
+    <a routerLink="/home/rooms" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+    <div>
+      <h1>{{ mode === 'edit' ? 'Настройки комнаты' : 'Создание комнаты' }}</h1>
+      <p>Название, иконка, порядок и видимость</p>
+    </div>
+  </header>
+
+  <form class="form-card" [formGroup]="form" (ngSubmit)="save()">
+    <label>
+      <span>Название</span>
+      <input type="text" formControlName="name" maxlength="50">
+      <small *ngIf="form.controls.name.touched && form.controls.name.invalid">Введите название комнаты</small>
+    </label>
+
+    <label>
+      <span>Порядок</span>
+      <input type="number" formControlName="order">
+      <small *ngIf="form.controls.order.touched && form.controls.order.invalid">Некорректный порядок отображения</small>
+    </label>
+
+    <section>
+      <span class="label">Иконка</span>
+      <div class="icon-grid">
+        <button type="button"
+                *ngFor="let icon of icons"
+                [class.active]="form.controls.icon.value === icon"
+                (click)="form.controls.icon.setValue(icon)">
+          <mat-icon [fontIcon]="icon"></mat-icon>
+        </button>
+      </div>
+    </section>
+
+    <label class="checkbox">
+      <input type="checkbox" formControlName="hide">
+      <span>Скрыть комнату</span>
+    </label>
+
+    <div class="actions">
+      <button type="button" class="ghost" routerLink="/home/rooms">Отмена</button>
+      <button type="submit">Сохранить</button>
+    </div>
+
+    <button *ngIf="mode === 'edit'" type="button" class="danger" (click)="deleteRoom()">Удалить комнату</button>
+  </form>
+</main>

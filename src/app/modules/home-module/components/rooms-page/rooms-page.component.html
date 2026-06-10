@@ -1,0 +1,29 @@
+<main class="page" *ngIf="dashboard$ | async as dashboard">
+  <header class="topbar">
+    <a routerLink="/home" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+    <div>
+      <h1>Комнаты</h1>
+      <p>Карточки комнат и привязанные виджеты</p>
+    </div>
+    <a routerLink="/home/rooms/create" class="icon-link"><mat-icon fontIcon="add"></mat-icon></a>
+  </header>
+
+  <section class="rooms-grid" *ngIf="dashboard.rooms.length; else emptyRooms">
+    <a class="room-card" *ngFor="let room of dashboard.rooms" [routerLink]="['/home/rooms', room.id]">
+      <mat-icon [fontIcon]="room.icon"></mat-icon>
+      <div>
+        <h2>{{ room.name }}</h2>
+        <p>{{ room.summary }}</p>
+      </div>
+      <mat-icon fontIcon="chevron_right"></mat-icon>
+    </a>
+  </section>
+
+  <ng-template #emptyRooms>
+    <section class="empty">
+      <mat-icon fontIcon="meeting_room"></mat-icon>
+      <h2>Комнаты не созданы</h2>
+      <a routerLink="/home/rooms/create">Добавить комнату</a>
+    </section>
+  </ng-template>
+</main>

@@ -1,0 +1,156 @@
+@import '../../../../styles/shared-styles';
+
+:host {
+  display: block;
+}
+
+.home-page {
+  min-height: calc(100vh - 76px);
+  padding: 24px 36px 48px;
+  color: $color-text-main;
+  background:
+    radial-gradient(circle at 12% 0%, $alpha-accent-10, transparent 34%),
+    linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+
+  @media (max-width: 767px) {
+    padding: 16px 16px 32px;
+  }
+}
+
+.hero,
+.state-bar,
+.summary-card,
+.room-card,
+.widget-card,
+.empty {
+  @include ui-glass-surface(18px);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+}
+
+.eyebrow,
+.subtitle,
+.summary-card p,
+.room-card p,
+.widget-card p {
+  margin: 0;
+  color: $color-gold-2;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 34px;
+}
+
+.icon-button,
+.empty button {
+  @include ui-primary-button(12px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  border: 0;
+}
+
+.state-bar {
+  margin-top: 14px;
+  padding: 12px 16px;
+}
+
+.error {
+  color: #ffb2a5;
+}
+
+.summary-grid,
+.rooms-grid,
+.widgets-grid,
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.summary-card,
+.room-card,
+.widget-card,
+.quick-actions a {
+  color: $color-text-main;
+  text-decoration: none;
+}
+
+.summary-card {
+  padding: 18px;
+
+  mat-icon {
+    color: $color-accent-cream;
+  }
+
+  span {
+    display: block;
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: 700;
+  }
+}
+
+.quick-actions a {
+  @include ui-ghost-button(14px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+
+  a {
+    color: $color-accent-cream;
+  }
+}
+
+.room-card,
+.widget-card {
+  padding: 18px;
+}
+
+.room-card mat-icon,
+.widget-card mat-icon {
+  color: $color-accent-cream;
+}
+
+.widget-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty {
+  margin-top: 16px;
+  padding: 28px;
+  text-align: center;
+
+  mat-icon {
+    color: $color-accent-cream;
+    font-size: 42px;
+    width: 42px;
+    height: 42px;
+  }
+}

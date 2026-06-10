@@ -1,0 +1,83 @@
+@import '../../../../styles/shared-styles';
+
+.page {
+  min-height: calc(100vh - 76px);
+  padding: 24px 36px 48px;
+  color: $color-text-main;
+  background: linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 12px;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+}
+
+.icon-link,
+.row button {
+  @include ui-ghost-button(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  color: $color-text-main;
+  text-decoration: none;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.row,
+.empty {
+  @include ui-glass-surface(16px);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 38px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+
+  mat-icon {
+    color: $color-accent-cream;
+  }
+}
+
+.empty {
+  margin-top: 18px;
+  padding: 28px;
+  text-align: center;
+
+  p {
+    color: $color-gold-2;
+  }
+}

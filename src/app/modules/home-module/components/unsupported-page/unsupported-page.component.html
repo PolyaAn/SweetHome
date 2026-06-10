@@ -1,0 +1,18 @@
+<main class="page">
+  <header class="topbar">
+    <a routerLink="/home" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+    <div>
+      <h1>{{ feature.title }}</h1>
+      <p>Раздел ожидает backend API</p>
+    </div>
+  </header>
+
+  <section class="empty">
+    <mat-icon [fontIcon]="feature.icon"></mat-icon>
+    <h2>{{ feature.description }}</h2>
+    <p>Фронт не использует мок-данные как источник истины.</p>
+    <ul>
+      <li *ngFor="let endpoint of feature.endpoints">{{ endpoint }}</li>
+    </ul>
+  </section>
+</main>

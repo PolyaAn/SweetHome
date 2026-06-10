@@ -1,0 +1,78 @@
+<main class="page" *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="vm.room; else notFound">
+    <header class="topbar">
+      <a routerLink="/home/rooms" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+      <div>
+        <h1>{{ vm.room.name }}</h1>
+        <p>{{ vm.room.summary }}</p>
+      </div>
+      <a [routerLink]="['/home/rooms', vm.room.id, 'settings']" class="icon-link">
+        <mat-icon fontIcon="settings"></mat-icon>
+      </a>
+    </header>
+
+    <section class="actions">
+      <a [routerLink]="['/home/rooms', vm.room.id, 'devices']">
+        <mat-icon fontIcon="devices"></mat-icon>
+        <span>Все устройства</span>
+      </a>
+      <a [routerLink]="['/home/rooms', vm.room.id, 'devices', 'add']">
+        <mat-icon fontIcon="add_circle"></mat-icon>
+        <span>Устройство</span>
+      </a>
+      <a [routerLink]="['/home/rooms', vm.room.id, 'sensors', 'add']">
+        <mat-icon fontIcon="sensors"></mat-icon>
+        <span>Датчик</span>
+      </a>
+      <a routerLink="/home/events">
+        <mat-icon fontIcon="history"></mat-icon>
+        <span>Журнал</span>
+      </a>
+    </section>
+
+    <section class="section-head">
+      <h2>Датчики</h2>
+    </section>
+    <section class="widgets-grid" *ngIf="vm.sensors.length; else noSensors">
+      <article class="widget-card sensor" *ngFor="let sensor of vm.sensors">
+        <mat-icon [fontIcon]="sensor.icon"></mat-icon>
+        <div>
+          <h3>{{ sensor.name }}</h3>
+          <p>{{ sensor.state }}{{ sensor.unit ? ' ' + sensor.unit : '' }}</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="section-head">
+      <h2>Устройства</h2>
+    </section>
+    <section class="widgets-grid" *ngIf="vm.devices.length; else noDevices">
+      <article class="widget-card" *ngFor="let device of vm.devices">
+        <mat-icon [fontIcon]="device.icon"></mat-icon>
+        <div>
+          <h3>{{ device.name }}</h3>
+          <p>{{ device.state }}</p>
+        </div>
+        <button type="button" title="Удалить" (click)="removeWidget(device)">
+          <mat-icon fontIcon="delete"></mat-icon>
+        </button>
+      </article>
+    </section>
+  </ng-container>
+
+  <ng-template #noSensors>
+    <section class="empty compact">Датчики не добавлены</section>
+  </ng-template>
+
+  <ng-template #noDevices>
+    <section class="empty compact">Устройства не добавлены</section>
+  </ng-template>
+
+  <ng-template #notFound>
+    <section class="empty">
+      <mat-icon fontIcon="error"></mat-icon>
+      <h2>Комната не найдена</h2>
+      <a routerLink="/home/rooms">К списку комнат</a>
+    </section>
+  </ng-template>
+</main>

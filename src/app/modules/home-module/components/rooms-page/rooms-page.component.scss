@@ -1,0 +1,88 @@
+@import '../../../../styles/shared-styles';
+
+.page {
+  min-height: calc(100vh - 76px);
+  padding: 24px 36px 48px;
+  color: $color-text-main;
+  background: linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+}
+
+.icon-link {
+  @include ui-ghost-button(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  color: $color-text-main;
+  text-decoration: none;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.room-card,
+.empty {
+  @include ui-glass-surface(18px);
+}
+
+.room-card {
+  display: grid;
+  grid-template-columns: 42px 1fr 24px;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  color: $color-text-main;
+  text-decoration: none;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+
+  mat-icon {
+    color: $color-accent-cream;
+  }
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+
+  a {
+    @include ui-primary-button(12px);
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    margin-top: 14px;
+    padding: 0 16px;
+    text-decoration: none;
+  }
+}

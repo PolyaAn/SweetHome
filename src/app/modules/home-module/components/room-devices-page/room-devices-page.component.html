@@ -1,0 +1,30 @@
+<main class="page" *ngIf="vm$ | async as vm">
+  <header class="topbar">
+    <a [routerLink]="['/home/rooms', vm.room?.id]" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+    <div>
+      <h1>Устройства и датчики</h1>
+      <p>{{ vm.room?.name || 'Комната' }}</p>
+    </div>
+  </header>
+
+  <section class="tabs">
+    <button type="button" [class.active]="selectedTab === 'all'" (click)="setTab('all')">Все</button>
+    <button type="button" [class.active]="selectedTab === 'devices'" (click)="setTab('devices')">Устройства</button>
+    <button type="button" [class.active]="selectedTab === 'sensors'" (click)="setTab('sensors')">Датчики</button>
+  </section>
+
+  <section class="list" *ngIf="filtered(vm.widgets).length; else empty">
+    <article class="row" *ngFor="let widget of filtered(vm.widgets)">
+      <mat-icon [fontIcon]="widget.icon"></mat-icon>
+      <div>
+        <h2>{{ widget.name }}</h2>
+        <p>{{ widget.entityId }}</p>
+      </div>
+      <span>{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
+    </article>
+  </section>
+
+  <ng-template #empty>
+    <section class="empty">Список пуст</section>
+  </ng-template>
+</main>

@@ -1,0 +1,130 @@
+@import '../../../../styles/shared-styles';
+
+.page {
+  min-height: calc(100vh - 76px);
+  padding: 24px 36px 48px;
+  color: $color-text-main;
+  background: linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+}
+
+.icon-link,
+.actions a,
+.widget-card button,
+.empty a {
+  text-decoration: none;
+}
+
+.icon-link,
+.widget-card button {
+  @include ui-ghost-button(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  color: $color-text-main;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+
+  a {
+    @include ui-ghost-button(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    color: $color-text-main;
+  }
+}
+
+.section-head {
+  margin-top: 26px;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.widgets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.widget-card,
+.empty {
+  @include ui-glass-surface(18px);
+}
+
+.widget-card {
+  display: grid;
+  grid-template-columns: 36px 1fr 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+
+  &.sensor {
+    grid-template-columns: 36px 1fr;
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+
+  mat-icon {
+    color: $color-accent-cream;
+  }
+}
+
+.empty {
+  margin-top: 12px;
+  padding: 28px;
+  text-align: center;
+
+  &.compact {
+    padding: 18px;
+    color: $color-gold-2;
+  }
+
+  a {
+    @include ui-primary-button(12px);
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    margin-top: 14px;
+    padding: 0 16px;
+    color: $color-text-main;
+  }
+}

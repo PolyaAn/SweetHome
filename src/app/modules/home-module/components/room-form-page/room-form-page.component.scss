@@ -1,0 +1,114 @@
+@import '../../../../styles/shared-styles';
+
+.page {
+  min-height: calc(100vh - 76px);
+  padding: 24px 36px 48px;
+  color: $color-text-main;
+  background: linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: $color-gold-2;
+  }
+}
+
+.icon-link {
+  @include ui-ghost-button(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: $color-text-main;
+  text-decoration: none;
+}
+
+.form-card {
+  @include ui-glass-surface(18px);
+  display: grid;
+  gap: 18px;
+  max-width: 560px;
+  padding: 20px;
+
+  label {
+    display: grid;
+    gap: 8px;
+  }
+
+  input[type='text'],
+  input[type='number'] {
+    @include ui-input-field;
+    width: 100%;
+  }
+
+  small {
+    color: #ffb2a5;
+  }
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 10px;
+
+  button {
+    @include ui-ghost-button(12px);
+    height: 48px;
+    border: 0;
+    color: $color-text-main;
+
+    &.active {
+      @include ui-primary-button(12px);
+    }
+  }
+}
+
+.checkbox {
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  button {
+    @include ui-primary-button(12px);
+    height: 44px;
+    border: 0;
+  }
+
+  .ghost {
+    @include ui-ghost-button(12px);
+  }
+}
+
+.danger {
+  @include ui-ghost-button(12px);
+  height: 44px;
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ffb2a5;
+}

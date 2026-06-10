@@ -1,0 +1,90 @@
+<main class="home-page" *ngIf="dashboard$ | async as dashboard">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Умный дом</p>
+      <h1>Дом</h1>
+      <p class="subtitle">Комнаты, устройства и датчики Home Assistant</p>
+    </div>
+    <button type="button" class="icon-button" (click)="reload()" title="Обновить">
+      <mat-icon fontIcon="refresh"></mat-icon>
+    </button>
+  </section>
+
+  <section class="state-bar" *ngIf="uiState$ | async as state">
+    <span *ngIf="state.loading">Загрузка данных</span>
+    <span *ngIf="state.saving">Сохранение изменений</span>
+    <span class="error" *ngIf="state.error">{{ state.error }}</span>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <mat-icon fontIcon="meeting_room"></mat-icon>
+      <span>{{ dashboard.visibleRoomCount }}</span>
+      <p>Комнат</p>
+    </article>
+    <article class="summary-card">
+      <mat-icon fontIcon="power"></mat-icon>
+      <span>{{ dashboard.deviceCount }}</span>
+      <p>Устройств</p>
+    </article>
+    <article class="summary-card">
+      <mat-icon fontIcon="sensors"></mat-icon>
+      <span>{{ dashboard.sensorCount }}</span>
+      <p>Датчиков</p>
+    </article>
+  </section>
+
+  <section class="quick-actions">
+    <a routerLink="/home/rooms">
+      <mat-icon fontIcon="grid_view"></mat-icon>
+      <span>Комнаты</span>
+    </a>
+    <a routerLink="/home/scenarios">
+      <mat-icon fontIcon="play_circle"></mat-icon>
+      <span>Сценарии</span>
+    </a>
+    <a routerLink="/home/automations">
+      <mat-icon fontIcon="rule"></mat-icon>
+      <span>Автоматизации</span>
+    </a>
+    <a routerLink="/home/events">
+      <mat-icon fontIcon="history"></mat-icon>
+      <span>Журнал</span>
+    </a>
+  </section>
+
+  <section class="section-head">
+    <h2>Быстрые комнаты</h2>
+    <a routerLink="/home/rooms">Все</a>
+  </section>
+
+  <section class="rooms-grid" *ngIf="dashboard.rooms.length; else emptyHome">
+    <a class="room-card" *ngFor="let room of dashboard.rooms | slice:0:4" [routerLink]="['/home/rooms', room.id]">
+      <mat-icon [fontIcon]="room.icon"></mat-icon>
+      <h3>{{ room.name }}</h3>
+      <p>{{ room.summary }}</p>
+    </a>
+  </section>
+
+  <section class="section-head">
+    <h2>Без комнаты</h2>
+  </section>
+
+  <section class="widgets-grid" *ngIf="dashboard.unassignedWidgets.length">
+    <article class="widget-card" *ngFor="let widget of dashboard.unassignedWidgets | slice:0:3">
+      <mat-icon [fontIcon]="widget.icon"></mat-icon>
+      <div>
+        <h3>{{ widget.name }}</h3>
+        <p>{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</p>
+      </div>
+    </article>
+  </section>
+
+  <ng-template #emptyHome>
+    <section class="empty">
+      <mat-icon fontIcon="home"></mat-icon>
+      <h2>Данные умного дома пока недоступны</h2>
+      <button type="button" (click)="reload()">Обновить</button>
+    </section>
+  </ng-template>
+</main>

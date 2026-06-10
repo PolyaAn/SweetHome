@@ -42,6 +42,11 @@ const routes: Routes = [
       import('./modules/health-module/health-module.module').then((m) => m.HealthModuleModule),
   },
   {
+    path: 'home',
+    loadChildren: () =>
+      import('./modules/home-module/home-module.module').then((m) => m.HomeModuleModule),
+  },
+  {
     path: '**',
     redirectTo: 'main',
     pathMatch: 'full',
