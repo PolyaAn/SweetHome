@@ -81,22 +81,48 @@
 
 .row {
   display: grid;
-  grid-template-columns: 38px 1fr 44px;
+  grid-template-columns: 38px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 12px;
+  max-width: 100%;
   padding: 14px;
+  overflow: hidden;
 
   h2,
   p {
     margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  div {
+    min-width: 0;
+  }
+
+  h2 {
+    line-height: 1.25;
   }
 
   p {
     color: $color-gold-2;
+    line-height: 1.35;
   }
 
   mat-icon {
     color: $color-accent-cream;
+  }
+}
+
+@media (max-width: 360px) {
+  .row {
+    grid-template-columns: 32px minmax(0, 1fr) 40px;
+    gap: 10px;
+    padding: 12px;
+
+    button {
+      width: 40px;
+      height: 40px;
+    }
   }
 }
 
