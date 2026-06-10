@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
-import { SmartHomeRoom } from '../../models/home.model';
+import { combineLatest, map, Observable, take, tap } from 'rxjs';
+import { RoomVm, SmartHomeRoom } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type RoomForm = FormGroup<{
@@ -29,6 +29,27 @@ export class RoomFormPageComponent implements OnInit {
 
   mode: 'create' | 'edit' = 'create';
   roomId: string | null = null;
+  private formPatched = false;
+  readonly room$: Observable<RoomVm | null> = combineLatest([
+    this.route.paramMap,
+    this.facade.dashboard$,
+  ]).pipe(
+    map(([params, dashboard]) => {
+      const roomId = params.get('roomId');
+      return dashboard.rooms.find((room) => room.id === roomId) ?? null;
+    }),
+    tap((room) => {
+      if (this.mode === 'edit' && room && !this.formPatched) {
+        this.form.setValue({
+          name: room.name,
+          icon: room.icon,
+          order: room.order,
+          hide: room.hide,
+        });
+        this.formPatched = true;
+      }
+    }),
+  );
 
   constructor(
     private fb: FormBuilder,
@@ -42,17 +63,7 @@ export class RoomFormPageComponent implements OnInit {
     this.mode = this.route.snapshot.data['mode'] === 'edit' ? 'edit' : 'create';
     this.roomId = this.route.snapshot.paramMap.get('roomId');
 
-    if (this.mode === 'edit' && this.roomId) {
-      const room = this.facade.getRoom(this.roomId);
-      if (room) {
-        this.form.setValue({
-          name: room.name,
-          icon: room.icon,
-          order: room.order,
-          hide: room.hide,
-        });
-      }
-    }
+    this.room$.pipe(take(1)).subscribe();
   }
 
   save(): void {

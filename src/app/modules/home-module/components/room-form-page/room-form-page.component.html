@@ -1,27 +1,72 @@
-<main class="page">
-  <header class="topbar">
-    <a routerLink="/home/rooms" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
-    <div>
-      <h1>{{ mode === 'edit' ? 'Настройки комнаты' : 'Создание комнаты' }}</h1>
-      <p>Название, иконка, порядок и видимость</p>
-    </div>
-  </header>
+<main class="page" *ngIf="mode === 'edit'; else createRoom">
+  <ng-container *ngIf="room$ | async as room">
+    <header class="topbar settings">
+      <a [routerLink]="['/home/rooms', room.id]" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+      <h1>Настройки комнаты</h1>
+    </header>
 
-  <form class="form-card" [formGroup]="form" (ngSubmit)="save()">
-    <label>
-      <span>Название</span>
-      <input type="text" formControlName="name" maxlength="50">
-      <small *ngIf="form.controls.name.touched && form.controls.name.invalid">Введите название комнаты</small>
-    </label>
+    <section class="room-profile">
+      <span class="profile-icon"><mat-icon [fontIcon]="form.controls.icon.value"></mat-icon></span>
+      <div>
+        <h2>{{ form.controls.name.value || room.name }} <mat-icon fontIcon="edit"></mat-icon></h2>
+        <p>ID: {{ room.id }}</p>
+      </div>
+    </section>
 
-    <label>
-      <span>Порядок</span>
-      <input type="number" formControlName="order">
-      <small *ngIf="form.controls.order.touched && form.controls.order.invalid">Некорректный порядок отображения</small>
-    </label>
+    <section class="link-list">
+      <a [routerLink]="['/home/rooms', room.id]">
+        <mat-icon fontIcon="info"></mat-icon>
+        <span>Информация о комнате</span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+      <a [routerLink]="['/home/rooms', room.id, 'devices']">
+        <mat-icon fontIcon="devices"></mat-icon>
+        <span>Устройства и датчики <small>{{ room.deviceCount }} устройства, {{ room.sensorCount }} датчика</small></span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+      <a routerLink="/home/scenarios">
+        <mat-icon fontIcon="play_circle"></mat-icon>
+        <span>Сценарии <small>Нет API</small></span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+      <a routerLink="/home/automations">
+        <mat-icon fontIcon="rule"></mat-icon>
+        <span>Автоматизации <small>Нет API</small></span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+      <a routerLink="/home/events">
+        <mat-icon fontIcon="history"></mat-icon>
+        <span>История событий</span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+    </section>
 
-    <section>
-      <span class="label">Иконка</span>
+    <form class="settings-form" [formGroup]="form" (ngSubmit)="save()">
+      <h2>Настройки</h2>
+
+      <label class="setting-row">
+        <span>Иконка</span>
+        <span class="value icon-value"><mat-icon [fontIcon]="form.controls.icon.value"></mat-icon></span>
+      </label>
+
+      <label class="setting-row">
+        <span>Название комнаты</span>
+        <input type="text" formControlName="name" maxlength="50">
+      </label>
+
+      <label class="setting-row">
+        <span>Порядок отображения</span>
+        <input type="number" formControlName="order">
+      </label>
+
+      <label class="setting-row">
+        <span>Видимость</span>
+        <select formControlName="hide">
+          <option [ngValue]="false">Видима</option>
+          <option [ngValue]="true">Скрыта</option>
+        </select>
+      </label>
+
       <div class="icon-grid">
         <button type="button"
                 *ngFor="let icon of icons"
@@ -30,18 +75,61 @@
           <mat-icon [fontIcon]="icon"></mat-icon>
         </button>
       </div>
-    </section>
 
-    <label class="checkbox">
-      <input type="checkbox" formControlName="hide">
-      <span>Скрыть комнату</span>
-    </label>
+      <button type="submit" class="save">Сохранить</button>
+    </form>
 
-    <div class="actions">
-      <button type="button" class="ghost" routerLink="/home/rooms">Отмена</button>
-      <button type="submit">Сохранить</button>
-    </div>
-
-    <button *ngIf="mode === 'edit'" type="button" class="danger" (click)="deleteRoom()">Удалить комнату</button>
-  </form>
+    <button type="button" class="delete-row" (click)="deleteRoom()">
+      <mat-icon fontIcon="delete"></mat-icon>
+      <span>Удалить комнату</span>
+    </button>
+  </ng-container>
 </main>
+
+<ng-template #createRoom>
+  <main class="page">
+    <header class="topbar">
+      <a routerLink="/home/rooms" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
+      <div>
+        <h1>Создание комнаты</h1>
+        <p>Название, иконка, порядок и видимость</p>
+      </div>
+    </header>
+
+    <form class="form-card" [formGroup]="form" (ngSubmit)="save()">
+      <label>
+        <span>Название</span>
+        <input type="text" formControlName="name" maxlength="50">
+        <small *ngIf="form.controls.name.touched && form.controls.name.invalid">Введите название комнаты</small>
+      </label>
+
+      <label>
+        <span>Порядок</span>
+        <input type="number" formControlName="order">
+        <small *ngIf="form.controls.order.touched && form.controls.order.invalid">Некорректный порядок отображения</small>
+      </label>
+
+      <section>
+        <span class="label">Иконка</span>
+        <div class="icon-grid">
+          <button type="button"
+                  *ngFor="let icon of icons"
+                  [class.active]="form.controls.icon.value === icon"
+                  (click)="form.controls.icon.setValue(icon)">
+            <mat-icon [fontIcon]="icon"></mat-icon>
+          </button>
+        </div>
+      </section>
+
+      <label class="checkbox">
+        <input type="checkbox" formControlName="hide">
+        <span>Скрыть комнату</span>
+      </label>
+
+      <div class="actions">
+        <button type="button" class="ghost" routerLink="/home/rooms">Отмена</button>
+        <button type="submit">Сохранить</button>
+      </div>
+    </form>
+  </main>
+</ng-template>
