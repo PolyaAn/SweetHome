@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, map, Observable } from 'rxjs';
-import { HomeUiState, WidgetVm } from '../../models/home.model';
+import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
@@ -15,7 +15,7 @@ type WidgetKind = 'device' | 'sensor';
 })
 export class AllWidgetsPageComponent {
   readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
-  readonly vm$: Observable<{ kind: WidgetKind; widgets: WidgetVm[] }> = combineLatest([
+  readonly vm$: Observable<{ kind: WidgetKind; rooms: RoomVm[]; widgets: WidgetVm[] }> = combineLatest([
     this.route.data,
     this.facade.dashboard$,
   ]).pipe(
@@ -23,6 +23,7 @@ export class AllWidgetsPageComponent {
       const kind = data['kind'] as WidgetKind;
       return {
         kind,
+        rooms: dashboard.rooms,
         widgets: dashboard.widgets
           .filter((widget) => !widget.hide)
           .filter((widget) => kind === 'sensor' ? widget.isSensor : !widget.isSensor)
@@ -39,6 +40,19 @@ export class AllWidgetsPageComponent {
 
   execute(widget: WidgetVm): void {
     this.facade.executeWidgetAction(widget).subscribe();
+  }
+
+  changeRoom(widgetId: string, roomId: string | null): void {
+    this.facade.setWidgetRoom(widgetId, roomId).subscribe();
+  }
+
+  remove(widgetId: string): void {
+    this.facade.removeWidget(widgetId).subscribe();
+  }
+
+  roomIdFromEvent(event: Event): string | null {
+    const value = (event.target as HTMLSelectElement).value;
+    return value || null;
   }
 
   isOn(widget: WidgetVm): boolean {

@@ -7,6 +7,7 @@ import { HomeFacadeService } from '../../services/home-facade.service';
 type Tab = 'all' | 'devices' | 'sensors';
 type Vm = {
   room: RoomVm | null;
+  rooms: RoomVm[];
   widgets: WidgetVm[];
 };
 
@@ -27,6 +28,7 @@ export class RoomDevicesPageComponent {
       const roomId = params.get('roomId') ?? '';
       return {
         room: dashboard.rooms.find((room) => room.id === roomId) ?? null,
+        rooms: dashboard.rooms,
         widgets: dashboard.widgets.filter((widget) => widget.roomId === roomId && !widget.hide),
       };
     }),
@@ -52,5 +54,18 @@ export class RoomDevicesPageComponent {
     }
 
     return widgets;
+  }
+
+  changeRoom(widgetId: string, roomId: string | null): void {
+    this.facade.setWidgetRoom(widgetId, roomId).subscribe();
+  }
+
+  remove(widgetId: string): void {
+    this.facade.removeWidget(widgetId).subscribe();
+  }
+
+  roomIdFromEvent(event: Event): string | null {
+    const value = (event.target as HTMLSelectElement).value;
+    return value || null;
   }
 }

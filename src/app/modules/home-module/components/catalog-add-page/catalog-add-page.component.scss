@@ -25,6 +25,33 @@
   text-decoration: none;
 }
 
+.room-picker {
+  @include ui-glass-surface(14px);
+  padding: 12px;
+
+  label {
+    display: grid;
+    gap: 6px;
+  }
+
+  span {
+    color: $color-gold-2;
+    font-size: 12px;
+  }
+
+  select {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid $alpha-white-16;
+    border-radius: 10px;
+    color: $color-text-main;
+    background: rgba(9, 18, 25, 0.72);
+    font: inherit;
+  }
+}
+
 .list {
   display: grid;
   gap: 12px;

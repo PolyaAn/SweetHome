@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, map, Observable } from 'rxjs';
-import { HomeAssistantCatalogWidget, HomeUiState } from '../../models/home.model';
+import { combineLatest, map, Observable, tap } from 'rxjs';
+import { HomeAssistantCatalogWidget, HomeUiState, RoomVm } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 @Component({
@@ -11,9 +11,18 @@ import { HomeFacadeService } from '../../services/home-facade.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogAddPageComponent {
-  readonly roomId = this.route.snapshot.paramMap.get('roomId');
+  readonly routeRoomId = this.route.snapshot.paramMap.get('roomId');
   readonly kind: 'device' | 'sensor' = this.route.snapshot.data['kind'] === 'sensor' ? 'sensor' : 'device';
   readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
+  selectedRoomId: string | null = this.routeRoomId;
+  readonly rooms$: Observable<RoomVm[]> = this.facade.dashboard$.pipe(
+    map((dashboard) => dashboard.rooms),
+    tap((rooms) => {
+      if (!this.routeRoomId && !this.selectedRoomId && rooms.length) {
+        this.selectedRoomId = rooms[0].id;
+      }
+    }),
+  );
   readonly items$: Observable<HomeAssistantCatalogWidget[]> = combineLatest([
     this.facade.catalog$,
     this.facade.layout$,
@@ -28,10 +37,17 @@ export class CatalogAddPageComponent {
   ) {
   }
 
+  selectRoom(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedRoomId = value || null;
+  }
+
   add(item: HomeAssistantCatalogWidget): void {
-    this.facade.addWidgetToRoom(this.roomId, item).subscribe(() => {
-      if (this.roomId) {
-        this.router.navigate(['/home/rooms', this.roomId]);
+    const targetRoomId = this.routeRoomId ?? this.selectedRoomId;
+
+    this.facade.addWidgetToRoom(targetRoomId, item).subscribe(() => {
+      if (this.routeRoomId) {
+        this.router.navigate(['/home/rooms', this.routeRoomId]);
         return;
       }
 

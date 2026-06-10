@@ -20,22 +20,44 @@
       <section class="list" *ngIf="vm.widgets.length; else empty">
         <article class="row" *ngFor="let widget of vm.widgets">
           <mat-icon [fontIcon]="widget.icon"></mat-icon>
-          <div>
+          <div class="copy">
             <h2>{{ widget.name }}</h2>
             <p>{{ widget.entityId }}</p>
           </div>
-          <button
-            *ngIf="!widget.isSensor; else sensorValue"
-            type="button"
-            class="switch"
-            [class.on]="isOn(widget)"
-            [disabled]="state.saving || !widget.controls.length"
-            (click)="execute(widget)"
-            aria-label="Переключить устройство">
-          </button>
-          <ng-template #sensorValue>
-            <span>{{ value(widget) }}</span>
-          </ng-template>
+          <div class="state">
+            <button
+              *ngIf="!widget.isSensor; else sensorValue"
+              type="button"
+              class="switch"
+              [class.on]="isOn(widget)"
+              [disabled]="state.saving || !widget.controls.length"
+              (click)="execute(widget)"
+              aria-label="Переключить устройство">
+            </button>
+            <ng-template #sensorValue>
+              <span>{{ value(widget) }}</span>
+            </ng-template>
+          </div>
+          <div class="controls">
+            <label>
+              <span>Комната</span>
+              <select
+                [value]="widget.roomId || ''"
+                [disabled]="state.saving"
+                (change)="changeRoom(widget.id, roomIdFromEvent($event))">
+                <option value="">Без комнаты</option>
+                <option *ngFor="let room of vm.rooms" [value]="room.id">{{ room.name }}</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="delete"
+              [disabled]="state.saving"
+              (click)="remove(widget.id)"
+              aria-label="Удалить">
+              <mat-icon fontIcon="delete"></mat-icon>
+            </button>
+          </div>
         </article>
       </section>
 

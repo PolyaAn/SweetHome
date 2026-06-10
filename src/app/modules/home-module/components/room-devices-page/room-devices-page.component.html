@@ -21,13 +21,35 @@
       <section class="list" *ngIf="filtered(vm.widgets).length; else empty">
         <article class="row" *ngFor="let widget of filtered(vm.widgets)">
           <mat-icon [fontIcon]="widget.icon"></mat-icon>
-          <div>
+          <div class="copy">
             <h2>{{ widget.name }}</h2>
             <p>{{ widget.entityId }}</p>
           </div>
-          <span>{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
+          <span class="value">{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
+          <div class="controls">
+            <label>
+              <span>Комната</span>
+              <select
+                [value]="widget.roomId || ''"
+                [disabled]="state.saving"
+                (change)="changeRoom(widget.id, roomIdFromEvent($event))">
+                <option value="">Без комнаты</option>
+                <option *ngFor="let room of vm.rooms" [value]="room.id">{{ room.name }}</option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="delete"
+              [disabled]="state.saving"
+              (click)="remove(widget.id)"
+              aria-label="Удалить">
+              <mat-icon fontIcon="delete"></mat-icon>
+            </button>
+          </div>
         </article>
       </section>
+
+      <section class="empty error" *ngIf="state.error">{{ state.error }}</section>
     </ng-template>
   </ng-container>
 

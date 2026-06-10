@@ -144,6 +144,17 @@ export class HomeFacadeService {
     });
   }
 
+  setWidgetRoom(widgetId: string, roomId: string | null): Observable<void> {
+    const layout = this.layoutSubject.value;
+    return this.save({
+      ...layout,
+      widgets: layout.widgets.map((widget) => widget.id === widgetId ? {
+        ...widget,
+        roomId,
+      } : widget),
+    });
+  }
+
   updateWidget(widget: SmartHomeWidget): Observable<void> {
     const layout = this.layoutSubject.value;
     return this.save({

@@ -48,7 +48,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 38px 1fr auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 14px;
@@ -56,6 +56,7 @@
   h2,
   p {
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   p,
@@ -64,10 +65,82 @@
   }
 }
 
+.copy {
+  min-width: 0;
+}
+
+.value {
+  justify-self: end;
+  max-width: 92px;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.controls {
+  grid-column: 2 / 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 8px;
+  align-items: end;
+
+  label {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  label span {
+    color: rgba(249, 241, 230, 0.48);
+    font-size: 10px;
+  }
+
+  select {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid $alpha-white-16;
+    border-radius: 9px;
+    color: $color-text-main;
+    background: rgba(9, 18, 25, 0.72);
+    font: inherit;
+    font-size: 12px;
+  }
+}
+
+.delete {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 176, 159, 0.28);
+  border-radius: 9px;
+  color: #ffb09f;
+  background: rgba(115, 12, 0, 0.2);
+  cursor: pointer;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    color: inherit;
+    font-size: 18px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
 .empty {
   margin-top: 18px;
   padding: 24px;
   text-align: center;
+
+  &.error {
+    color: #ffb09f;
+  }
 }
 
 .skeleton {
@@ -76,6 +149,26 @@
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
   background-size: 220% 100%;
   animation: skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+@media (max-width: 360px) {
+  .tabs {
+    gap: 6px;
+
+    button {
+      font-size: 12px;
+    }
+  }
+
+  .row {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .controls {
+    grid-column: 1 / 4;
+  }
 }
 
 .skeleton-list {

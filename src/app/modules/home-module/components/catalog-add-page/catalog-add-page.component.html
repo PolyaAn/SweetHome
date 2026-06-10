@@ -1,5 +1,17 @@
 <main class="page" *ngIf="items$ | async as items">
   <ng-container *ngIf="uiState$ | async as state">
+    <ng-container *ngIf="!routeRoomId">
+      <section class="room-picker" *ngIf="rooms$ | async as rooms">
+        <label>
+          <span>Комната</span>
+          <select [value]="selectedRoomId || ''" [disabled]="state.saving" (change)="selectRoom($event)">
+            <option value="">Без комнаты</option>
+            <option *ngFor="let room of rooms" [value]="room.id">{{ room.name }}</option>
+          </select>
+        </label>
+      </section>
+    </ng-container>
+
     <section class="list skeleton-list" *ngIf="state.loading; else catalogContent">
       <div class="row" *ngFor="let item of [1, 2, 3]">
         <span class="icon skeleton"></span>
