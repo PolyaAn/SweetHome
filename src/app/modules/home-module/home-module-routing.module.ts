@@ -31,9 +31,19 @@ const routes: Routes = [
         data: {title: 'Устройства', kind: 'device'},
       },
       {
+        path: 'devices/add',
+        component: CatalogAddPageComponent,
+        data: {title: 'Добавить устройство', kind: 'device'},
+      },
+      {
         path: 'sensors',
         component: AllWidgetsPageComponent,
         data: {title: 'Датчики', kind: 'sensor'},
+      },
+      {
+        path: 'sensors/add',
+        component: CatalogAddPageComponent,
+        data: {title: 'Добавить датчик', kind: 'sensor'},
       },
       {
         path: 'rooms/create',

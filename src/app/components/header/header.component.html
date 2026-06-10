@@ -59,6 +59,13 @@
               aria-label="Добавить комнату"
               fontIcon="add">
     </mat-icon>
+    <mat-icon *ngIf="isHomeDevicesPage || isHomeSensorsPage"
+              (click)="addHomeWidget()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Добавить"
+              fontIcon="add">
+    </mat-icon>
     <mat-icon *ngIf="homeRoomId"
               (click)="openRoomSettings()"
               class="icon"

@@ -115,7 +115,7 @@ export class HomeFacadeService {
     });
   }
 
-  addWidgetToRoom(roomId: string, catalogWidget: HomeAssistantCatalogWidget): Observable<void> {
+  addWidgetToRoom(roomId: string | null, catalogWidget: HomeAssistantCatalogWidget): Observable<void> {
     const layout = this.layoutSubject.value;
     const nextWidget: SmartHomeWidget = {
       id: this.createId(),
@@ -123,7 +123,7 @@ export class HomeFacadeService {
       type: catalogWidget.type,
       name: catalogWidget.name,
       icon: catalogWidget.icon,
-      order: this.nextOrder(layout.widgets.filter((widget) => widget.roomId === roomId)),
+      order: this.nextOrder(layout.widgets.filter((widget) => (widget.roomId ?? null) === roomId)),
       size: 1,
       hide: false,
       roomId,

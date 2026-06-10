@@ -40,6 +40,8 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isHomePage: boolean = false;
   isHomeRootPage: boolean = false;
   isHomeRoomsPage: boolean = false;
+  isHomeDevicesPage: boolean = false;
+  isHomeSensorsPage: boolean = false;
   homeRoomId: string | null = null;
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
@@ -132,6 +134,15 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/home/rooms/create']);
   }
 
+  addHomeWidget(): void {
+    if (this.isHomeSensorsPage) {
+      this.router.navigate(['/home/sensors/add']);
+      return;
+    }
+
+    this.router.navigate(['/home/devices/add']);
+  }
+
   openRoomSettings(): void {
     if (!this.homeRoomId) {
       return;
@@ -152,6 +163,8 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.isHomePage = url.startsWith('/home');
     this.isHomeRootPage = url === '/home';
     this.isHomeRoomsPage = url === '/home/rooms';
+    this.isHomeDevicesPage = url === '/home/devices';
+    this.isHomeSensorsPage = url === '/home/sensors';
     const candidateRoomId = roomMatch?.[1] ?? null;
     this.homeRoomId = candidateRoomId && candidateRoomId !== 'create' ? candidateRoomId : null;
   }
