@@ -1,12 +1,4 @@
 <main class="page">
-  <header class="topbar">
-    <a [routerLink]="['/home/rooms', roomId]" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
-    <div>
-      <h1>{{ kind === 'sensor' ? 'Добавить датчик' : 'Добавить устройство' }}</h1>
-      <p>Источник данных: Home Assistant catalog</p>
-    </div>
-  </header>
-
   <section class="list" *ngIf="items.length; else empty">
     <article class="row" *ngFor="let item of items">
       <mat-icon [fontIcon]="item.icon"></mat-icon>

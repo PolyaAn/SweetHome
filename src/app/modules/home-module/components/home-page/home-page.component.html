@@ -1,11 +1,4 @@
 <main class="home-page" *ngIf="dashboard$ | async as dashboard">
-  <header class="screen-header">
-    <h1>Дом</h1>
-    <button type="button" class="round-button" routerLink="/home/rooms" title="Настройки">
-      <mat-icon fontIcon="settings"></mat-icon>
-    </button>
-  </header>
-
   <section class="state-bar" *ngIf="uiState$ | async as state">
     <span *ngIf="state.loading">Загрузка данных</span>
     <span *ngIf="state.saving">Сохранение изменений</span>

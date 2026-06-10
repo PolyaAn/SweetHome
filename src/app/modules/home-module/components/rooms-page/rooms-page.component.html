@@ -1,10 +1,4 @@
 <main class="page" *ngIf="dashboard$ | async as dashboard">
-  <header class="topbar">
-    <a routerLink="/home" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
-    <h1>Комнаты</h1>
-    <a routerLink="/home/rooms/create" class="icon-link"><mat-icon fontIcon="add"></mat-icon></a>
-  </header>
-
   <section class="rooms-list" *ngIf="dashboard.rooms.length; else emptyRooms">
     <a class="room-row" *ngFor="let room of dashboard.rooms" [routerLink]="['/home/rooms', room.id]">
       <span class="room-icon">

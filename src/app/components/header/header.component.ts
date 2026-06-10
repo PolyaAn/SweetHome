@@ -37,6 +37,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isMainPage: boolean = false;
   isMoviePage: boolean = false;
   isMovieListPage: boolean = false;
+  isHomePage: boolean = false;
+  isHomeRootPage: boolean = false;
+  isHomeRoomsPage: boolean = false;
+  homeRoomId: string | null = null;
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
 
@@ -44,6 +48,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.isMainPage = this.router.url.startsWith('/main');
     this.isMoviePage = this.router.url.startsWith('/movie');
     this.isMovieListPage = this.router.url === '/movie';
+    this.setHomeRouteState();
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
     this.routeWatcher();
@@ -74,6 +79,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
           this.isMainPage = this.router.url.startsWith('/main');
           this.isMoviePage = this.router.url.startsWith('/movie');
           this.isMovieListPage = this.router.url === '/movie';
+          this.setHomeRouteState();
           this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
         },
@@ -118,8 +124,35 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/movie/add']);
   }
 
+  openHomeSettings(): void {
+    this.router.navigate(['/home/rooms']);
+  }
+
+  addRoom(): void {
+    this.router.navigate(['/home/rooms/create']);
+  }
+
+  openRoomSettings(): void {
+    if (!this.homeRoomId) {
+      return;
+    }
+
+    this.router.navigate(['/home/rooms', this.homeRoomId, 'settings']);
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  private setHomeRouteState(): void {
+    const url = this.router.url.split('?')[0];
+    const roomMatch = url.match(/^\/home\/rooms\/([^/]+)$/);
+
+    this.isHomePage = url.startsWith('/home');
+    this.isHomeRootPage = url === '/home';
+    this.isHomeRoomsPage = url === '/home/rooms';
+    const candidateRoomId = roomMatch?.[1] ?? null;
+    this.homeRoomId = candidateRoomId && candidateRoomId !== 'create' ? candidateRoomId : null;
   }
 }

@@ -5,7 +5,7 @@
   color: $color-text-main;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 24px $alpha-black-18;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
   position: fixed;
   top: 0;
   right: 0;
@@ -27,10 +27,10 @@
     justify-content: space-between;
     padding: 14px 24px;
     background:
-      radial-gradient(circle at 92% 10%, $alpha-accent-24, transparent 44%),
-      linear-gradient(145deg, $color-bg-deep-4, $color-bg-deep-2);
-    border-bottom: 1px solid $alpha-white-16;
-    letter-spacing: 0.06em;
+      radial-gradient(circle at 92% 10%, rgba(219, 93, 43, 0.22), transparent 44%),
+      linear-gradient(145deg, #1f2430, #111923 58%, #0b1720);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 
     @include adaptivePhone {
@@ -59,9 +59,9 @@
       @include icon-36;
       padding: 5px;
       border-radius: 14px;
-      color: $color-text-soft-2;
-      background-color: $alpha-white-08;
-      border: 1px solid $alpha-white-24;
+      color: $color-accent-cream;
+      background-color: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       cursor: pointer;
       transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -71,8 +71,8 @@
 
       &:hover {
         transform: translateY(-1px);
-        background-color: $alpha-accent-18;
-        box-shadow: 0 6px 13px $alpha-black-18;
+        background-color: rgba(219, 93, 43, 0.18);
+        box-shadow: 0 6px 13px rgba(0, 0, 0, 0.2);
       }
     }
 

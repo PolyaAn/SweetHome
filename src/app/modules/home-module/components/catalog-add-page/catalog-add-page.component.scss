@@ -1,33 +1,18 @@
 @import '../../../../styles/shared-styles';
 
 .page {
-  min-height: calc(100vh - 76px);
+  min-height: 100%;
   padding: 24px 36px 48px;
   color: $color-text-main;
-  background: linear-gradient(180deg, $color-bg-deep-1, $color-bg-deep-2);
+  background:
+    radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.22), transparent 36%),
+    linear-gradient(180deg, #0b1720, #0a1219 62%, #0a1118);
 
   @media (max-width: 767px) {
     padding: 16px;
   }
 }
 
-.topbar {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-items: center;
-  gap: 12px;
-
-  h1,
-  p {
-    margin: 0;
-  }
-
-  p {
-    color: $color-gold-2;
-  }
-}
-
-.icon-link,
 .row button {
   @include ui-ghost-button(12px);
   display: flex;

@@ -1,10 +1,5 @@
 <main class="page" *ngIf="mode === 'edit'; else createRoom">
   <ng-container *ngIf="room$ | async as room">
-    <header class="topbar settings">
-      <a [routerLink]="['/home/rooms', room.id]" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
-      <h1>Настройки комнаты</h1>
-    </header>
-
     <section class="room-profile">
       <span class="profile-icon"><mat-icon [fontIcon]="form.controls.icon.value"></mat-icon></span>
       <div>
@@ -88,14 +83,6 @@
 
 <ng-template #createRoom>
   <main class="page">
-    <header class="topbar">
-      <a routerLink="/home/rooms" class="icon-link"><mat-icon fontIcon="arrow_back"></mat-icon></a>
-      <div>
-        <h1>Создание комнаты</h1>
-        <p>Название, иконка, порядок и видимость</p>
-      </div>
-    </header>
-
     <form class="form-card" [formGroup]="form" (ngSubmit)="save()">
       <label>
         <span>Название</span>

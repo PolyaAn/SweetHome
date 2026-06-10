@@ -15,6 +15,6 @@ export class AppComponent {
   title = 'SweetHome';
 
   get showHeader(): boolean {
-    return !this.router.url.startsWith('/login');
+    return !this.router.url.startsWith('/login') && !this.router.url.startsWith('/register');
   }
 }

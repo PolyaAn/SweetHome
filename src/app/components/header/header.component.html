@@ -5,7 +5,7 @@
     </ng-container>
     <ng-template #backButton>
       <div class="back-title-block">
-        <mat-icon
+        <mat-icon *ngIf="!isHomeRootPage"
           (click)="goBack()"
           class="icon back-icon"
           aria-hidden="false"
@@ -44,6 +44,27 @@
               aria-hidden="false"
               aria-label="Выйти"
               fontIcon="logout">
+    </mat-icon>
+    <mat-icon *ngIf="isHomeRootPage"
+              (click)="openHomeSettings()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Настройки дома"
+              fontIcon="settings">
+    </mat-icon>
+    <mat-icon *ngIf="isHomeRoomsPage"
+              (click)="addRoom()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Добавить комнату"
+              fontIcon="add">
+    </mat-icon>
+    <mat-icon *ngIf="homeRoomId"
+              (click)="openRoomSettings()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Настройки комнаты"
+              fontIcon="settings">
     </mat-icon>
   </div>
 </div>
