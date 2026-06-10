@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, map, Observable } from 'rxjs';
-import { RoomVm, WidgetVm } from '../../models/home.model';
+import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type Tab = 'all' | 'devices' | 'sensors';
@@ -18,6 +18,7 @@ type Vm = {
 })
 export class RoomDevicesPageComponent {
   selectedTab: Tab = 'all';
+  readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
   readonly vm$: Observable<Vm> = combineLatest([
     this.route.paramMap,
     this.facade.dashboard$,

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../shared/services/api.service';
 import {
+  HomeAssistantActionRequest,
   HomeAssistantCatalogWidget,
   SmartHomeLayout,
 } from '../models/home.model';
@@ -21,5 +22,9 @@ export class HomeApiService {
 
   saveLayout(layout: SmartHomeLayout): Observable<void> {
     return this.api.put<void, SmartHomeLayout>('/api/SmartHome/layout', layout);
+  }
+
+  executeAction(action: HomeAssistantActionRequest): Observable<void> {
+    return this.api.push<void, HomeAssistantActionRequest>('/api/SmartHome/actions', action);
   }
 }

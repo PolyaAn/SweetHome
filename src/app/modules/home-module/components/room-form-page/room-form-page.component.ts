@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, map, Observable, take, tap } from 'rxjs';
 import { RoomVm, SmartHomeRoom } from '../../models/home.model';
+import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type RoomForm = FormGroup<{
@@ -113,5 +114,9 @@ export class RoomFormPageComponent implements OnInit {
       order: value.order,
       hide: value.hide,
     };
+  }
+
+  roomSummary(room: RoomVm): string {
+    return `${countText(room.deviceCount, DEVICE_FORMS)}, ${countText(room.sensorCount, SENSOR_FORMS)}`;
   }
 }

@@ -5,16 +5,31 @@
     <button type="button" [class.active]="selectedTab === 'sensors'" (click)="setTab('sensors')">Датчики</button>
   </section>
 
-  <section class="list" *ngIf="filtered(vm.widgets).length; else empty">
-    <article class="row" *ngFor="let widget of filtered(vm.widgets)">
-      <mat-icon [fontIcon]="widget.icon"></mat-icon>
-      <div>
-        <h2>{{ widget.name }}</h2>
-        <p>{{ widget.entityId }}</p>
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="list skeleton-list" *ngIf="state.loading; else deviceList">
+      <div class="row" *ngFor="let item of [1, 2, 3]">
+        <span class="icon skeleton"></span>
+        <span class="copy">
+          <span class="skeleton line"></span>
+          <span class="skeleton line short"></span>
+        </span>
+        <span class="skeleton value"></span>
       </div>
-      <span>{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
-    </article>
-  </section>
+    </section>
+
+    <ng-template #deviceList>
+      <section class="list" *ngIf="filtered(vm.widgets).length; else empty">
+        <article class="row" *ngFor="let widget of filtered(vm.widgets)">
+          <mat-icon [fontIcon]="widget.icon"></mat-icon>
+          <div>
+            <h2>{{ widget.name }}</h2>
+            <p>{{ widget.entityId }}</p>
+          </div>
+          <span>{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
+        </article>
+      </section>
+    </ng-template>
+  </ng-container>
 
   <ng-template #empty>
     <section class="empty">Список пуст</section>

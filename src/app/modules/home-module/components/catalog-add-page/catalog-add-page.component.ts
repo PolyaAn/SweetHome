@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HomeAssistantCatalogWidget } from '../../models/home.model';
+import { combineLatest, map, Observable } from 'rxjs';
+import { HomeAssistantCatalogWidget, HomeUiState } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 @Component({
@@ -12,7 +13,13 @@ import { HomeFacadeService } from '../../services/home-facade.service';
 export class CatalogAddPageComponent {
   readonly roomId = this.route.snapshot.paramMap.get('roomId') ?? '';
   readonly kind: 'device' | 'sensor' = this.route.snapshot.data['kind'] === 'sensor' ? 'sensor' : 'device';
-  readonly items = this.facade.getCatalogForKind(this.kind);
+  readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
+  readonly items$: Observable<HomeAssistantCatalogWidget[]> = combineLatest([
+    this.facade.catalog$,
+    this.facade.layout$,
+  ]).pipe(
+    map(() => this.facade.getCatalogForKind(this.kind)),
+  );
 
   constructor(
     private route: ActivatedRoute,

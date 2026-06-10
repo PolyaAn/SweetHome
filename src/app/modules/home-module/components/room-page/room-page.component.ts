@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, map, Observable } from 'rxjs';
-import { RoomVm, WidgetVm } from '../../models/home.model';
+import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
+import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type RoomPageVm = {
@@ -23,6 +24,7 @@ type RoomPageVm = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoomPageComponent {
+  readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
   readonly vm$: Observable<RoomPageVm> = combineLatest([
     this.route.paramMap,
     this.facade.dashboard$,
@@ -54,6 +56,10 @@ export class RoomPageComponent {
   ) {
   }
 
+  execute(device: WidgetVm): void {
+    this.facade.executeWidgetAction(device).subscribe();
+  }
+
   removeWidget(widget: WidgetVm): void {
     this.facade.removeWidget(widget.id).subscribe();
   }
@@ -67,7 +73,15 @@ export class RoomPageComponent {
   }
 
   isOn(widget: WidgetVm): boolean {
-    return widget.state === 'on' || widget.state === 'open' || widget.state === 'playing';
+    return widget.state === 'on' || widget.state === 'open' || widget.state === 'opening' || widget.state === 'playing';
+  }
+
+  devicesCount(count: number): string {
+    return countText(count, DEVICE_FORMS);
+  }
+
+  sensorsCount(count: number): string {
+    return countText(count, SENSOR_FORMS);
   }
 
   sensorTrend(sensor: WidgetVm): string {

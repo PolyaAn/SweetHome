@@ -16,7 +16,7 @@
       </a>
       <a [routerLink]="['/home/rooms', room.id, 'devices']">
         <mat-icon fontIcon="devices"></mat-icon>
-        <span>Устройства и датчики <small>{{ room.deviceCount }} устройства, {{ room.sensorCount }} датчика</small></span>
+        <span>Устройства и датчики <small>{{ roomSummary(room) }}</small></span>
         <mat-icon fontIcon="chevron_right"></mat-icon>
       </a>
       <a routerLink="/home/scenarios">

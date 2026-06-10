@@ -4,15 +4,16 @@
 
 ## Причина файла
 
-Frontend-раздел `Дом` реализован по локальному ТЗ `plan_frontend_home_full.html` с учетом текущего backend-контракта `HOMEASSISTANT_CLIENT_API.md`.
+Frontend-раздел `Дом` использует текущий backend-контракт `HOMEASSISTANT_CLIENT_API.md`.
 
 Текущий backend-контракт покрывает:
 
 - `GET /api/SmartHome/widget-catalog`
 - `GET /api/SmartHome/layout`
 - `PUT /api/SmartHome/layout`
+- `POST /api/SmartHome/actions`
 
-Локальное ТЗ описывает больше сценариев и endpoints.
+Локальное ТЗ `plan_frontend_home_full.html` описывает дополнительные endpoints и сценарии.
 
 ----
 
@@ -32,7 +33,7 @@ Frontend-раздел `Дом` реализован по локальному Т
   - `GET /api/v1/home/rooms/{roomId}`
   - `PUT /api/v1/home/rooms/{roomId}`
   - `DELETE /api/v1/home/rooms/{roomId}`
-- В текущем API комнаты сохраняются только полной заменой `PUT /api/SmartHome/layout`.
+- В текущем API комнаты сохраняются полной заменой `PUT /api/SmartHome/layout`.
 - Backend не возвращает ошибку `ROOM_NOT_EMPTY`.
 
 3. Устройства и датчики комнаты
@@ -50,8 +51,9 @@ Frontend-раздел `Дом` реализован по локальному Т
 4. Управление устройствами
 
 - В ТЗ используется `POST /api/v1/home/devices/{deviceId}/state`.
-- В текущем API endpoint отсутствует.
-- Frontend не выполняет команды управления устройствами.
+- В текущем API используется `POST /api/SmartHome/actions`.
+- Frontend отправляет `entityId`, `action`, `value`.
+- `action` берётся из `controls[].action`.
 
 5. Сценарии
 
@@ -87,19 +89,13 @@ Frontend-раздел `Дом` реализован по локальному Т
 
 ## Исправления на backend
 
-1. Добавить командный endpoint для изменения состояния Home Assistant entity.
-
-```text
-POST /api/SmartHome/widgets/{entityId}/command
-```
-
-2. Добавить endpoint журнала событий.
+1. Endpoint журнала событий.
 
 ```text
 GET /api/SmartHome/events
 ```
 
-3. Добавить endpoints сценариев.
+2. Endpoints сценариев.
 
 ```text
 GET /api/SmartHome/scenarios
@@ -107,7 +103,7 @@ POST /api/SmartHome/scenarios
 POST /api/SmartHome/scenarios/{scenarioId}/execute
 ```
 
-4. Добавить endpoints автоматизаций.
+3. Endpoints автоматизаций.
 
 ```text
 GET /api/SmartHome/automations
@@ -115,13 +111,13 @@ POST /api/SmartHome/automations
 PUT /api/SmartHome/automations/{automationId}
 ```
 
-5. Добавить realtime-канал.
+4. Realtime-канал.
 
 ```text
 GET /ws/home
 ```
 
-6. Добавить события realtime.
+5. Realtime-события.
 
 ```text
 DEVICE_STATE_CHANGED
@@ -131,11 +127,11 @@ ROOM_UPDATED
 AUTOMATION_EXECUTED
 ```
 
-7. Добавить проверку `entityId` при сохранении layout.
+6. Проверка `entityId` при сохранении layout.
 
-8. Добавить проверку `settingsJson` на валидный JSON.
+7. Проверка `settingsJson` на валидный JSON.
 
-9. Добавить ошибку удаления непустой комнаты при появлении отдельного room API.
+8. Ошибка удаления непустой комнаты при появлении отдельного room API.
 
 ```text
 ROOM_NOT_EMPTY

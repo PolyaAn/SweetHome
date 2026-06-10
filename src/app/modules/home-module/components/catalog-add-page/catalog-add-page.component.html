@@ -1,16 +1,31 @@
-<main class="page">
-  <section class="list" *ngIf="items.length; else empty">
-    <article class="row" *ngFor="let item of items">
-      <mat-icon [fontIcon]="item.icon"></mat-icon>
-      <div>
-        <h2>{{ item.name }}</h2>
-        <p>{{ item.id }} · {{ item.state }}{{ item.unit ? ' ' + item.unit : '' }}</p>
+<main class="page" *ngIf="items$ | async as items">
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="list skeleton-list" *ngIf="state.loading; else catalogContent">
+      <div class="row" *ngFor="let item of [1, 2, 3]">
+        <span class="icon skeleton"></span>
+        <span class="copy">
+          <span class="skeleton line"></span>
+          <span class="skeleton line short"></span>
+        </span>
+        <span class="skeleton add"></span>
       </div>
-      <button type="button" (click)="add(item)">
-        <mat-icon fontIcon="add"></mat-icon>
-      </button>
-    </article>
-  </section>
+    </section>
+
+    <ng-template #catalogContent>
+      <section class="list" *ngIf="items.length; else empty">
+        <article class="row" *ngFor="let item of items">
+          <mat-icon [fontIcon]="item.icon"></mat-icon>
+          <div>
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.id }} · {{ item.state }}{{ item.unit ? ' ' + item.unit : '' }}</p>
+          </div>
+          <button type="button" [disabled]="state.saving" (click)="add(item)">
+            <mat-icon fontIcon="add"></mat-icon>
+          </button>
+        </article>
+      </section>
+    </ng-template>
+  </ng-container>
 
   <ng-template #empty>
     <section class="empty">

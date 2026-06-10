@@ -8,6 +8,7 @@ import { RoomFormPageComponent } from './components/room-form-page/room-form-pag
 import { RoomDevicesPageComponent } from './components/room-devices-page/room-devices-page.component';
 import { CatalogAddPageComponent } from './components/catalog-add-page/catalog-add-page.component';
 import { UnsupportedPageComponent } from './components/unsupported-page/unsupported-page.component';
+import { AllWidgetsPageComponent } from './components/all-widgets-page/all-widgets-page.component';
 
 const routes: Routes = [
   {
@@ -23,6 +24,16 @@ const routes: Routes = [
         path: 'rooms',
         component: RoomsPageComponent,
         data: {title: 'Комнаты'},
+      },
+      {
+        path: 'devices',
+        component: AllWidgetsPageComponent,
+        data: {title: 'Устройства', kind: 'device'},
+      },
+      {
+        path: 'sensors',
+        component: AllWidgetsPageComponent,
+        data: {title: 'Датчики', kind: 'sensor'},
       },
       {
         path: 'rooms/create',

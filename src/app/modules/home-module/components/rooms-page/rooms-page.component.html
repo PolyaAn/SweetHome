@@ -1,22 +1,38 @@
 <main class="page" *ngIf="dashboard$ | async as dashboard">
-  <section class="rooms-list" *ngIf="dashboard.rooms.length; else emptyRooms">
-    <a class="room-row" *ngFor="let room of dashboard.rooms" [routerLink]="['/home/rooms', room.id]">
-      <span class="room-icon">
-        <mat-icon [fontIcon]="room.icon"></mat-icon>
-      </span>
-      <span class="room-copy">
-        <strong>{{ room.name }}</strong>
-        <small>{{ room.deviceCount }} устройств | {{ room.sensorCount }} датчика</small>
-      </span>
-      <span class="room-temp">{{ roomTemperature(room, dashboard.widgets) }}</span>
-      <mat-icon fontIcon="chevron_right"></mat-icon>
-    </a>
-  </section>
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="rooms-list skeleton-list" *ngIf="state.loading; else roomsContent">
+      <div class="room-row" *ngFor="let item of [1, 2, 3]">
+        <span class="room-icon skeleton"></span>
+        <span class="room-copy">
+          <span class="skeleton line"></span>
+          <span class="skeleton line short"></span>
+        </span>
+        <span class="skeleton temp"></span>
+        <span class="skeleton chevron"></span>
+      </div>
+    </section>
 
-  <a routerLink="/home/rooms/create" class="add-room">
-    <mat-icon fontIcon="add"></mat-icon>
-    <span>Добавить комнату</span>
-  </a>
+    <ng-template #roomsContent>
+      <section class="rooms-list" *ngIf="dashboard.rooms.length; else emptyRooms">
+        <a class="room-row" *ngFor="let room of dashboard.rooms" [routerLink]="['/home/rooms', room.id]">
+          <span class="room-icon">
+            <mat-icon [fontIcon]="room.icon"></mat-icon>
+          </span>
+          <span class="room-copy">
+            <strong>{{ room.name }}</strong>
+            <small>{{ roomSummary(room) }}</small>
+          </span>
+          <span class="room-temp">{{ roomTemperature(room, dashboard.widgets) }}</span>
+          <mat-icon fontIcon="chevron_right"></mat-icon>
+        </a>
+      </section>
+
+      <a routerLink="/home/rooms/create" class="add-room">
+        <mat-icon fontIcon="add"></mat-icon>
+        <span>Добавить комнату</span>
+      </a>
+    </ng-template>
+  </ng-container>
 
   <ng-template #emptyRooms>
     <section class="empty">

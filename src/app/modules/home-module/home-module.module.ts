@@ -11,6 +11,7 @@ import { RoomFormPageComponent } from './components/room-form-page/room-form-pag
 import { RoomDevicesPageComponent } from './components/room-devices-page/room-devices-page.component';
 import { CatalogAddPageComponent } from './components/catalog-add-page/catalog-add-page.component';
 import { UnsupportedPageComponent } from './components/unsupported-page/unsupported-page.component';
+import { AllWidgetsPageComponent } from './components/all-widgets-page/all-widgets-page.component';
 import { HomeApiService } from './services/home-api.service';
 import { HomeFacadeService } from './services/home-facade.service';
 
@@ -24,6 +25,7 @@ import { HomeFacadeService } from './services/home-facade.service';
     RoomDevicesPageComponent,
     CatalogAddPageComponent,
     UnsupportedPageComponent,
+    AllWidgetsPageComponent,
   ],
   imports: [
     CommonModule,

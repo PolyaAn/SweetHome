@@ -1,72 +1,96 @@
 <main class="page" *ngIf="vm$ | async as vm">
-  <ng-container *ngIf="vm.room; else notFound">
-    <section class="metrics">
-      <article>
-        <strong>{{ value(vm.metrics.temperature) }}</strong>
-        <span>Температура</span>
-      </article>
-      <article>
-        <strong>{{ value(vm.metrics.humidity) }}</strong>
-        <span>Влажность</span>
-        <small>Комфортно</small>
-      </article>
-      <article>
-        <strong>{{ value(vm.metrics.illuminance) }}</strong>
-        <span>Освещённость</span>
-        <small>Нормально</small>
-      </article>
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="page-skeleton" *ngIf="state.loading; else roomContent">
+      <div class="metrics skeleton-metrics">
+        <article></article>
+        <article></article>
+        <article></article>
+      </div>
+      <div class="device-grid">
+        <article class="device-card skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></article>
+      </div>
     </section>
 
-    <section class="section-head">
-      <h2>Устройства</h2>
-      <span>{{ vm.devices.length }} устройств</span>
-    </section>
+    <ng-template #roomContent>
+      <ng-container *ngIf="vm.room; else notFound">
+        <section class="metrics">
+          <article>
+            <strong>{{ value(vm.metrics.temperature) }}</strong>
+            <span>Температура</span>
+          </article>
+          <article>
+            <strong>{{ value(vm.metrics.humidity) }}</strong>
+            <span>Влажность</span>
+            <small>Комфортно</small>
+          </article>
+          <article>
+            <strong>{{ value(vm.metrics.illuminance) }}</strong>
+            <span>Освещённость</span>
+            <small>Нормально</small>
+          </article>
+        </section>
 
-    <section class="device-grid" *ngIf="vm.devices.length; else noDevices">
-      <article class="device-card" *ngFor="let device of vm.devices">
-        <mat-icon [fontIcon]="device.icon"></mat-icon>
-        <div>
-          <h3>{{ device.name }}</h3>
-          <p [class.enabled]="isOn(device)">{{ isOn(device) ? 'Включено' : 'Выключено' }}</p>
-        </div>
-        <span class="switch" [class.on]="isOn(device)"></span>
-      </article>
-    </section>
+        <section class="section-head">
+          <h2>Устройства</h2>
+          <span>{{ devicesCount(vm.devices.length) }}</span>
+        </section>
 
-    <section class="section-head">
-      <h2>Датчики</h2>
-      <span>{{ vm.sensors.length }} датчика</span>
-    </section>
+        <section class="device-grid" *ngIf="vm.devices.length; else noDevices">
+          <article class="device-card" *ngFor="let device of vm.devices">
+            <mat-icon [fontIcon]="device.icon"></mat-icon>
+            <div>
+              <h3>{{ device.name }}</h3>
+              <p [class.enabled]="isOn(device)">{{ isOn(device) ? 'Включено' : 'Выключено' }}</p>
+            </div>
+            <button
+              type="button"
+              class="switch"
+              [class.on]="isOn(device)"
+              [disabled]="state.saving || !device.controls.length"
+              (click)="execute(device)"
+              aria-label="Переключить устройство">
+            </button>
+          </article>
+        </section>
 
-    <section class="sensor-list" *ngIf="vm.sensors.length; else noSensors">
-      <article class="sensor-row" *ngFor="let sensor of vm.sensors">
-        <mat-icon [fontIcon]="sensor.icon"></mat-icon>
-        <strong>{{ sensor.name }}</strong>
-        <span>{{ value(sensor) }}</span>
-        <svg viewBox="0 0 64 24" aria-hidden="true">
-          <polyline [attr.points]="sensorTrend(sensor)"></polyline>
-        </svg>
-      </article>
-    </section>
+        <section class="section-head">
+          <h2>Датчики</h2>
+          <span>{{ sensorsCount(vm.sensors.length) }}</span>
+        </section>
 
-    <nav class="room-nav">
-      <a class="active" [routerLink]="['/home/rooms', vm.room.id]">
-        <mat-icon fontIcon="grid_view"></mat-icon>
-        <span>Управление</span>
-      </a>
-      <a routerLink="/home/scenarios">
-        <mat-icon fontIcon="play_circle"></mat-icon>
-        <span>Сценарии</span>
-      </a>
-      <a routerLink="/home/automations">
-        <mat-icon fontIcon="rule"></mat-icon>
-        <span>Автоматизации</span>
-      </a>
-      <a routerLink="/home/events">
-        <mat-icon fontIcon="history"></mat-icon>
-        <span>История</span>
-      </a>
-    </nav>
+        <section class="sensor-list" *ngIf="vm.sensors.length; else noSensors">
+          <article class="sensor-row" *ngFor="let sensor of vm.sensors">
+            <mat-icon [fontIcon]="sensor.icon"></mat-icon>
+            <strong>{{ sensor.name }}</strong>
+            <span>{{ value(sensor) }}</span>
+            <svg viewBox="0 0 64 24" aria-hidden="true">
+              <polyline [attr.points]="sensorTrend(sensor)"></polyline>
+            </svg>
+          </article>
+        </section>
+
+        <section class="empty compact error" *ngIf="state.error">{{ state.error }}</section>
+
+        <nav class="room-nav">
+          <a class="active" [routerLink]="['/home/rooms', vm.room.id]">
+            <mat-icon fontIcon="grid_view"></mat-icon>
+            <span>Управление</span>
+          </a>
+          <a routerLink="/home/scenarios">
+            <mat-icon fontIcon="play_circle"></mat-icon>
+            <span>Сценарии</span>
+          </a>
+          <a routerLink="/home/automations">
+            <mat-icon fontIcon="rule"></mat-icon>
+            <span>Автоматизации</span>
+          </a>
+          <a routerLink="/home/events">
+            <mat-icon fontIcon="history"></mat-icon>
+            <span>История</span>
+          </a>
+        </nav>
+      </ng-container>
+    </ng-template>
   </ng-container>
 
   <ng-template #noSensors>

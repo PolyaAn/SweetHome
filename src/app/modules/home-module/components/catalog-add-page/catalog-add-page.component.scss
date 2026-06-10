@@ -36,6 +36,49 @@
   @include ui-glass-surface(16px);
 }
 
+.skeleton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background-size: 220% 100%;
+  animation: skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.skeleton-list {
+  .icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .line {
+    width: 140px;
+    height: 13px;
+  }
+
+  .short {
+    width: 92px;
+    height: 10px;
+    margin-top: 8px;
+  }
+
+  .add {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 180% 0;
+  }
+
+  100% {
+    background-position: -40% 0;
+  }
+}
+
 .row {
   display: grid;
   grid-template-columns: 38px 1fr 44px;

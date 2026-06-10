@@ -1,7 +1,26 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HomeDashboardVm, HomeUiState, WidgetVm } from '../../models/home.model';
+import {
+  countText,
+  DEVICE_FORMS,
+  ROOM_FORMS,
+  RULE_FORMS,
+  SCENARIO_FORMS,
+  SENSOR_FORMS,
+  RussianPluralForms,
+} from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
+
+type MenuItem = {
+  label: string;
+  icon: string;
+  route: string;
+  color: string;
+  countKey?: keyof HomeDashboardVm;
+  forms?: RussianPluralForms;
+  caption?: string;
+};
 
 @Component({
   selector: 'app-home-page',
@@ -12,14 +31,14 @@ import { HomeFacadeService } from '../../services/home-facade.service';
 export class HomePageComponent {
   readonly dashboard$: Observable<HomeDashboardVm> = this.facade.dashboard$;
   readonly uiState$: Observable<HomeUiState> = this.facade.uiState$;
-  readonly menuItems = [
-    {label: 'Комнаты', caption: 'комнат', icon: 'meeting_room', route: '/home/rooms', color: 'orange', countKey: 'visibleRoomCount'},
-    {label: 'Устройства', caption: 'устройства', icon: 'power', route: '/home/rooms', color: 'blue', countKey: 'deviceCount'},
-    {label: 'Датчики', caption: 'датчиков', icon: 'sensors', route: '/home/rooms', color: 'cyan', countKey: 'sensorCount'},
-    {label: 'Сценарии', caption: 'сценариев', icon: 'play_circle', route: '/home/scenarios', color: 'gold'},
-    {label: 'Автоматизации', caption: 'правил', icon: 'rule', route: '/home/automations', color: 'green'},
-    {label: 'Журнал событий', caption: 'Сегодня', icon: 'history', route: '/home/events', color: 'orange'},
-    {label: 'Настройки дома', caption: 'Пользователи, хабы, интеграции', icon: 'settings', route: '/home/rooms', color: 'orange'},
+  readonly menuItems: MenuItem[] = [
+    {label: 'Комнаты', icon: 'meeting_room', route: '/home/rooms', color: 'orange', countKey: 'visibleRoomCount', forms: ROOM_FORMS},
+    {label: 'Устройства', icon: 'power', route: '/home/devices', color: 'blue', countKey: 'deviceCount', forms: DEVICE_FORMS},
+    {label: 'Датчики', icon: 'sensors', route: '/home/sensors', color: 'cyan', countKey: 'sensorCount', forms: SENSOR_FORMS},
+    {label: 'Сценарии', icon: 'play_circle', route: '/home/scenarios', color: 'gold', caption: countText(0, SCENARIO_FORMS)},
+    {label: 'Автоматизации', icon: 'rule', route: '/home/automations', color: 'green', caption: countText(0, RULE_FORMS)},
+    {label: 'Журнал событий', icon: 'history', route: '/home/events', color: 'orange', caption: 'Сегодня'},
+    {label: 'Настройки дома', icon: 'settings', route: '/home/rooms', color: 'orange', caption: 'Пользователи, хабы, интеграции'},
   ];
 
   constructor(private facade: HomeFacadeService) {
@@ -42,12 +61,12 @@ export class HomePageComponent {
     return `${match.state}${match.unit ? ' ' + match.unit : ''}`;
   }
 
-  menuCaption(item: {caption: string; countKey?: string}, dashboard: HomeDashboardVm): string {
-    if (!item.countKey) {
-      return item.caption;
+  menuCaption(item: MenuItem, dashboard: HomeDashboardVm): string {
+    if (item.countKey && item.forms) {
+      const count = Number(dashboard[item.countKey]);
+      return countText(count, item.forms);
     }
 
-    const count = dashboard[item.countKey as keyof HomeDashboardVm];
-    return `${count} ${item.caption}`;
+    return item.caption ?? '';
   }
 }

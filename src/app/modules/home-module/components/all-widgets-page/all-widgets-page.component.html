@@ -1,0 +1,49 @@
+<main class="page" *ngIf="vm$ | async as vm">
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="summary">
+      <h2>{{ title(vm.kind) }}</h2>
+      <span>{{ count(vm.kind, vm.widgets.length) }}</span>
+    </section>
+
+    <section class="list skeleton-list" *ngIf="state.loading; else widgetList">
+      <div class="row" *ngFor="let item of [1, 2, 3, 4]">
+        <span class="icon skeleton"></span>
+        <span class="copy">
+          <span class="skeleton line"></span>
+          <span class="skeleton line short"></span>
+        </span>
+        <span class="skeleton value"></span>
+      </div>
+    </section>
+
+    <ng-template #widgetList>
+      <section class="list" *ngIf="vm.widgets.length; else empty">
+        <article class="row" *ngFor="let widget of vm.widgets">
+          <mat-icon [fontIcon]="widget.icon"></mat-icon>
+          <div>
+            <h2>{{ widget.name }}</h2>
+            <p>{{ widget.entityId }}</p>
+          </div>
+          <button
+            *ngIf="!widget.isSensor; else sensorValue"
+            type="button"
+            class="switch"
+            [class.on]="isOn(widget)"
+            [disabled]="state.saving || !widget.controls.length"
+            (click)="execute(widget)"
+            aria-label="Переключить устройство">
+          </button>
+          <ng-template #sensorValue>
+            <span>{{ value(widget) }}</span>
+          </ng-template>
+        </article>
+      </section>
+
+      <section class="empty error" *ngIf="state.error">{{ state.error }}</section>
+    </ng-template>
+  </ng-container>
+
+  <ng-template #empty>
+    <section class="empty">{{ emptyText(vm.kind) }}</section>
+  </ng-template>
+</main>

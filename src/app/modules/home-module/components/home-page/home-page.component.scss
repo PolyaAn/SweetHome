@@ -13,18 +13,6 @@
     linear-gradient(180deg, #0b1720, #0a1219 62%, #0a1118);
 }
 
-.state-bar {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  color: $color-gold-2;
-  background: rgba(255, 255, 255, 0.06);
-
-  .error {
-    color: #ff9e8e;
-  }
-}
-
 .status-card {
   min-height: 206px;
   padding: 18px 16px 14px;
@@ -35,6 +23,12 @@
     url('/assets/home/home-hero.png') center / cover no-repeat;
   box-shadow: 0 16px 28px rgba(0, 0, 0, 0.28);
   overflow: hidden;
+}
+
+.status-card.loading {
+  background:
+    linear-gradient(180deg, rgba(20, 34, 45, 0.92), rgba(11, 24, 34, 0.92)),
+    url('/assets/home/home-hero.png') center / cover no-repeat;
 }
 
 .status-copy {
@@ -182,25 +176,6 @@
   }
 }
 
-.quick-rooms {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-
-  a {
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-    padding: 12px 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    color: $color-text-main;
-    text-decoration: none;
-    background: rgba(28, 42, 53, 0.58);
-  }
-}
-
 .empty {
   margin-top: 12px;
   padding: 22px;
@@ -220,6 +195,72 @@
     border-radius: 10px;
     color: $color-text-main;
     background: #a75020;
+  }
+}
+
+.empty.error {
+  color: #ffb09f;
+}
+
+.skeleton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background-size: 220% 100%;
+  animation: skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.skeleton-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+
+  span {
+    @extend .skeleton;
+    width: 60%;
+    height: 14px;
+
+    &:first-child {
+      width: 42%;
+      height: 18px;
+    }
+
+    &:last-child {
+      width: 35%;
+    }
+  }
+}
+
+.skeleton-metrics div {
+  min-height: 38px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.skeleton-list {
+  .line {
+    width: 58%;
+    height: 12px;
+  }
+
+  .short {
+    width: 34%;
+    height: 10px;
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 180% 0;
+  }
+
+  100% {
+    background-position: -40% 0;
   }
 }
 

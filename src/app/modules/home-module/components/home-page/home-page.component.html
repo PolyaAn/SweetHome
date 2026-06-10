@@ -1,56 +1,52 @@
 <main class="home-page" *ngIf="dashboard$ | async as dashboard">
-  <section class="state-bar" *ngIf="uiState$ | async as state">
-    <span *ngIf="state.loading">Загрузка данных</span>
-    <span *ngIf="state.saving">Сохранение изменений</span>
-    <span class="error" *ngIf="state.error">{{ state.error }}</span>
-  </section>
+  <ng-container *ngIf="uiState$ | async as state">
+    <section class="status-card" [class.loading]="state.loading">
+      <ng-container *ngIf="!state.loading; else statusSkeleton">
+        <div class="status-copy">
+          <h2>Всё в порядке</h2>
+          <p>{{ menuCaption(menuItems[1], dashboard) }} подключено</p>
+          <p>{{ dashboard.hiddenWidgetCount }} предупреждений</p>
+        </div>
+        <div class="metric-row">
+          <div>
+            <mat-icon fontIcon="device_thermostat"></mat-icon>
+            <strong>{{ metric(dashboard.widgets, 'temperature') }}</strong>
+            <span>Температура</span>
+          </div>
+          <div>
+            <mat-icon fontIcon="water_drop"></mat-icon>
+            <strong>{{ metric(dashboard.widgets, 'humidity') }}</strong>
+            <span>Влажность</span>
+          </div>
+          <div>
+            <mat-icon fontIcon="air"></mat-icon>
+            <strong>{{ metric(dashboard.widgets, 'air') }}</strong>
+            <span>Качество воздуха</span>
+          </div>
+        </div>
+      </ng-container>
+    </section>
 
-  <section class="status-card">
-    <div class="status-copy">
-      <h2>Всё в порядке</h2>
-      <p>{{ dashboard.deviceCount }} устройств подключено</p>
-      <p>{{ dashboard.hiddenWidgetCount }} предупреждений</p>
-    </div>
-    <div class="metric-row">
-      <div>
-        <mat-icon fontIcon="device_thermostat"></mat-icon>
-        <strong>{{ metric(dashboard.widgets, 'temperature') }}</strong>
-        <span>Температура</span>
-      </div>
-      <div>
-        <mat-icon fontIcon="water_drop"></mat-icon>
-        <strong>{{ metric(dashboard.widgets, 'humidity') }}</strong>
-        <span>Влажность</span>
-      </div>
-      <div>
-        <mat-icon fontIcon="air"></mat-icon>
-        <strong>{{ metric(dashboard.widgets, 'air') }}</strong>
-        <span>Качество воздуха</span>
-      </div>
-    </div>
-  </section>
+    <section class="menu-list" *ngIf="!state.loading; else menuSkeleton">
+      <a *ngFor="let item of menuItems" [routerLink]="item.route" class="menu-row">
+        <span class="menu-icon" [ngClass]="item.color">
+          <mat-icon [fontIcon]="item.icon"></mat-icon>
+        </span>
+        <span class="menu-text">
+          <strong>{{ item.label }}</strong>
+          <small>{{ menuCaption(item, dashboard) }}</small>
+        </span>
+        <mat-icon fontIcon="chevron_right"></mat-icon>
+      </a>
+    </section>
 
-  <section class="menu-list">
-    <a *ngFor="let item of menuItems" [routerLink]="item.route" class="menu-row">
-      <span class="menu-icon" [ngClass]="item.color">
-        <mat-icon [fontIcon]="item.icon"></mat-icon>
-      </span>
-      <span class="menu-text">
-        <strong>{{ item.label }}</strong>
-        <small>{{ menuCaption(item, dashboard) }}</small>
-      </span>
-      <mat-icon fontIcon="chevron_right"></mat-icon>
-    </a>
-  </section>
+    <section class="empty error" *ngIf="state.error">
+      <p>{{ state.error }}</p>
+      <button type="button" (click)="reload()">Обновить</button>
+    </section>
+  </ng-container>
 
-  <section class="quick-rooms" *ngIf="dashboard.rooms.length">
-    <a *ngFor="let room of dashboard.rooms | slice:0:3" [routerLink]="['/home/rooms', room.id]">
-      <mat-icon [fontIcon]="room.icon"></mat-icon>
-      <span>{{ room.name }}</span>
-    </a>
-  </section>
-
-  <section class="empty" *ngIf="!dashboard.rooms.length && !dashboard.widgets.length">
+  <section class="empty" *ngIf="(uiState$ | async)?.loading === false && !dashboard.rooms.length && !dashboard.widgets.length">
     <mat-icon fontIcon="home"></mat-icon>
     <h2>Данные умного дома пока недоступны</h2>
     <button type="button" (click)="reload()">Обновить</button>
@@ -67,3 +63,29 @@
     </a>
   </nav>
 </main>
+
+<ng-template #statusSkeleton>
+  <div class="status-copy skeleton-copy">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <div class="metric-row skeleton-metrics">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</ng-template>
+
+<ng-template #menuSkeleton>
+  <section class="menu-list skeleton-list">
+    <div class="menu-row" *ngFor="let item of [1, 2, 3, 4, 5]">
+      <span class="menu-icon skeleton"></span>
+      <span class="menu-text">
+        <span class="skeleton line"></span>
+        <span class="skeleton line short"></span>
+      </span>
+      <span class="skeleton chevron"></span>
+    </div>
+  </section>
+</ng-template>

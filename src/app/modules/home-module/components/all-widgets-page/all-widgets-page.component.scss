@@ -1,0 +1,164 @@
+@import '../../../../styles/shared-styles';
+
+.page {
+  min-height: 100%;
+  padding: 18px 12px 32px;
+  color: $color-text-main;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.22), transparent 36%),
+    linear-gradient(180deg, #0b1720, #0a1219 62%, #0a1118);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  span {
+    color: rgba(249, 241, 230, 0.62);
+    font-size: 12px;
+  }
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.row,
+.empty {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(28, 42, 53, 0.78);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 14px;
+  }
+
+  p,
+  span {
+    color: rgba(249, 241, 230, 0.62);
+    font-size: 12px;
+  }
+
+  mat-icon {
+    color: #ff933d;
+  }
+}
+
+.switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(249, 241, 230, 0.28);
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: $color-text-main;
+    transition: left 0.2s ease;
+  }
+
+  &.on {
+    background: #f47a2b;
+
+    &::after {
+      left: 19px;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.empty {
+  padding: 22px;
+  text-align: center;
+
+  &.error {
+    color: #ffb09f;
+  }
+}
+
+.skeleton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background-size: 220% 100%;
+  animation: skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.skeleton-list {
+  .icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .line {
+    width: 140px;
+    height: 13px;
+  }
+
+  .short {
+    width: 92px;
+    height: 10px;
+    margin-top: 8px;
+  }
+
+  .value {
+    width: 38px;
+    height: 14px;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 180% 0;
+  }
+
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .page {
+    max-width: 430px;
+    min-height: 100%;
+    margin: 24px auto;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+  }
+}

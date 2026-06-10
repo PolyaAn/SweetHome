@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, switchMap, tap } from 'rxjs';
 import {
   HomeAssistantCatalogWidget,
   HomeDashboardVm,
@@ -10,6 +10,7 @@ import {
   SmartHomeWidget,
   WidgetVm,
 } from '../models/home.model';
+import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../utils/home-declension';
 import { HomeApiService } from './home-api.service';
 
 const EMPTY_LAYOUT: SmartHomeLayout = {
@@ -151,6 +152,61 @@ export class HomeFacadeService {
     });
   }
 
+  executeWidgetAction(widget: WidgetVm, action?: string, value?: number | string | null): Observable<void> {
+    const selectedAction = action ?? this.defaultAction(widget);
+
+    if (!selectedAction) {
+      this.patchState({error: 'Для устройства нет доступного действия'});
+      return of(void 0);
+    }
+
+    this.patchState({saving: true, error: null});
+
+    return this.api.executeAction({
+      entityId: widget.entityId,
+      action: selectedAction,
+      value,
+    }).pipe(
+      switchMap(() => this.load()),
+      map(() => void 0),
+      catchError(() => {
+        this.patchState({error: 'Не удалось выполнить действие устройства'});
+        return of(void 0);
+      }),
+      finalize(() => this.patchState({saving: false})),
+    );
+  }
+
+  defaultAction(widget: WidgetVm): string | null {
+    const actions = new Set(widget.controls.map((control) => control.action));
+
+    if (widget.type === 'cover') {
+      if (this.isActiveWidgetState(widget.state) && actions.has('close')) {
+        return 'close';
+      }
+
+      if (actions.has('open')) {
+        return 'open';
+      }
+
+      return actions.has('toggle') ? 'toggle' : null;
+    }
+
+    if (actions.has('toggle')) {
+      return 'toggle';
+    }
+
+    if (this.isActiveWidgetState(widget.state) && actions.has('turnOff')) {
+      return 'turnOff';
+    }
+
+    if (actions.has('turnOn')) {
+      return 'turnOn';
+    }
+
+    return widget.controls.find((control) => control.type === 'button')?.action ?? null;
+  }
+
   private save(layout: SmartHomeLayout): Observable<void> {
     const normalized = this.normalizeLayout(layout);
     this.patchState({saving: true, error: null});
@@ -197,7 +253,7 @@ export class HomeFacadeService {
       deviceCount,
       sensorCount,
       hiddenWidgetCount: widgets.filter((widget) => widget.roomId === room.id && widget.hide).length,
-      summary: `${deviceCount} устройств, ${sensorCount} датчиков`,
+      summary: `${countText(deviceCount, DEVICE_FORMS)} | ${countText(sensorCount, SENSOR_FORMS)}`,
     };
   }
 
@@ -211,6 +267,9 @@ export class HomeFacadeService {
       isOnline: state !== 'unavailable' && state !== 'unknown',
       updatedAt: catalogItem?.lastUpdated ?? null,
       capabilities: catalogItem?.capabilities ?? [],
+      controls: catalogItem?.controls ?? [],
+      displayType: catalogItem?.displayType ?? null,
+      attributes: catalogItem?.attributes ?? {},
     };
   }
 
@@ -234,6 +293,10 @@ export class HomeFacadeService {
 
   private isSensorType(type: string): boolean {
     return type === 'sensor' || type === 'binary_sensor';
+  }
+
+  private isActiveWidgetState(state: string): boolean {
+    return state === 'on' || state === 'open' || state === 'opening' || state === 'playing';
   }
 
   private createId(): string {
