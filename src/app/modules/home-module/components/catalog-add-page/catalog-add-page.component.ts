@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, map, Observable, tap } from 'rxjs';
+import { combineLatest, map, Observable, take, tap } from 'rxjs';
 import { HomeAssistantCatalogWidget, HomeUiState, RoomVm } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
@@ -47,11 +47,23 @@ export class CatalogAddPageComponent {
 
     this.facade.addWidgetToRoom(targetRoomId, item).subscribe(() => {
       if (this.routeRoomId) {
-        this.router.navigate(['/home/rooms', this.routeRoomId]);
+        this.navigateAndRefresh(['/home/rooms', this.routeRoomId]);
         return;
       }
 
-      this.router.navigate([this.kind === 'sensor' ? '/home/sensors' : '/home/devices']);
+      this.navigateAndRefresh([this.kind === 'sensor' ? '/home/sensors' : '/home/devices']);
+    });
+  }
+
+  private navigateAndRefresh(commands: string[]): void {
+    this.router.navigate(commands).then((navigated) => {
+      if (!navigated) {
+        return;
+      }
+
+      this.facade.load()
+        .pipe(take(1))
+        .subscribe();
     });
   }
 }

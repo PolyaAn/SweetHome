@@ -17,6 +17,7 @@ const EMPTY_LAYOUT: SmartHomeLayout = {
   rooms: [],
   widgets: [],
 };
+const ERROR_VISIBLE_TIMEOUT_MS = 40000;
 
 @Injectable()
 export class HomeFacadeService {
@@ -27,6 +28,7 @@ export class HomeFacadeService {
     saving: false,
     error: null,
   });
+  private errorClearTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly layout$ = this.layoutSubject.asObservable();
   readonly catalog$ = this.catalogSubject.asObservable();
@@ -296,6 +298,35 @@ export class HomeFacadeService {
       ...this.uiStateSubject.value,
       ...patch,
     });
+
+    if (Object.prototype.hasOwnProperty.call(patch, 'error')) {
+      this.scheduleErrorClear(patch.error ?? null);
+    }
+  }
+
+  private scheduleErrorClear(error: string | null): void {
+    this.clearErrorTimer();
+
+    if (!error) {
+      return;
+    }
+
+    this.errorClearTimer = setTimeout(() => {
+      this.errorClearTimer = null;
+      this.uiStateSubject.next({
+        ...this.uiStateSubject.value,
+        error: null,
+      });
+    }, ERROR_VISIBLE_TIMEOUT_MS);
+  }
+
+  private clearErrorTimer(): void {
+    if (!this.errorClearTimer) {
+      return;
+    }
+
+    clearTimeout(this.errorClearTimer);
+    this.errorClearTimer = null;
   }
 
   private nextOrder(items: Array<{ order: number }>): number {
