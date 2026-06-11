@@ -1,6 +1,6 @@
 <main class="page">
-  <section class="toolbar" [class.with-back-link]="feature === 'scenarios' || feature === 'scenarioCreate'">
-    <a routerLink="/home" class="back-link" *ngIf="feature === 'scenarios' || feature === 'scenarioCreate'">
+  <section class="toolbar" [class.with-back-link]="feature === 'scenarioCreate'">
+    <a routerLink="/home" class="back-link" *ngIf="feature === 'scenarioCreate'">
       <mat-icon fontIcon="chevron_left"></mat-icon>
       <span>Дом</span>
     </a>
@@ -46,7 +46,6 @@
 
     <section class="panel" *ngSwitchCase="'scenarios'">
       <div class="panel-title">
-        <h2>Сценарии</h2>
         <a routerLink="/home/scenarios/create">
           <mat-icon fontIcon="add"></mat-icon>
           <span>Создать</span>
