@@ -60,10 +60,6 @@ export class RoomPageComponent {
   ) {
   }
 
-  execute(device: WidgetVm): void {
-    this.facade.executeWidgetAction(device).subscribe();
-  }
-
   executeControl(device: WidgetVm, control: HomeAssistantWidgetControl): void {
     this.facade.executeWidgetAction(device, control.action).subscribe();
   }
@@ -93,17 +89,46 @@ export class RoomPageComponent {
     return sliderValue(widget, control);
   }
 
-  removeWidget(widget: WidgetVm): void {
-    this.facade.removeWidget(widget.id).subscribe();
-  }
-
   value(widget: WidgetVm | null): string {
     const state = this.formatState(widget?.state);
     return widget && widget.unit && state !== '--' ? `${state} ${widget.unit}` : state;
   }
 
+  displayName(widget: WidgetVm): string {
+    const source = `${widget.name} ${widget.entityId}`.toLowerCase();
+
+    if (source.includes('curtain')) {
+      return 'Умные шторы';
+    }
+
+    if (source.includes('blind')) {
+      return 'Умные жалюзи';
+    }
+
+    return widget.name;
+  }
+
+  controlLabel(control: HomeAssistantWidgetControl): string {
+    const value = (control.label || control.action).toLowerCase();
+    const labelMap: Record<string, string> = {
+      open: 'Открыть',
+      close: 'Закрыть',
+      position: 'Положение',
+      toggle: 'Переключить',
+      turnon: 'Включить',
+      turnoff: 'Выключить',
+      stop: 'Стоп',
+    };
+
+    return labelMap[value.replace(/\s+/g, '')] ?? control.label;
+  }
+
   isOn(widget: WidgetVm): boolean {
     return isActiveWidgetState(widget.state);
+  }
+
+  isCover(widget: WidgetVm): boolean {
+    return widget.type === 'cover' || widget.displayType === 'cover';
   }
 
   devicesCount(count: number): string {
@@ -136,7 +161,18 @@ export class RoomPageComponent {
       return '--';
     }
 
-    return state;
+    const normalized = state.toLowerCase();
+    const stateMap: Record<string, string> = {
+      on: 'Включено',
+      off: 'Выключено',
+      open: 'Открыто',
+      closed: 'Закрыто',
+      opening: 'Открывается',
+      closing: 'Закрывается',
+      unavailable: 'Недоступно',
+    };
+
+    return stateMap[normalized] ?? state;
   }
 
   private findSensor(widgets: WidgetVm[], markers: string[]): WidgetVm | null {

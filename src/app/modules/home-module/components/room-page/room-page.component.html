@@ -36,10 +36,10 @@
         </section>
 
         <section class="device-grid" *ngIf="vm.devices.length; else noDevices">
-          <article class="device-card" *ngFor="let device of vm.devices">
+          <article class="device-card" [class.cover-card]="isCover(device)" *ngFor="let device of vm.devices">
             <mat-icon [fontIcon]="device.icon"></mat-icon>
-            <div>
-              <h3>{{ device.name }}</h3>
+            <div class="device-copy">
+              <h3>{{ displayName(device) }}</h3>
               <p [class.enabled]="isOn(device)">{{ value(device) }}</p>
             </div>
             <div class="widget-controls">
@@ -51,18 +51,19 @@
                   [class.on]="isOn(device)"
                   [disabled]="state.saving"
                   (click)="executeControl(device, control)"
-                  [attr.aria-label]="control.label">
+                  [attr.aria-label]="controlLabel(control)">
                 </button>
                 <button
                   *ngFor="let control of buttonControls(device)"
                   type="button"
                   class="action"
+                  [class.cover-action]="isCover(device)"
                   [disabled]="state.saving"
                   (click)="executeControl(device, control)">
-                  {{ control.label }}
+                  {{ controlLabel(control) }}
                 </button>
-                <label class="range" *ngFor="let control of sliderControls(device)">
-                  <span>{{ control.label }} {{ sliderValue(device, control) }}{{ control.unit || '' }}</span>
+                <label class="range" [class.cover-range]="isCover(device)" *ngFor="let control of sliderControls(device)">
+                  <span>{{ controlLabel(control) }} {{ sliderValue(device, control) }}{{ control.unit || '' }}</span>
                   <input
                     type="range"
                     [min]="control.min ?? 0"
@@ -72,10 +73,10 @@
                     [disabled]="state.saving"
                     (change)="changeControl(device, control, $event)">
                 </label>
-                <span class="unavailable" *ngIf="!hasControls(device)">No controls</span>
+                <span class="unavailable" *ngIf="!hasControls(device)">Нет доступных действий</span>
               </ng-container>
               <ng-template #unavailable>
-                <span class="unavailable">Unavailable</span>
+                <span class="unavailable">Недоступно</span>
               </ng-template>
             </div>
           </article>
@@ -101,25 +102,6 @@
         </section>
 
         <section class="empty compact error" *ngIf="state.error">{{ state.error }}</section>
-
-        <nav class="room-nav">
-          <a class="active" [routerLink]="['/home/rooms', vm.room.id]">
-            <mat-icon fontIcon="grid_view"></mat-icon>
-            <span>Управление</span>
-          </a>
-          <a routerLink="/home/scenarios">
-            <mat-icon fontIcon="play_circle"></mat-icon>
-            <span>Сценарии</span>
-          </a>
-          <a routerLink="/home/automations">
-            <mat-icon fontIcon="rule"></mat-icon>
-            <span>Автоматизации</span>
-          </a>
-          <a routerLink="/home/events">
-            <mat-icon fontIcon="history"></mat-icon>
-            <span>История</span>
-          </a>
-        </nav>
       </ng-container>
     </ng-template>
   </ng-container>

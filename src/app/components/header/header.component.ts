@@ -165,6 +165,11 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   goBack(): void {
     const url = this.router.url.split('?')[0];
 
+    if (url === '/home') {
+      this.router.navigate(['/main']);
+      return;
+    }
+
     if (this.homeRootBackRoutes.includes(url)) {
       this.router.navigate(['/home']);
       return;

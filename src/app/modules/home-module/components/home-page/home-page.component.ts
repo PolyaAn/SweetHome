@@ -39,7 +39,6 @@ export class HomePageComponent {
     {label: 'Сценарии', icon: 'play_circle', route: '/home/scenarios', color: 'gold', countKey: 'scenarioCount', forms: SCENARIO_FORMS},
     {label: 'Автоматизации', icon: 'rule', route: '/home/automations', color: 'green', countKey: 'automationCount', forms: RULE_FORMS},
     {label: 'Журнал событий', icon: 'history', route: '/home/events', color: 'orange', countKey: 'eventCount', forms: EVENT_FORMS},
-    {label: 'Настройки дома', icon: 'settings', route: '/home/rooms', color: 'orange', caption: 'Пользователи, хабы, интеграции'},
   ];
 
   constructor(private facade: HomeFacadeService) {

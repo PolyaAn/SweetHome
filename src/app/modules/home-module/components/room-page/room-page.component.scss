@@ -2,7 +2,7 @@
 
 .page {
   min-height: 100vh;
-  padding: 18px 12px 92px;
+  padding: 18px 12px 32px;
   color: $color-text-main;
   background:
     radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.22), transparent 36%),
@@ -105,7 +105,7 @@
   background: rgba(28, 42, 53, 0.78);
 
   mat-icon {
-    align-self: center;
+    align-self: start;
     color: #ffc166;
   }
 
@@ -126,6 +126,31 @@
     &.enabled {
       color: #57d986;
     }
+  }
+}
+
+.device-copy {
+  min-width: 0;
+}
+
+.cover-card {
+  grid-column: 1 / -1;
+  gap: 10px 12px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(50, 74, 92, 0.92), rgba(24, 37, 47, 0.88)),
+    rgba(28, 42, 53, 0.78);
+
+  mat-icon {
+    color: #68b7ff;
+  }
+
+  h3 {
+    font-size: 15px;
+  }
+
+  p {
+    font-size: 12px;
   }
 }
 
@@ -155,6 +180,11 @@
   }
 }
 
+.cover-action {
+  min-width: 110px;
+  background: rgba(104, 183, 255, 0.18);
+}
+
 .range {
   display: grid;
   flex: 1 1 120px;
@@ -170,6 +200,11 @@
     width: 100%;
     accent-color: #f47a2b;
   }
+}
+
+.cover-range {
+  flex-basis: 100%;
+  margin-top: 2px;
 }
 
 .unavailable {
@@ -313,44 +348,6 @@
   }
 }
 
-.room-nav {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 2px;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(9, 18, 25, 0.94);
-  backdrop-filter: blur(10px);
-
-  a {
-    display: grid;
-    justify-items: center;
-    gap: 3px;
-    min-height: 45px;
-    color: rgba(249, 241, 230, 0.64);
-    text-decoration: none;
-
-    &.active {
-      color: #ff933d;
-    }
-  }
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-  }
-
-  span {
-    font-size: 10px;
-  }
-}
-
 @media (min-width: 768px) {
   .page {
     max-width: 430px;
@@ -358,10 +355,5 @@
     margin: 24px auto;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 22px;
-  }
-
-  .room-nav {
-    position: sticky;
-    margin-top: 18px;
   }
 }
