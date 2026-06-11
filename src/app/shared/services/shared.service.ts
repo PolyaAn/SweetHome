@@ -15,6 +15,7 @@ export class SharedService {
   readonly dialog = inject(MatDialog);
   readonly movieViewMode$: BehaviorSubject<MovieViewMode> = new BehaviorSubject<MovieViewMode>('list');
   readonly homeRoomTitle$: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  readonly homeWidgetCount$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
 
   get isPhone(): boolean {
     return window.innerWidth < 768;
@@ -30,6 +31,10 @@ export class SharedService {
 
   setHomeRoomTitle(title: string): void {
     this.homeRoomTitle$.next(title);
+  }
+
+  setHomeWidgetCount(count: number | null): void {
+    this.homeWidgetCount$.next(count);
   }
 
   openDialog<T, D = any>(component: ComponentType<T>, config: D): void {

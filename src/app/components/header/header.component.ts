@@ -54,6 +54,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isHomeSensorsPage: boolean = false;
   homeRoomId: string | null = null;
   homeRoomTitle: string = '';
+  homeWidgetCount: number | null = null;
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
 
@@ -65,6 +66,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
     this.watchHomeRoomTitle();
+    this.watchHomeWidgetCount();
     this.routeWatcher();
     this.getUserInfo();
   }
@@ -123,18 +125,37 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       });
   }
 
-  private getCurrentPageTitle(): string {
-    if (this.homeRoomId && this.homeRoomTitle) {
-      return this.homeRoomTitle;
-    }
+  private watchHomeWidgetCount(): void {
+    this.ss.homeWidgetCount$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (count: number | null) => {
+          this.homeWidgetCount = count;
+          this.pageTitle = this.getCurrentPageTitle();
+          this.cdr.markForCheck();
+        },
+      });
+  }
 
+  private getCurrentPageTitle(): string {
+    const url = this.router.url.split('?')[0];
     let snapshot: ActivatedRouteSnapshot = this.router.routerState.snapshot.root;
 
     while (snapshot.firstChild) {
       snapshot = snapshot.firstChild;
     }
 
-    return snapshot.data?.['title'] || '';
+    const title = snapshot.data?.['title'] || '';
+
+    if (this.homeRoomId && this.homeRoomTitle) {
+      return this.homeRoomTitle;
+    }
+
+    if ((url === '/home/devices' || url === '/home/sensors') && this.homeWidgetCount !== null) {
+      return `${title} (${this.homeWidgetCount})`;
+    }
+
+    return title;
   }
 
   editMainPage(): void {

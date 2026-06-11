@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { combineLatest, map, Observable } from 'rxjs';
+import { combineLatest, map, Observable, tap } from 'rxjs';
 import { HomeAssistantWidgetControl, HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { controlsByType, hasControls, isActiveWidgetState, sliderValue } from '../../utils/home-widget-controls';
 import { HomeFacadeService } from '../../services/home-facade.service';
+import { SharedService } from '../../../../shared/services/shared.service';
 
 type WidgetKind = 'device' | 'sensor';
 
@@ -31,12 +32,18 @@ export class AllWidgetsPageComponent {
           .sort((a, b) => a.order - b.order),
       };
     }),
+    tap((vm) => this.ss.setHomeWidgetCount(vm.widgets.length)),
   );
 
   constructor(
     private route: ActivatedRoute,
     private facade: HomeFacadeService,
+    private ss: SharedService,
   ) {
+  }
+
+  ngOnDestroy(): void {
+    this.ss.setHomeWidgetCount(null);
   }
 
   execute(widget: WidgetVm): void {
