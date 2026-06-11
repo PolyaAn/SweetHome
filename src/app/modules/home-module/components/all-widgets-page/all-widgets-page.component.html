@@ -46,6 +46,9 @@
                 [disabled]="state.saving"
                 (change)="changeRoom(widget.id, roomIdFromEvent($event))">
                 <option value="">Без комнаты</option>
+                <option *ngIf="selectedRoomMissing(widget, vm.rooms)" [value]="widget.roomId || ''">
+                  Привязанная комната не найдена
+                </option>
                 <option *ngFor="let room of vm.rooms" [value]="room.id">{{ room.name }}</option>
               </select>
             </label>

@@ -68,4 +68,9 @@ export class RoomDevicesPageComponent {
     const value = (event.target as HTMLSelectElement).value;
     return value || null;
   }
+
+  selectedRoomMissing(widget: WidgetVm, rooms: RoomVm[]): boolean {
+    const roomId = widget.roomId?.trim();
+    return !!roomId && !rooms.some((room) => room.id.trim() === roomId);
+  }
 }

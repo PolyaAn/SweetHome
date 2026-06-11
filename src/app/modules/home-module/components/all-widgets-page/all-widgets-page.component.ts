@@ -55,6 +55,11 @@ export class AllWidgetsPageComponent {
     return value || null;
   }
 
+  selectedRoomMissing(widget: WidgetVm, rooms: RoomVm[]): boolean {
+    const roomId = widget.roomId?.trim();
+    return !!roomId && !rooms.some((room) => room.id.trim() === roomId);
+  }
+
   isOn(widget: WidgetVm): boolean {
     return widget.state === 'on' || widget.state === 'open' || widget.state === 'opening' || widget.state === 'playing';
   }

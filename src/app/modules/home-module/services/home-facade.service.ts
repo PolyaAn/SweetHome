@@ -289,8 +289,12 @@ export class HomeFacadeService {
 
   private normalizeLayout(layout: SmartHomeLayout | null | undefined): SmartHomeLayout {
     return {
-      rooms: [...(layout?.rooms ?? [])].sort((a, b) => a.order - b.order),
-      widgets: [...(layout?.widgets ?? [])].sort((a, b) => a.order - b.order),
+      rooms: [...(layout?.rooms ?? [])]
+        .map((room) => ({...room, id: room.id.trim()}))
+        .sort((a, b) => a.order - b.order),
+      widgets: [...(layout?.widgets ?? [])]
+        .map((widget) => ({...widget, roomId: widget.roomId?.trim() || null}))
+        .sort((a, b) => a.order - b.order),
     };
   }
 
