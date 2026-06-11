@@ -23,7 +23,7 @@ export class AllWidgetsPageComponent {
       const kind = data['kind'] as WidgetKind;
       return {
         kind,
-        rooms: dashboard.rooms,
+        rooms: dashboard.allRooms,
         widgets: dashboard.widgets
           .filter((widget) => !widget.hide)
           .filter((widget) => kind === 'sensor' ? widget.isSensor : !widget.isSensor)

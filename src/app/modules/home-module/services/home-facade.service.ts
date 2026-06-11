@@ -239,13 +239,14 @@ export class HomeFacadeService {
     const widgets = layout.widgets
       .map((widget) => this.buildWidgetVm(widget, catalogById.get(widget.entityId)))
       .sort((a, b) => a.order - b.order);
-    const rooms = layout.rooms
-      .filter((room) => !room.hide)
+    const allRooms = layout.rooms
       .sort((a, b) => a.order - b.order)
       .map((room) => this.buildRoomVm(room, widgets));
+    const rooms = allRooms.filter((room) => !room.hide);
     const unassignedWidgets = widgets.filter((widget) => !widget.roomId && !widget.hide);
 
     return {
+      allRooms,
       rooms,
       widgets,
       unassignedWidgets,

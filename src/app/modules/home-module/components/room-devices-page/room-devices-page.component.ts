@@ -28,7 +28,7 @@ export class RoomDevicesPageComponent {
       const roomId = params.get('roomId') ?? '';
       return {
         room: dashboard.rooms.find((room) => room.id === roomId) ?? null,
-        rooms: dashboard.rooms,
+        rooms: dashboard.allRooms,
         widgets: dashboard.widgets.filter((widget) => widget.roomId === roomId && !widget.hide),
       };
     }),

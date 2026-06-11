@@ -97,6 +97,7 @@ export interface WidgetVm extends SmartHomeWidget {
 }
 
 export interface HomeDashboardVm {
+  allRooms: RoomVm[];
   rooms: RoomVm[];
   widgets: WidgetVm[];
   unassignedWidgets: WidgetVm[];
