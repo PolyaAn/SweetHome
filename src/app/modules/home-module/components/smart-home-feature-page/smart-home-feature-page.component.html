@@ -1,6 +1,6 @@
 <main class="page">
-  <section class="toolbar">
-    <a routerLink="/home" class="back-link">
+  <section class="toolbar" [class.with-back-link]="feature === 'scenarios' || feature === 'scenarioCreate'">
+    <a routerLink="/home" class="back-link" *ngIf="feature === 'scenarios' || feature === 'scenarioCreate'">
       <mat-icon fontIcon="chevron_left"></mat-icon>
       <span>Дом</span>
     </a>
@@ -68,7 +68,6 @@
     </section>
 
     <section class="panel" *ngSwitchCase="'automations'">
-      <h2>Автоматизации</h2>
       <form [formGroup]="automationForm" (ngSubmit)="createAutomation()" class="form-grid">
         <label>
           <span>Название</span>
@@ -120,12 +119,14 @@
     </section>
 
     <section class="panel" *ngSwitchDefault>
-      <h2>Журнал событий</h2>
       <div class="list" *ngIf="events.length; else emptyEvents">
-        <article class="event" *ngFor="let event of events">
-          <strong>{{ event.title || event.type }}</strong>
-          <p>{{ event.message }}</p>
-          <small>{{ formatDate(event.createdAt) }}</small>
+        <article class="item event-item" *ngFor="let event of events">
+          <span class="item-icon"><mat-icon fontIcon="history"></mat-icon></span>
+          <div>
+            <strong>{{ event.title || event.type }}</strong>
+            <small>{{ event.message }}</small>
+          </div>
+          <time>{{ formatDate(event.createdAt) }}</time>
         </article>
       </div>
     </section>

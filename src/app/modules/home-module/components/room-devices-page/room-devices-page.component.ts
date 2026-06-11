@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { combineLatest, map, Observable } from 'rxjs';
+import { combineLatest, map, Observable, tap } from 'rxjs';
 import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { HomeFacadeService } from '../../services/home-facade.service';
+import { SharedService } from '../../../../shared/services/shared.service';
 
 type Tab = 'all' | 'devices' | 'sensors';
 type Vm = {
@@ -32,11 +33,13 @@ export class RoomDevicesPageComponent {
         widgets: dashboard.widgets.filter((widget) => widget.roomId === roomId && !widget.hide),
       };
     }),
+    tap((vm) => this.sharedService.setHomeRoomTitle(vm.room?.name ?? '')),
   );
 
   constructor(
     private route: ActivatedRoute,
     private facade: HomeFacadeService,
+    private sharedService: SharedService,
   ) {
   }
 
@@ -76,6 +79,19 @@ export class RoomDevicesPageComponent {
 
   selectedRoom(widget: WidgetVm, room: RoomVm): boolean {
     return this.normalizeId(widget.roomId) === this.normalizeId(room.id);
+  }
+
+  value(widget: WidgetVm): string {
+    const state = this.formatState(widget.state);
+    return widget.unit && state !== '--' ? `${state} ${widget.unit}` : state;
+  }
+
+  private formatState(state: string | null | undefined): string {
+    if (!state || state === 'unknown') {
+      return '--';
+    }
+
+    return state;
   }
 
   private normalizeId(value: string | null | undefined): string {

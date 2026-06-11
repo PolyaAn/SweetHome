@@ -5,6 +5,7 @@ import { combineLatest, map, Observable, switchMap, take, tap } from 'rxjs';
 import { RoomVm, SmartHomeRoom } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
+import { SharedService } from '../../../../shared/services/shared.service';
 
 type RoomForm = FormGroup<{
   name: FormControl<string>;
@@ -40,6 +41,8 @@ export class RoomFormPageComponent implements OnInit {
       return dashboard.rooms.find((room) => room.id === roomId) ?? null;
     }),
     tap((room) => {
+      this.sharedService.setHomeRoomTitle(room?.name ?? '');
+
       if (this.mode === 'edit' && room && !this.formPatched) {
         this.form.setValue({
           name: room.name,
@@ -57,12 +60,17 @@ export class RoomFormPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private facade: HomeFacadeService,
+    private sharedService: SharedService,
   ) {
   }
 
   ngOnInit(): void {
     this.mode = this.route.snapshot.data['mode'] === 'edit' ? 'edit' : 'create';
     this.roomId = this.route.snapshot.paramMap.get('roomId');
+
+    if (this.mode === 'create') {
+      this.sharedService.setHomeRoomTitle('');
+    }
 
     this.room$.pipe(take(1)).subscribe();
   }

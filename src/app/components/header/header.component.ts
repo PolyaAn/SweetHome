@@ -22,6 +22,8 @@ import { AuthService } from "../../modules/auth/services/auth.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent extends BaseComponent implements OnInit {
+  private currentRoomRouteId: string | null = null;
+
   constructor(
     private mms: MainManuService,
     private router: Router,
@@ -43,6 +45,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isHomeDevicesPage: boolean = false;
   isHomeSensorsPage: boolean = false;
   homeRoomId: string | null = null;
+  homeRoomTitle: string = '';
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
 
@@ -53,6 +56,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.setHomeRouteState();
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
+    this.watchHomeRoomTitle();
     this.routeWatcher();
     this.getUserInfo();
   }
@@ -99,7 +103,23 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       });
   }
 
+  private watchHomeRoomTitle(): void {
+    this.ss.homeRoomTitle$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (title: string) => {
+          this.homeRoomTitle = title;
+          this.pageTitle = this.getCurrentPageTitle();
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
   private getCurrentPageTitle(): string {
+    if (this.homeRoomId && this.homeRoomTitle) {
+      return this.homeRoomTitle;
+    }
+
     let snapshot: ActivatedRouteSnapshot = this.router.routerState.snapshot.root;
 
     while (snapshot.firstChild) {
@@ -158,7 +178,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   private setHomeRouteState(): void {
     const url = this.router.url.split('?')[0];
-    const roomMatch = url.match(/^\/home\/rooms\/([^/]+)$/);
+    const roomMatch = url.match(/^\/home\/rooms\/([^/]+)(?:\/.*)?$/);
 
     this.isHomePage = url.startsWith('/home');
     this.isHomeRootPage = url === '/home';
@@ -167,5 +187,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.isHomeSensorsPage = url === '/home/sensors';
     const candidateRoomId = roomMatch?.[1] ?? null;
     this.homeRoomId = candidateRoomId && candidateRoomId !== 'create' ? candidateRoomId : null;
+
+    if (this.currentRoomRouteId !== this.homeRoomId) {
+      this.currentRoomRouteId = this.homeRoomId;
+      this.ss.setHomeRoomTitle('');
+    }
   }
 }

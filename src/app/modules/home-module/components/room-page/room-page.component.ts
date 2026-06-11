@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { combineLatest, map, Observable } from 'rxjs';
+import { combineLatest, map, Observable, tap } from 'rxjs';
 import { HomeAssistantWidgetControl, HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { controlsByType, hasControls, isActiveWidgetState, sliderValue } from '../../utils/home-widget-controls';
 import { HomeFacadeService } from '../../services/home-facade.service';
+import { SharedService } from '../../../../shared/services/shared.service';
 
 type RoomPageVm = {
   room: RoomVm | null;
@@ -49,11 +50,13 @@ export class RoomPageComponent {
         },
       };
     }),
+    tap((vm) => this.sharedService.setHomeRoomTitle(vm.room?.name ?? '')),
   );
 
   constructor(
     private route: ActivatedRoute,
     private facade: HomeFacadeService,
+    private sharedService: SharedService,
   ) {
   }
 
@@ -95,11 +98,8 @@ export class RoomPageComponent {
   }
 
   value(widget: WidgetVm | null): string {
-    if (!widget) {
-      return '—';
-    }
-
-    return `${widget.state}${widget.unit ? ' ' + widget.unit : ''}`;
+    const state = this.formatState(widget?.state);
+    return widget && widget.unit && state !== '--' ? `${state} ${widget.unit}` : state;
   }
 
   isOn(widget: WidgetVm): boolean {
@@ -129,6 +129,14 @@ export class RoomPageComponent {
     ];
 
     return points.map((value, index) => `${index * 8},${20 - value}`).join(' ');
+  }
+
+  formatState(state: string | null | undefined): string {
+    if (!state || state === 'unknown') {
+      return '--';
+    }
+
+    return state;
   }
 
   private findSensor(widgets: WidgetVm[], markers: string[]): WidgetVm | null {

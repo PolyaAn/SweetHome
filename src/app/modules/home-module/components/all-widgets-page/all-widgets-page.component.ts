@@ -99,11 +99,8 @@ export class AllWidgetsPageComponent {
   }
 
   value(widget: WidgetVm): string {
-    return `${widget.state}${widget.unit ? ' ' + widget.unit : ''}`;
-  }
-
-  title(kind: WidgetKind): string {
-    return kind === 'sensor' ? 'Датчики' : 'Устройства';
+    const state = this.formatState(widget.state);
+    return widget.unit && state !== '--' ? `${state} ${widget.unit}` : state;
   }
 
   count(kind: WidgetKind, count: number): string {
@@ -112,6 +109,14 @@ export class AllWidgetsPageComponent {
 
   emptyText(kind: WidgetKind): string {
     return kind === 'sensor' ? 'Датчики не добавлены' : 'Устройства не добавлены';
+  }
+
+  private formatState(state: string | null | undefined): string {
+    if (!state || state === 'unknown') {
+      return '--';
+    }
+
+    return state;
   }
 
   private normalizeId(value: string | null | undefined): string {

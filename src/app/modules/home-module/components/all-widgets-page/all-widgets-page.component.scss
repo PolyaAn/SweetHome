@@ -1,24 +1,20 @@
 @import '../../../../styles/shared-styles';
 
 .page {
-  min-height: 100%;
+  min-height: 100vh;
   padding: 18px 12px 32px;
   color: $color-text-main;
   background:
     radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.22), transparent 36%),
     linear-gradient(180deg, #0b1720, #0a1219 62%, #0a1118);
+  box-sizing: border-box;
 }
 
 .summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 12px;
-
-  h2 {
-    margin: 0;
-    font-size: 18px;
-  }
 
   span {
     color: rgba(249, 241, 230, 0.62);
@@ -45,6 +41,7 @@
   gap: 12px;
   min-height: 64px;
   padding: 12px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
 
   h2,
   p {
@@ -54,6 +51,7 @@
 
   h2 {
     font-size: 14px;
+    line-height: 1.25;
   }
 
   p,
@@ -63,7 +61,10 @@
   }
 
   mat-icon {
-    color: #ff933d;
+    width: 22px;
+    height: 22px;
+    color: #ff9b43;
+    font-size: 22px;
   }
 }
 

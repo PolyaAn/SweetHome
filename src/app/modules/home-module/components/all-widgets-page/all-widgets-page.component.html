@@ -1,7 +1,6 @@
 <main class="page" *ngIf="vm$ | async as vm">
   <ng-container *ngIf="uiState$ | async as state">
     <section class="summary">
-      <h2>{{ title(vm.kind) }}</h2>
       <span>{{ count(vm.kind, vm.widgets.length) }}</span>
     </section>
 

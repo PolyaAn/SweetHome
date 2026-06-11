@@ -40,7 +40,7 @@
             <mat-icon [fontIcon]="device.icon"></mat-icon>
             <div>
               <h3>{{ device.name }}</h3>
-              <p [class.enabled]="isOn(device)">{{ device.state }}{{ device.unit ? ' ' + device.unit : '' }}</p>
+              <p [class.enabled]="isOn(device)">{{ value(device) }}</p>
             </div>
             <div class="widget-controls">
               <ng-container *ngIf="device.catalogMatched; else unavailable">

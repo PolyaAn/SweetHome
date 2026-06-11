@@ -14,6 +14,7 @@ export class SharedService {
   }
   readonly dialog = inject(MatDialog);
   readonly movieViewMode$: BehaviorSubject<MovieViewMode> = new BehaviorSubject<MovieViewMode>('list');
+  readonly homeRoomTitle$: BehaviorSubject<string> = new BehaviorSubject<string>('');
 
   get isPhone(): boolean {
     return window.innerWidth < 768;
@@ -25,6 +26,10 @@ export class SharedService {
 
   setMovieViewMode(mode: MovieViewMode): void {
     this.movieViewMode$.next(mode);
+  }
+
+  setHomeRoomTitle(title: string): void {
+    this.homeRoomTitle$.next(title);
   }
 
   openDialog<T, D = any>(component: ComponentType<T>, config: D): void {

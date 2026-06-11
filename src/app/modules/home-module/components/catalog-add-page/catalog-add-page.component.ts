@@ -66,4 +66,9 @@ export class CatalogAddPageComponent {
         .subscribe();
     });
   }
+
+  value(item: HomeAssistantCatalogWidget): string {
+    const state = !item.state || item.state === 'unknown' ? '--' : item.state;
+    return item.unit && state !== '--' ? `${state} ${item.unit}` : state;
+  }
 }

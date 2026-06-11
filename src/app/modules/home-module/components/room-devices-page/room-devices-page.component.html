@@ -25,7 +25,7 @@
             <h2>{{ widget.name }}</h2>
             <p>{{ widget.entityId }}</p>
           </div>
-          <span class="value">{{ widget.state }}{{ widget.unit ? ' ' + widget.unit : '' }}</span>
+          <span class="value">{{ value(widget) }}</span>
           <div class="controls">
             <label>
               <span>Комната</span>
