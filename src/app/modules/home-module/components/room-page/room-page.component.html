@@ -83,7 +83,10 @@
 
         <section class="section-head">
           <h2>Датчики</h2>
-          <span>{{ sensorsCount(vm.sensors.length) }}</span>
+          <div class="section-actions">
+            <span>{{ sensorsCount(vm.sensors.length) }}</span>
+            <a class="section-link" [routerLink]="['/home/rooms', vm.room.id, 'sensors', 'add']">Добавить датчик</a>
+          </div>
         </section>
 
         <section class="sensor-list" *ngIf="vm.sensors.length; else noSensors">

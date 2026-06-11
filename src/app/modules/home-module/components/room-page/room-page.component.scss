@@ -55,6 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin: 22px 2px 10px;
 
   h2 {
@@ -66,6 +67,24 @@
     color: rgba(249, 241, 230, 0.58);
     font-size: 12px;
   }
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 9px;
+  color: $color-text-main;
+  font-size: 12px;
+  text-decoration: none;
+  background: rgba(80, 144, 214, 0.22);
 }
 
 .device-grid {
