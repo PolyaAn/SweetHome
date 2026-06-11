@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http";
-import { BehaviorSubject, catchError, map, Observable, of, tap } from "rxjs";
+import { catchError, map, Observable, of, tap } from "rxjs";
 import { environment } from "../../../../environments/environment";
+import { AuthSessionService } from "./auth-session.service";
 
 export interface RegisterResult {
   isRegistered: boolean;
@@ -19,10 +20,11 @@ export interface LoginResult {
 export class AuthService {
   constructor(
     private http: HttpClient,
+    private authSession: AuthSessionService,
   ) {
   }
 
-  isAuthenticated$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  readonly isAuthenticated$ = this.authSession.isAuthenticated$;
 
   login(email: string, password: string): Observable<LoginResult> {
     return this.http.post(`${environment.apiHost}/Account/Login`, {
@@ -37,7 +39,7 @@ export class AuthService {
         isAuth: false,
         errorMessage: this.extractErrorMessage(error, 'Не удалось выполнить вход'),
       })),
-      tap((result: LoginResult) => this.isAuthenticated$.next(result.isAuth))
+      tap((result: LoginResult) => this.authSession.setAuthenticated(result.isAuth))
     );
   }
 
@@ -60,7 +62,7 @@ export class AuthService {
   }
 
   logout(): void {
-    this.isAuthenticated$.next(false);
+    this.authSession.clear();
   }
 
   private extractErrorMessage(error: HttpErrorResponse, fallbackMessage: string): string {
