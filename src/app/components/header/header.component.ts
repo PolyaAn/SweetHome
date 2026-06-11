@@ -22,6 +22,14 @@ import { AuthService } from "../../modules/auth/services/auth.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent extends BaseComponent implements OnInit {
+  private readonly homeRootBackRoutes: string[] = [
+    '/home/rooms',
+    '/home/devices',
+    '/home/sensors',
+    '/home/scenarios',
+    '/home/automations',
+    '/home/events',
+  ];
   private currentRoomRouteId: string | null = null;
 
   constructor(
@@ -134,6 +142,13 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   }
 
   goBack(): void {
+    const url = this.router.url.split('?')[0];
+
+    if (this.homeRootBackRoutes.includes(url)) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     this.location.back();
   }
 
