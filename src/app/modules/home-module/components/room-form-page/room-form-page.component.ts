@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, map, Observable, take, tap } from 'rxjs';
+import { combineLatest, map, Observable, switchMap, take, tap } from 'rxjs';
 import { RoomVm, SmartHomeRoom } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
 import { HomeFacadeService } from '../../services/home-facade.service';
@@ -84,7 +84,10 @@ export class RoomFormPageComponent implements OnInit {
       })
       : this.facade.createRoom(value.name, value.icon);
 
-    request.pipe(take(1)).subscribe(() => {
+    request.pipe(
+      switchMap(() => this.facade.load()),
+      take(1),
+    ).subscribe(() => {
       this.router.navigate(['/home/rooms']);
     });
   }
@@ -95,7 +98,10 @@ export class RoomFormPageComponent implements OnInit {
     }
 
     this.facade.deleteRoom(this.roomId)
-      .pipe(take(1))
+      .pipe(
+        switchMap(() => this.facade.load()),
+        take(1),
+      )
       .subscribe(() => {
         this.router.navigate(['/home/rooms']);
       });
