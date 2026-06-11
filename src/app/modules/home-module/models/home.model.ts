@@ -133,6 +133,7 @@ export interface WidgetVm extends SmartHomeWidget {
   unit: string | null;
   isSensor: boolean;
   isOnline: boolean;
+  catalogMatched: boolean;
   updatedAt: string | null;
   capabilities: string[];
   controls: HomeAssistantWidgetControl[];

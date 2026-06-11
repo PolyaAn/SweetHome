@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, map, Observable } from 'rxjs';
-import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
+import { HomeAssistantWidgetControl, HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
+import { controlsByType, hasControls, isActiveWidgetState, sliderValue } from '../../utils/home-widget-controls';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type WidgetKind = 'device' | 'sensor';
@@ -42,6 +43,35 @@ export class AllWidgetsPageComponent {
     this.facade.executeWidgetAction(widget).subscribe();
   }
 
+  executeControl(widget: WidgetVm, control: HomeAssistantWidgetControl): void {
+    this.facade.executeWidgetAction(widget, control.action).subscribe();
+  }
+
+  changeControl(widget: WidgetVm, control: HomeAssistantWidgetControl, event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.facade.executeWidgetAction(widget, control.action, value).subscribe();
+  }
+
+  buttonControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'button');
+  }
+
+  toggleControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'toggle');
+  }
+
+  sliderControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'slider');
+  }
+
+  hasControls(widget: WidgetVm): boolean {
+    return hasControls(widget);
+  }
+
+  sliderValue(widget: WidgetVm, control: HomeAssistantWidgetControl): number {
+    return sliderValue(widget, control);
+  }
+
   changeRoom(widgetId: string, roomId: string | null): void {
     this.facade.setWidgetRoom(widgetId, roomId).subscribe();
   }
@@ -65,7 +95,7 @@ export class AllWidgetsPageComponent {
   }
 
   isOn(widget: WidgetVm): boolean {
-    return widget.state === 'on' || widget.state === 'open' || widget.state === 'opening' || widget.state === 'playing';
+    return isActiveWidgetState(widget.state);
   }
 
   value(widget: WidgetVm): string {

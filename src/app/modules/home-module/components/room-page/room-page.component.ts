@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, map, Observable } from 'rxjs';
-import { HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
+import { HomeAssistantWidgetControl, HomeUiState, RoomVm, WidgetVm } from '../../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../../utils/home-declension';
+import { controlsByType, hasControls, isActiveWidgetState, sliderValue } from '../../utils/home-widget-controls';
 import { HomeFacadeService } from '../../services/home-facade.service';
 
 type RoomPageVm = {
@@ -60,6 +61,35 @@ export class RoomPageComponent {
     this.facade.executeWidgetAction(device).subscribe();
   }
 
+  executeControl(device: WidgetVm, control: HomeAssistantWidgetControl): void {
+    this.facade.executeWidgetAction(device, control.action).subscribe();
+  }
+
+  changeControl(device: WidgetVm, control: HomeAssistantWidgetControl, event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.facade.executeWidgetAction(device, control.action, value).subscribe();
+  }
+
+  buttonControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'button');
+  }
+
+  toggleControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'toggle');
+  }
+
+  sliderControls(widget: WidgetVm): HomeAssistantWidgetControl[] {
+    return controlsByType(widget, 'slider');
+  }
+
+  hasControls(widget: WidgetVm): boolean {
+    return hasControls(widget);
+  }
+
+  sliderValue(widget: WidgetVm, control: HomeAssistantWidgetControl): number {
+    return sliderValue(widget, control);
+  }
+
   removeWidget(widget: WidgetVm): void {
     this.facade.removeWidget(widget.id).subscribe();
   }
@@ -73,7 +103,7 @@ export class RoomPageComponent {
   }
 
   isOn(widget: WidgetVm): boolean {
-    return widget.state === 'on' || widget.state === 'open' || widget.state === 'opening' || widget.state === 'playing';
+    return isActiveWidgetState(widget.state);
   }
 
   devicesCount(count: number): string {

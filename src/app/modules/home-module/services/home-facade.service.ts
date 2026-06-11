@@ -14,6 +14,7 @@ import {
   WidgetVm,
 } from '../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../utils/home-declension';
+import { isActiveWidgetState } from '../utils/home-widget-controls';
 import { HomeApiService } from './home-api.service';
 import { HomeRealtimeService } from './home-realtime.service';
 
@@ -235,7 +236,7 @@ export class HomeFacadeService {
     const actions = new Set(widget.controls.map((control) => control.action));
 
     if (widget.type === 'cover') {
-      if (this.isActiveWidgetState(widget.state) && actions.has('close')) {
+      if (isActiveWidgetState(widget.state) && actions.has('close')) {
         return 'close';
       }
 
@@ -250,7 +251,7 @@ export class HomeFacadeService {
       return 'toggle';
     }
 
-    if (this.isActiveWidgetState(widget.state) && actions.has('turnOff')) {
+    if (isActiveWidgetState(widget.state) && actions.has('turnOff')) {
       return 'turnOff';
     }
 
@@ -325,10 +326,12 @@ export class HomeFacadeService {
     const state = catalogItem?.state ?? 'unknown';
     return {
       ...widget,
+      type: catalogItem?.type ?? widget.type,
       state,
       unit: catalogItem?.unit ?? null,
-      isSensor: this.isSensorType(widget.type),
+      isSensor: this.isSensorType(catalogItem?.type ?? widget.type),
       isOnline: state !== 'unavailable' && state !== 'unknown',
+      catalogMatched: !!catalogItem,
       updatedAt: catalogItem?.lastUpdated ?? null,
       capabilities: catalogItem?.capabilities ?? [],
       controls: catalogItem?.controls ?? [],
@@ -390,10 +393,6 @@ export class HomeFacadeService {
 
   private isSensorType(type: string): boolean {
     return type === 'sensor' || type === 'binary_sensor';
-  }
-
-  private isActiveWidgetState(state: string): boolean {
-    return state === 'on' || state === 'open' || state === 'opening' || state === 'playing';
   }
 
   private createId(): string {

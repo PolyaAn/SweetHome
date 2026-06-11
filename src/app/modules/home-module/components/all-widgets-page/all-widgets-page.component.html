@@ -25,17 +25,42 @@
             <p>{{ widget.entityId }}</p>
           </div>
           <div class="state">
-            <button
-              *ngIf="!widget.isSensor; else sensorValue"
-              type="button"
-              class="switch"
-              [class.on]="isOn(widget)"
-              [disabled]="state.saving || !widget.controls.length"
-              (click)="execute(widget)"
-              aria-label="Переключить устройство">
-            </button>
-            <ng-template #sensorValue>
-              <span>{{ value(widget) }}</span>
+            <span>{{ value(widget) }}</span>
+          </div>
+          <div class="widget-controls" *ngIf="!widget.isSensor">
+            <ng-container *ngIf="widget.catalogMatched; else unavailable">
+              <button
+                *ngFor="let control of toggleControls(widget)"
+                type="button"
+                class="switch"
+                [class.on]="isOn(widget)"
+                [disabled]="state.saving"
+                (click)="executeControl(widget, control)"
+                [attr.aria-label]="control.label">
+              </button>
+              <button
+                *ngFor="let control of buttonControls(widget)"
+                type="button"
+                class="action"
+                [disabled]="state.saving"
+                (click)="executeControl(widget, control)">
+                {{ control.label }}
+              </button>
+              <label class="range" *ngFor="let control of sliderControls(widget)">
+                <span>{{ control.label }} {{ sliderValue(widget, control) }}{{ control.unit || '' }}</span>
+                <input
+                  type="range"
+                  [min]="control.min ?? 0"
+                  [max]="control.max ?? 100"
+                  [step]="control.step ?? 1"
+                  [value]="sliderValue(widget, control)"
+                  [disabled]="state.saving"
+                  (change)="changeControl(widget, control, $event)">
+              </label>
+              <span class="unavailable" *ngIf="!hasControls(widget)">No controls</span>
+            </ng-container>
+            <ng-template #unavailable>
+              <span class="unavailable">Unavailable</span>
             </ng-template>
           </div>
           <div class="controls">
