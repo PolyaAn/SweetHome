@@ -1,43 +1,67 @@
-<section class="movie-add">
-  <form class="movie-add-card" [formGroup]="form" (ngSubmit)="submit()">
-    <label class="movie-add-field">
+<section class="movie-form-page">
+  <form class="movie-form-card" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="movie-form-loading" *ngIf="isLoading">Загрузка справочников...</div>
+
+    <label class="movie-form-field">
       <span>Название</span>
-      <input type="text" formControlName="name" placeholder="Введите название" />
+      <input type="text" formControlName="title" placeholder="Введите название" />
+      <small class="movie-form-error" *ngIf="getControl('title')?.touched && getControl('title')?.hasError('required')">Введите название</small>
+      <small class="movie-form-error" *ngIf="getControl('title')?.touched && getControl('title')?.hasError('maxlength')">Название слишком длинное</small>
+      <small class="movie-form-error" *ngIf="getControl('title')?.touched && getControl('title')?.errors?.['api']">{{ getControl('title')?.errors?.['api'] }}</small>
     </label>
 
-    <div class="movie-add-row">
-      <label class="movie-add-field">
+    <div class="movie-form-row">
+      <label class="movie-form-field">
         <span>Тип</span>
-        <select formControlName="types">
-          <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+        <select formControlName="contentType">
+          <option *ngFor="let type of dictionaries.contentTypes" [value]="type.code">{{ type.name }}</option>
         </select>
+        <small class="movie-form-error" *ngIf="getControl('contentType')?.touched && getControl('contentType')?.hasError('required')">Выберите тип</small>
+        <small class="movie-form-error" *ngIf="getControl('contentType')?.touched && getControl('contentType')?.errors?.['api']">{{ getControl('contentType')?.errors?.['api'] }}</small>
       </label>
 
-      <label class="movie-add-field">
+      <label class="movie-form-field">
         <span>Рейтинг</span>
-        <input type="number" min="1" max="10" step="0.1" formControlName="rating" placeholder="1-10" />
+        <input type="number" min="0" max="10" step="0.1" formControlName="rating" placeholder="0-10" />
+        <small class="movie-form-error" *ngIf="getControl('rating')?.touched && (getControl('rating')?.hasError('min') || getControl('rating')?.hasError('max'))">Рейтинг должен быть от 0 до 10</small>
+        <small class="movie-form-error" *ngIf="getControl('rating')?.touched && getControl('rating')?.errors?.['api']">{{ getControl('rating')?.errors?.['api'] }}</small>
       </label>
     </div>
 
-    <div class="movie-add-field">
+    <div class="movie-form-field">
       <span>Жанры</span>
-      <div class="movie-add-genres">
+      <div class="movie-form-chips">
         <button
-          *ngFor="let genre of genreOptions"
+          *ngFor="let genre of dictionaries.genres"
           type="button"
-          class="movie-add-genre"
-          [class.active]="isGenreSelected(genre.id)"
-          (click)="toggleGenre(genre.id)">
-          {{ genre.name }}
+          class="movie-form-chip"
+          [class.movie-form-chip--active]="isGenreSelected(genre)"
+          (click)="toggleGenre(genre)">
+          {{ genre }}
         </button>
       </div>
+      <small class="movie-form-error" *ngIf="genreError">Выберите хотя бы один жанр</small>
     </div>
 
-    <label class="movie-add-field">
-      <span>Комментарий</span>
-      <textarea formControlName="comment" rows="4" placeholder="Ваш комментарий"></textarea>
+    <label class="movie-form-field">
+      <span>Страна</span>
+      <input type="text" list="movie-country-list" formControlName="country" placeholder="Введите страну" />
+      <datalist id="movie-country-list">
+        <option *ngFor="let country of dictionaries.countries" [value]="country"></option>
+      </datalist>
+      <small class="movie-form-error" *ngIf="getControl('country')?.touched && getControl('country')?.hasError('maxlength')">Название страны слишком длинное</small>
+      <small class="movie-form-error" *ngIf="getControl('country')?.touched && getControl('country')?.errors?.['api']">{{ getControl('country')?.errors?.['api'] }}</small>
     </label>
 
-    <button class="movie-add-submit" type="submit">Сохранить</button>
+    <label class="movie-form-field">
+      <span>Комментарий</span>
+      <textarea formControlName="comment" rows="5" placeholder="Комментарий"></textarea>
+      <small class="movie-form-error" *ngIf="getControl('comment')?.touched && getControl('comment')?.hasError('maxlength')">Комментарий слишком длинный</small>
+      <small class="movie-form-error" *ngIf="getControl('comment')?.touched && getControl('comment')?.errors?.['api']">{{ getControl('comment')?.errors?.['api'] }}</small>
+    </label>
+
+    <button class="movie-form-submit" type="submit" [disabled]="form.invalid || !selectedGenres.length || isSaving">
+      {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
+    </button>
   </form>
 </section>

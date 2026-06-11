@@ -1,20 +1,35 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
-  HostListener,
   OnInit,
-  QueryList,
-  ViewChildren
 } from '@angular/core';
-import { BaseComponent } from "../../components/base/base.component";
-import { Movie, MovieGenre } from "./models/movie.model";
-import { MovieModuleService } from "./services/movie-module.service";
-import { takeUntil } from "rxjs";
-import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
-import { Router } from "@angular/router";
+import { Router } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
+import { BaseComponent } from '../../components/base/base.component';
+import { MovieViewMode, SharedService } from '../../shared/services/shared.service';
+import {
+  MovieContentType,
+  MovieContentTypeDictionaryItem,
+  MovieDictionariesResponse,
+  MovieListItemVm,
+  MovieListResponse,
+  MovieSearchFilter,
+  MovieSortBy,
+  SortDirection,
+} from './models/movie.model';
+import { MovieModuleService } from './services/movie-module.service';
+import { ToastService } from '../../shared/services/toast.service';
+
+type MovieFiltersState = {
+  contentTypes: MovieContentType[];
+  genres: string[];
+  countries: string[];
+  ratingFrom: string;
+  ratingTo: string;
+  sortBy: MovieSortBy;
+  sortDirection: SortDirection;
+};
 
 @Component({
   selector: 'app-movie-module',
@@ -22,31 +37,67 @@ import { Router } from "@angular/router";
   styleUrl: './movie-module.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MovieModuleComponent extends BaseComponent implements OnInit, AfterViewInit {
+export class MovieModuleComponent extends BaseComponent implements OnInit {
+  private readonly search$ = new Subject<string>();
+  private readonly pageSize = 20;
+  private readonly defaultFilters: MovieFiltersState = {
+    contentTypes: [],
+    genres: [],
+    countries: [],
+    ratingFrom: '',
+    ratingTo: '',
+    sortBy: 'UPDATED_AT',
+    sortDirection: 'DESC',
+  };
+
   constructor(
     private ms: MovieModuleService,
     private cdr: ChangeDetectorRef,
     private ss: SharedService,
     private router: Router,
+    private toastService: ToastService,
   ) {
     super();
   }
 
-  @ViewChildren('commentBlock') commentBlocks!: QueryList<ElementRef<HTMLElement>>;
-
-  movies: Movie[] = [];
-  readonly ratingOptions: number[] = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  movies: MovieListItemVm[] = [];
+  dictionaries: MovieDictionariesResponse = {
+    contentTypes: [
+      { code: 'MOVIE', name: 'фильм' },
+      { code: 'CARTOON', name: 'мультфильм' },
+      { code: 'SERIES', name: 'сериал' },
+    ],
+    genres: [],
+    countries: [],
+  };
   searchQuery: string = '';
-  selectedGenreId: string = 'all';
-  minRating: string = String(Math.min(...this.ratingOptions));
-  maxRating: string = String(Math.max(...this.ratingOptions));
-  showPhoneFilters: boolean = false;
-  expandedComments: Record<string, boolean> = {};
-  canToggleComments: Record<string, boolean> = {};
+  draftSearchQuery: string = '';
+  filters: MovieFiltersState = {...this.defaultFilters};
+  showFilters: boolean = false;
+  listLoading: boolean = false;
+  dictionariesLoading: boolean = false;
+  loadingMore: boolean = false;
+  errorMessage: string = '';
+  currentPage: number = 1;
+  total: number = 0;
+  hasNext: boolean = false;
   viewMode: MovieViewMode = 'list';
 
   get isPhone(): boolean {
     return this.ss.isPhone;
+  }
+
+  get activeFiltersCount(): number {
+    let count = 0;
+
+    count += this.filters.contentTypes.length ? 1 : 0;
+    count += this.filters.genres.length ? 1 : 0;
+    count += this.filters.countries.length ? 1 : 0;
+    count += this.filters.ratingFrom ? 1 : 0;
+    count += this.filters.ratingTo ? 1 : 0;
+    count += this.filters.sortBy !== this.defaultFilters.sortBy || this.filters.sortDirection !== this.defaultFilters.sortDirection ? 1 : 0;
+
+    return count;
   }
 
   ngOnInit(): void {
@@ -55,156 +106,187 @@ export class MovieModuleComponent extends BaseComponent implements OnInit, After
       .subscribe({
         next: (mode: MovieViewMode) => {
           this.viewMode = mode;
-          if (mode === 'grid') {
-            setTimeout(() => this.updateCommentToggleMap());
-          } else {
-            this.canToggleComments = {};
-            this.expandedComments = {};
-          }
           this.cdr.markForCheck();
         },
       });
 
-    this.ms.getMoviesInfo()
-      .pipe(takeUntil(this.unsubscribe$))
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe({
-        next: (movies: Movie[]) => {
-          this.movies = this.cloneMovies(this.ms.movieInfo$.value);
-          setTimeout(() => this.updateCommentToggleMap());
-          this.cdr.markForCheck();
+        next: (query: string) => {
+          this.searchQuery = query;
+          this.loadMovies(true);
         },
       });
+
+    this.loadDictionaries();
+    this.loadMovies(true);
   }
 
-  ngAfterViewInit(): void {
-    this.commentBlocks.changes
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(() => {
-        this.updateCommentToggleMap();
-      });
+  onSearchInput(value: string): void {
+    this.draftSearchQuery = value;
+    this.search$.next(value.trim());
   }
 
-  get genreOptions(): MovieGenre[] {
-    const genreMap: Record<string, MovieGenre> = {};
-    this.movies.forEach((movie: Movie) => {
-      this.getGenres(movie).forEach((genre: MovieGenre) => {
-        if (!genreMap[genre.id]) {
-          genreMap[genre.id] = genre;
-        }
-      });
-    });
-    return Object.values(genreMap);
+  clearSearch(): void {
+    this.draftSearchQuery = '';
+    this.search$.next('');
   }
 
-  get filteredMovies(): Movie[] {
-    const normalizedQuery: string = this.searchQuery.trim().toLowerCase();
-    const minRatingValue: number | null = this.minRating ? Number(this.minRating) : null;
-    const maxRatingValue: number | null = this.maxRating ? Number(this.maxRating) : null;
-
-    return this.movies.filter((movie: Movie) => {
-      if (minRatingValue !== null && movie.rating && movie.rating < minRatingValue) {
-        return false;
-      }
-
-      if (maxRatingValue !== null && movie.rating && movie.rating > maxRatingValue) {
-        return false;
-      }
-
-      if (this.selectedGenreId !== 'all') {
-        const hasGenre: boolean = this.getGenres(movie).some((genre: MovieGenre) => genre.id === this.selectedGenreId);
-        if (!hasGenre) {
-          return false;
-        }
-      }
-
-      if (!normalizedQuery) {
-        return true;
-      }
-
-      const searchable: string = `${movie.name} ${movie.comment || ''}`.toLowerCase();
-      return searchable.includes(normalizedQuery);
-    });
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
   }
 
-  onSearchChange(value: string): void {
-    this.searchQuery = value;
-    setTimeout(() => this.updateCommentToggleMap());
+  toggleContentType(type: MovieContentType): void {
+    this.filters.contentTypes = this.toggleItem(this.filters.contentTypes, type);
+    this.loadMovies(true);
   }
 
-  onGenreChange(value: string): void {
-    this.selectedGenreId = value;
-    setTimeout(() => this.updateCommentToggleMap());
+  toggleGenre(genre: string): void {
+    this.filters.genres = this.toggleItem(this.filters.genres, genre);
+    this.loadMovies(true);
   }
 
-  onMinRatingChange(value: string): void {
-    this.minRating = value;
-    setTimeout(() => this.updateCommentToggleMap());
+  toggleCountry(country: string): void {
+    this.filters.countries = this.toggleItem(this.filters.countries, country);
+    this.loadMovies(true);
   }
 
-  onMaxRatingChange(value: string): void {
-    this.maxRating = value;
-    setTimeout(() => this.updateCommentToggleMap());
+  updateRatingFrom(value: string): void {
+    this.filters.ratingFrom = value;
   }
 
-  togglePhoneFilters(): void {
-    this.showPhoneFilters = !this.showPhoneFilters;
+  updateRatingTo(value: string): void {
+    this.filters.ratingTo = value;
   }
 
-  openMovieEdit(movieId: string): void {
-    this.router.navigate(['/movie/edit', movieId]);
+  applyFilters(): void {
+    this.loadMovies(true);
+    if (this.isPhone) {
+      this.showFilters = false;
+    }
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.updateCommentToggleMap();
+  resetFilters(): void {
+    this.filters = {...this.defaultFilters};
+    this.loadMovies(true);
   }
 
-  private cloneMovies(movies: Movie[]): Movie[] {
-    return JSON.parse(JSON.stringify(movies));
+  updateSort(sortBy: MovieSortBy, sortDirection: SortDirection): void {
+    this.filters.sortBy = sortBy;
+    this.filters.sortDirection = sortDirection;
+    this.loadMovies(true);
   }
 
-  isCommentExpanded(movieId: string): boolean {
-    return !!this.expandedComments[movieId];
+  openMovie(movieId: string): void {
+    this.router.navigate(['/movies', movieId, 'edit']);
   }
 
-  toggleComment(movieId: string): void {
-    this.expandedComments = {
-      ...this.expandedComments,
-      [movieId]: !this.expandedComments[movieId],
-    };
+  addMovie(): void {
+    this.router.navigate(['/movies/create']);
   }
 
-  showToggle(movieId: string): boolean {
-    return !!this.canToggleComments[movieId];
+  retry(): void {
+    this.loadMovies(true);
   }
 
-  getGenres(movie: Movie): MovieGenre[] {
-    const movieWithFlexibleGenre: Movie = movie;
-    return movieWithFlexibleGenre.genre || [];
-  }
-
-  getGenresLabel(movie: Movie): string {
-    return this.getGenres(movie).map((genre: MovieGenre) => genre.name).join(', ');
-  }
-
-  private updateCommentToggleMap(): void {
-    if (!this.commentBlocks) {
+  loadMore(): void {
+    if (!this.hasNext || this.loadingMore || this.listLoading) {
       return;
     }
 
-    const toggleMap: Record<string, boolean> = {};
-    this.commentBlocks.forEach((commentRef: ElementRef<HTMLElement>) => {
-      const element: HTMLElement = commentRef.nativeElement;
-      const movieId: string | null = element.dataset['movieId'] ?? null;
-      if (!movieId) {
-        return;
-      }
+    this.currentPage += 1;
+    this.loadMovies(false);
+  }
 
-      // Compare full content height against visible clamped height.
-      toggleMap[movieId] = element.scrollHeight > element.clientHeight + 1;
-    });
+  getTypeLabel(contentType: MovieContentType): string {
+    return this.dictionaries.contentTypes.find((item: MovieContentTypeDictionaryItem) => item.code === contentType)?.name || contentType;
+  }
 
-    this.canToggleComments = toggleMap;
-    this.cdr.markForCheck();
+  trackByMovieId(_: number, movie: MovieListItemVm): string {
+    return movie.movieId;
+  }
+
+  private loadDictionaries(): void {
+    this.dictionariesLoading = true;
+    this.ms.getDictionaries()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.dictionariesLoading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (dictionaries: MovieDictionariesResponse) => {
+          this.dictionaries = dictionaries;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toastService.error('Не удалось загрузить справочники кино');
+        },
+      });
+  }
+
+  private loadMovies(reset: boolean): void {
+    if (reset) {
+      this.currentPage = 1;
+      this.movies = [];
+      this.errorMessage = '';
+      this.listLoading = true;
+    } else {
+      this.loadingMore = true;
+    }
+
+    this.ms.getMovies(this.buildFilter())
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.listLoading = false;
+          this.loadingMore = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (response: MovieListResponse) => {
+          this.total = response.total;
+          this.hasNext = response.hasNext;
+          this.movies = reset ? response.items : [...this.movies, ...response.items];
+        },
+        error: () => {
+          this.errorMessage = 'Не удалось загрузить список фильмов';
+          if (!reset) {
+            this.currentPage = Math.max(1, this.currentPage - 1);
+          }
+        },
+      });
+  }
+
+  private buildFilter(): MovieSearchFilter {
+    const ratingFrom: number | null = this.filters.ratingFrom === '' ? null : Number(this.filters.ratingFrom);
+    const ratingTo: number | null = this.filters.ratingTo === '' ? null : Number(this.filters.ratingTo);
+
+    return {
+      query: this.searchQuery || null,
+      contentTypes: this.filters.contentTypes,
+      genres: this.filters.genres,
+      countries: this.filters.countries,
+      ratingFrom: Number.isFinite(ratingFrom) ? ratingFrom : null,
+      ratingTo: Number.isFinite(ratingTo) ? ratingTo : null,
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      sortBy: this.filters.sortBy,
+      sortDirection: this.filters.sortDirection,
+    };
+  }
+
+  private toggleItem<T>(items: T[], value: T): T[] {
+    return items.includes(value)
+      ? items.filter((item: T) => item !== value)
+      : [...items, value];
   }
 }

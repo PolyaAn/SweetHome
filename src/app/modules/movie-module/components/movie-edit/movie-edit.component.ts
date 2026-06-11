@@ -1,9 +1,19 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { Movie, MovieGenre, MovieType, StartMovie } from "../../models/movie.model";
-import { MovieGenreMock } from "../../mocks/movie.mock";
-import { MovieModuleService } from "../../services/movie-module.service";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { finalize, switchMap, takeUntil } from 'rxjs';
+import { BaseComponent } from '../../../../components/base/base.component';
+import { ToastService } from '../../../../shared/services/toast.service';
+import {
+  ApiErrorResponse,
+  MovieContentType,
+  MovieContentTypeDictionaryItem,
+  MovieDetailsVm,
+  MovieDictionariesResponse,
+  MovieUpsertRequest,
+} from '../../models/movie.model';
+import { MovieModuleService } from '../../services/movie-module.service';
+import { PendingChangesComponent } from '../../guards/movie-form-deactivate.guard';
 
 type MovieEditForm = FormGroup;
 
@@ -13,80 +23,227 @@ type MovieEditForm = FormGroup;
   styleUrl: './movie-edit.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MovieEditComponent implements OnInit {
+export class MovieEditComponent extends BaseComponent implements OnInit, PendingChangesComponent {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private ms: MovieModuleService,
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef,
   ) {
+    super();
   }
 
-  readonly typeOptions: MovieType[] = ['фильм', 'сериал', 'мультфильм'];
-  readonly genreOptions: MovieGenre[] = MovieGenreMock;
-  readonly selectedGenreIds: Set<string> = new Set<string>();
+  readonly fallbackContentTypes: MovieContentTypeDictionaryItem[] = [
+    { code: 'MOVIE', name: 'фильм' },
+    { code: 'CARTOON', name: 'мультфильм' },
+    { code: 'SERIES', name: 'сериал' },
+  ];
 
   movieId: string = '';
+  dictionaries: MovieDictionariesResponse = {
+    contentTypes: this.fallbackContentTypes,
+    genres: [],
+    countries: [],
+  };
+  selectedGenres: string[] = [];
+  isLoading: boolean = false;
+  isSaving: boolean = false;
+  isDeleting: boolean = false;
 
   form: MovieEditForm = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(120)]],
-    rating: [''],
-    types: ['фильм', Validators.required],
-    comment: ['', Validators.required],
+    title: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(120)]],
+    contentType: ['MOVIE' as MovieContentType, Validators.required],
+    rating: ['', [Validators.min(0), Validators.max(10)]],
+    country: ['', [Validators.maxLength(80)]],
+    comment: ['', [Validators.maxLength(5000)]],
   });
 
   ngOnInit(): void {
-    this.movieId = this.route.snapshot.paramMap.get('id') || '';
-    const movie: Movie | undefined = this.ms.getMovieById(this.movieId);
-    if (!movie) {
-      this.router.navigate(['/movie']);
+    this.movieId = this.route.snapshot.paramMap.get('movieId') || '';
+    if (!this.movieId) {
+      this.router.navigate(['/movies']);
       return;
     }
 
-    this.form.patchValue({
-      name: movie.name,
-      rating: movie.rating ?? '',
-      types: movie.types,
-      comment: movie.comment,
-    });
-
-    movie.genre.forEach((genre: MovieGenre) => {
-      this.selectedGenreIds.add(genre.id);
-    });
+    this.isLoading = true;
+    this.ms.getDictionaries()
+      .pipe(
+        switchMap((dictionaries: MovieDictionariesResponse) => {
+          this.dictionaries = dictionaries;
+          return this.ms.getMovieById(this.movieId);
+        }),
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (movie: MovieDetailsVm) => {
+          this.patchForm(movie);
+        },
+        error: () => {
+          this.toastService.error('Не удалось загрузить фильм');
+          this.router.navigate(['/movies']);
+        },
+      });
   }
 
-  toggleGenre(genreId: string): void {
-    if (this.selectedGenreIds.has(genreId)) {
-      this.selectedGenreIds.delete(genreId);
-      return;
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.canLeavePage()) {
+      event.preventDefault();
+      event.returnValue = '';
     }
-    this.selectedGenreIds.add(genreId);
   }
 
-  isGenreSelected(genreId: string): boolean {
-    return this.selectedGenreIds.has(genreId);
+  toggleGenre(genre: string): void {
+    this.selectedGenres = this.selectedGenres.includes(genre)
+      ? this.selectedGenres.filter((item: string) => item !== genre)
+      : [...this.selectedGenres, genre];
+    this.form.markAsDirty();
+  }
+
+  isGenreSelected(genre: string): boolean {
+    return this.selectedGenres.includes(genre);
   }
 
   submit(): void {
-    if (this.form.invalid || !this.selectedGenreIds.size || !this.movieId) {
+    if (this.form.invalid || !this.selectedGenres.length || this.isSaving || !this.movieId) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const ratingRaw: string = String(this.form.get('rating')?.value || '').trim();
-    const ratingNum: number | null = ratingRaw ? Number(ratingRaw) : null;
+    this.isSaving = true;
+    this.clearApiErrors();
 
-    const movie: StartMovie = {
-      name: String(this.form.get('name')?.value || '').trim(),
-      types: this.form.get('types')?.value as MovieType,
-      genre: this.genreOptions.filter((genre: MovieGenre) => this.selectedGenreIds.has(genre.id)),
-      comment: String(this.form.get('comment')?.value || '').trim(),
-    };
+    this.ms.updateMovie(this.movieId, this.buildPayload())
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.form.markAsPristine();
+          this.toastService.success('Фильм обновлён');
+          this.router.navigate(['/movies']);
+        },
+        error: (error: { error?: ApiErrorResponse }) => {
+          if (!this.applyApiErrors(error.error)) {
+            this.toastService.error('Не удалось обновить фильм');
+          }
+        },
+      });
+  }
 
-    if (ratingNum !== null && Number.isFinite(ratingNum)) {
-      movie.rating = Math.max(1, Math.min(10, ratingNum));
+  deleteMovie(): void {
+    if (!this.movieId || this.isDeleting) {
+      return;
     }
 
-    this.ms.updateMovieInfo(this.movieId, movie);
+    if (!window.confirm('Удалить фильм?')) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.ms.deleteMovie(this.movieId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.isDeleting = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.form.markAsPristine();
+          this.toastService.success('Фильм удалён');
+          this.router.navigate(['/movies']);
+        },
+        error: () => {
+          this.toastService.error('Не удалось удалить фильм');
+        },
+      });
+  }
+
+  canDeactivate(): boolean {
+    return this.canLeavePage() || window.confirm('Выйти без сохранения?');
+  }
+
+  getControl(name: string): AbstractControl | null {
+    return this.form.get(name);
+  }
+
+  get genreError(): boolean {
+    return !this.selectedGenres.length && this.form.touched;
+  }
+
+  private patchForm(movie: MovieDetailsVm): void {
+    this.selectedGenres = [...movie.genres];
+    this.form.patchValue({
+      title: movie.title,
+      contentType: movie.contentType,
+      rating: movie.rating ?? '',
+      country: movie.country ?? '',
+      comment: movie.comment ?? '',
+    });
+    this.form.markAsPristine();
+  }
+
+  private canLeavePage(): boolean {
+    return !this.form.dirty;
+  }
+
+  private buildPayload(): MovieUpsertRequest {
+    const ratingRaw: string = String(this.form.get('rating')?.value || '').trim();
+    const ratingValue: number | null = ratingRaw === '' ? null : Number(ratingRaw);
+
+    return {
+      title: String(this.form.get('title')?.value || '').trim(),
+      contentType: this.form.get('contentType')?.value as MovieContentType,
+      rating: Number.isFinite(ratingValue) ? ratingValue : null,
+      genres: this.selectedGenres,
+      country: String(this.form.get('country')?.value || '').trim() || null,
+      comment: String(this.form.get('comment')?.value || '').trim() || null,
+    };
+  }
+
+  private applyApiErrors(apiError?: ApiErrorResponse): boolean {
+    if (!apiError || apiError.errorCode !== 'VALIDATION_ERROR' || !apiError.details?.length) {
+      return false;
+    }
+
+    apiError.details.forEach((detail) => {
+      if (detail.field === 'genres') {
+        this.form.markAllAsTouched();
+        return;
+      }
+
+      const control = this.form.get(detail.field);
+      if (control) {
+        control.setErrors({
+          ...(control.errors || {}),
+          api: detail.message,
+        });
+        control.markAsTouched();
+      }
+    });
+
+    return true;
+  }
+
+  private clearApiErrors(): void {
+    Object.keys(this.form.controls).forEach((name: string) => {
+      const control = this.form.get(name);
+      if (control?.errors?.['api']) {
+        const { api, ...rest } = control.errors;
+        control.setErrors(Object.keys(rest).length ? rest : null);
+      }
+    });
   }
 }

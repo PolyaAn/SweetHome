@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { MovieModuleComponent } from './movie-module.component';
 import { MovieModuleRoutingModule } from './movie-module-routing.module';
 import { MovieModuleService } from './services/movie-module.service';
-import { MatIconModule } from "@angular/material/icon";
-import { MovieAddComponent } from "./components/movie-add/movie-add.component";
-import { ReactiveFormsModule } from "@angular/forms";
-import { MovieEditComponent } from "./components/movie-edit/movie-edit.component";
+import { MovieAddComponent } from './components/movie-add/movie-add.component';
+import { MovieEditComponent } from './components/movie-edit/movie-edit.component';
+import { MovieFormDeactivateGuard } from './guards/movie-form-deactivate.guard';
 
 @NgModule({
   declarations: [MovieModuleComponent, MovieAddComponent, MovieEditComponent],
@@ -16,7 +17,7 @@ import { MovieEditComponent } from "./components/movie-edit/movie-edit.component
     MatIconModule,
     ReactiveFormsModule,
   ],
-  providers: [MovieModuleService],
+  providers: [MovieModuleService, MovieFormDeactivateGuard],
 })
 export class MovieModuleModule {
 }

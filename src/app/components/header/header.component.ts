@@ -60,8 +60,8 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   ngOnInit(): void {
     this.isMainPage = this.router.url.startsWith('/main');
-    this.isMoviePage = this.router.url.startsWith('/movie');
-    this.isMovieListPage = this.router.url === '/movie';
+    this.isMoviePage = this.router.url.startsWith('/movies');
+    this.isMovieListPage = this.router.url === '/movies';
     this.setHomeRouteState();
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
@@ -93,8 +93,8 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isMainPage = this.router.url.startsWith('/main');
-          this.isMoviePage = this.router.url.startsWith('/movie');
-          this.isMovieListPage = this.router.url === '/movie';
+          this.isMoviePage = this.router.url.startsWith('/movies');
+          this.isMovieListPage = this.router.url === '/movies';
           this.setHomeRouteState();
           this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
@@ -184,7 +184,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   }
 
   addMovie(): void {
-    this.router.navigate(['/movie/add']);
+    this.router.navigate(['/movies/create']);
   }
 
   openHomeSettings(): void {
