@@ -7,8 +7,8 @@ import { RoomPageComponent } from './components/room-page/room-page.component';
 import { RoomFormPageComponent } from './components/room-form-page/room-form-page.component';
 import { RoomDevicesPageComponent } from './components/room-devices-page/room-devices-page.component';
 import { CatalogAddPageComponent } from './components/catalog-add-page/catalog-add-page.component';
-import { UnsupportedPageComponent } from './components/unsupported-page/unsupported-page.component';
 import { AllWidgetsPageComponent } from './components/all-widgets-page/all-widgets-page.component';
+import { SmartHomeFeaturePageComponent } from './components/smart-home-feature-page/smart-home-feature-page.component';
 
 const routes: Routes = [
   {
@@ -87,22 +87,22 @@ const routes: Routes = [
       },
       {
         path: 'scenarios',
-        component: UnsupportedPageComponent,
+        component: SmartHomeFeaturePageComponent,
         data: {title: 'Сценарии', feature: 'scenarios'},
       },
       {
         path: 'scenarios/create',
-        component: UnsupportedPageComponent,
+        component: SmartHomeFeaturePageComponent,
         data: {title: 'Создание сценария', feature: 'scenarioCreate'},
       },
       {
         path: 'automations',
-        component: UnsupportedPageComponent,
+        component: SmartHomeFeaturePageComponent,
         data: {title: 'Автоматизации', feature: 'automations'},
       },
       {
         path: 'events',
-        component: UnsupportedPageComponent,
+        component: SmartHomeFeaturePageComponent,
         data: {title: 'Журнал событий', feature: 'events'},
       },
     ],

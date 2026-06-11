@@ -74,7 +74,51 @@ export interface HomeAssistantWidgetControl {
 export interface HomeAssistantActionRequest {
   entityId: string;
   action: string;
-  value?: number | string | null;
+  value?: number | string | boolean | null;
+}
+
+export interface SmartHomeScenarioAction {
+  entityId: string;
+  action: string;
+  value?: number | string | boolean | null;
+}
+
+export interface SmartHomeScenario {
+  id: string;
+  name: string;
+  icon: string;
+  actions: SmartHomeScenarioAction[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface SmartHomeAutomation {
+  id: string;
+  name: string;
+  enabled: boolean;
+  trigger: Record<string, unknown>;
+  conditions: Array<Record<string, unknown>>;
+  actions: SmartHomeScenarioAction[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  lastExecutedAt?: string | null;
+}
+
+export interface SmartHomeEvent {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  entityId?: string | null;
+  roomId?: string | null;
+  payload?: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface HomeRealtimeMessage {
+  type: 'DEVICE_STATE_CHANGED' | 'NEW_EVENT' | 'ROOM_UPDATED' | string;
+  occurredAt: string;
+  payload?: SmartHomeEvent | Record<string, unknown> | null;
 }
 
 export interface RoomVm extends SmartHomeRoom {
@@ -105,6 +149,9 @@ export interface HomeDashboardVm {
   deviceCount: number;
   sensorCount: number;
   hiddenWidgetCount: number;
+  scenarioCount: number;
+  automationCount: number;
+  eventCount: number;
 }
 
 export interface HomeUiState {

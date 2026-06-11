@@ -12,8 +12,10 @@ import { RoomDevicesPageComponent } from './components/room-devices-page/room-de
 import { CatalogAddPageComponent } from './components/catalog-add-page/catalog-add-page.component';
 import { UnsupportedPageComponent } from './components/unsupported-page/unsupported-page.component';
 import { AllWidgetsPageComponent } from './components/all-widgets-page/all-widgets-page.component';
+import { SmartHomeFeaturePageComponent } from './components/smart-home-feature-page/smart-home-feature-page.component';
 import { HomeApiService } from './services/home-api.service';
 import { HomeFacadeService } from './services/home-facade.service';
+import { HomeRealtimeService } from './services/home-realtime.service';
 
 @NgModule({
   declarations: [
@@ -26,6 +28,7 @@ import { HomeFacadeService } from './services/home-facade.service';
     CatalogAddPageComponent,
     UnsupportedPageComponent,
     AllWidgetsPageComponent,
+    SmartHomeFeaturePageComponent,
   ],
   imports: [
     CommonModule,
@@ -36,6 +39,7 @@ import { HomeFacadeService } from './services/home-facade.service';
   providers: [
     HomeApiService,
     HomeFacadeService,
+    HomeRealtimeService,
   ],
 })
 export class HomeModuleModule {

@@ -1,0 +1,149 @@
+<main class="page">
+  <section class="toolbar">
+    <a routerLink="/home" class="back-link">
+      <mat-icon fontIcon="chevron_left"></mat-icon>
+      <span>Дом</span>
+    </a>
+    <button type="button" [disabled]="loading || saving" (click)="load()">
+      <mat-icon fontIcon="refresh"></mat-icon>
+    </button>
+  </section>
+
+  <section class="error" *ngIf="error">
+    {{ error }}
+  </section>
+
+  <ng-container [ngSwitch]="feature">
+    <section class="panel" *ngSwitchCase="'scenarioCreate'">
+      <h2>Создание сценария</h2>
+      <form [formGroup]="scenarioForm" (ngSubmit)="createScenario()" class="form-grid">
+        <label>
+          <span>Название</span>
+          <input formControlName="name" autocomplete="off">
+        </label>
+        <label>
+          <span>Иконка</span>
+          <input formControlName="icon" autocomplete="off">
+        </label>
+        <label>
+          <span>Entity ID</span>
+          <input formControlName="entityId" autocomplete="off">
+        </label>
+        <label>
+          <span>Action</span>
+          <input formControlName="action" autocomplete="off">
+        </label>
+        <label>
+          <span>Value</span>
+          <input formControlName="value" autocomplete="off">
+        </label>
+        <button type="submit" [disabled]="saving">
+          <mat-icon fontIcon="save"></mat-icon>
+          <span>Сохранить</span>
+        </button>
+      </form>
+    </section>
+
+    <section class="panel" *ngSwitchCase="'scenarios'">
+      <div class="panel-title">
+        <h2>Сценарии</h2>
+        <a routerLink="/home/scenarios/create">
+          <mat-icon fontIcon="add"></mat-icon>
+          <span>Создать</span>
+        </a>
+      </div>
+
+      <div class="list" *ngIf="scenarios.length; else emptyScenarios">
+        <article class="item" *ngFor="let scenario of scenarios">
+          <span class="item-icon"><mat-icon [fontIcon]="scenario.icon || 'play_circle'"></mat-icon></span>
+          <div>
+            <strong>{{ scenario.name }}</strong>
+            <small>{{ scenario.actions.length }} действий</small>
+          </div>
+          <button type="button" [disabled]="savingId === scenario.id" (click)="executeScenario(scenario)">
+            <mat-icon fontIcon="play_arrow"></mat-icon>
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" *ngSwitchCase="'automations'">
+      <h2>Автоматизации</h2>
+      <form [formGroup]="automationForm" (ngSubmit)="createAutomation()" class="form-grid">
+        <label>
+          <span>Название</span>
+          <input formControlName="name" autocomplete="off">
+        </label>
+        <label>
+          <span>Trigger type</span>
+          <input formControlName="triggerType" autocomplete="off">
+        </label>
+        <label>
+          <span>Trigger entityId</span>
+          <input formControlName="triggerEntityId" autocomplete="off">
+        </label>
+        <label>
+          <span>Action entityId</span>
+          <input formControlName="entityId" autocomplete="off">
+        </label>
+        <label>
+          <span>Action</span>
+          <input formControlName="action" autocomplete="off">
+        </label>
+        <label>
+          <span>Value</span>
+          <input formControlName="value" autocomplete="off">
+        </label>
+        <button type="submit" [disabled]="saving">
+          <mat-icon fontIcon="save"></mat-icon>
+          <span>Сохранить</span>
+        </button>
+      </form>
+
+      <div class="list spaced" *ngIf="automations.length; else emptyAutomations">
+        <article class="item" *ngFor="let automation of automations">
+          <span class="item-icon"><mat-icon fontIcon="rule"></mat-icon></span>
+          <div>
+            <strong>{{ automation.name }}</strong>
+            <small>Последний запуск: {{ formatDate(automation.lastExecutedAt) }}</small>
+          </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="automation.enabled"
+              [disabled]="savingId === automation.id"
+              (change)="toggleAutomation(automation, $event)">
+            <span></span>
+          </label>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" *ngSwitchDefault>
+      <h2>Журнал событий</h2>
+      <div class="list" *ngIf="events.length; else emptyEvents">
+        <article class="event" *ngFor="let event of events">
+          <strong>{{ event.title || event.type }}</strong>
+          <p>{{ event.message }}</p>
+          <small>{{ formatDate(event.createdAt) }}</small>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <section class="loading" *ngIf="loading">
+    <mat-icon fontIcon="hourglass_empty"></mat-icon>
+  </section>
+</main>
+
+<ng-template #emptyScenarios>
+  <p class="empty">Сценарии не найдены</p>
+</ng-template>
+
+<ng-template #emptyAutomations>
+  <p class="empty">Автоматизации не найдены</p>
+</ng-template>
+
+<ng-template #emptyEvents>
+  <p class="empty">События не найдены</p>
+</ng-template>

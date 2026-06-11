@@ -5,6 +5,7 @@ export const DEVICE_FORMS: RussianPluralForms = ['устройство', 'уст
 export const SENSOR_FORMS: RussianPluralForms = ['датчик', 'датчика', 'датчиков'];
 export const SCENARIO_FORMS: RussianPluralForms = ['сценарий', 'сценария', 'сценариев'];
 export const RULE_FORMS: RussianPluralForms = ['правило', 'правила', 'правил'];
+export const EVENT_FORMS: RussianPluralForms = ['событие', 'события', 'событий'];
 
 export function pluralRu(count: number, forms: RussianPluralForms): string {
   const absolute = Math.abs(count);

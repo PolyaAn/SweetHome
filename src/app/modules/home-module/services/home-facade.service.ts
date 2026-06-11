@@ -5,13 +5,17 @@ import {
   HomeDashboardVm,
   HomeUiState,
   RoomVm,
+  SmartHomeAutomation,
+  SmartHomeEvent,
   SmartHomeLayout,
   SmartHomeRoom,
+  SmartHomeScenario,
   SmartHomeWidget,
   WidgetVm,
 } from '../models/home.model';
 import { countText, DEVICE_FORMS, SENSOR_FORMS } from '../utils/home-declension';
 import { HomeApiService } from './home-api.service';
+import { HomeRealtimeService } from './home-realtime.service';
 
 const EMPTY_LAYOUT: SmartHomeLayout = {
   rooms: [],
@@ -23,6 +27,9 @@ const ERROR_VISIBLE_TIMEOUT_MS = 40000;
 export class HomeFacadeService {
   private readonly layoutSubject = new BehaviorSubject<SmartHomeLayout>(EMPTY_LAYOUT);
   private readonly catalogSubject = new BehaviorSubject<HomeAssistantCatalogWidget[]>([]);
+  private readonly scenariosSubject = new BehaviorSubject<SmartHomeScenario[]>([]);
+  private readonly automationsSubject = new BehaviorSubject<SmartHomeAutomation[]>([]);
+  private readonly eventsSubject = new BehaviorSubject<SmartHomeEvent[]>([]);
   private readonly uiStateSubject = new BehaviorSubject<HomeUiState>({
     loading: false,
     saving: false,
@@ -32,16 +39,32 @@ export class HomeFacadeService {
 
   readonly layout$ = this.layoutSubject.asObservable();
   readonly catalog$ = this.catalogSubject.asObservable();
+  readonly scenarios$ = this.scenariosSubject.asObservable();
+  readonly automations$ = this.automationsSubject.asObservable();
+  readonly events$ = this.eventsSubject.asObservable();
   readonly uiState$ = this.uiStateSubject.asObservable();
 
   readonly dashboard$: Observable<HomeDashboardVm> = combineLatest([
     this.layout$,
     this.catalog$,
+    this.scenarios$,
+    this.automations$,
+    this.events$,
   ]).pipe(
-    map(([layout, catalog]) => this.buildDashboard(layout, catalog)),
+    map(([layout, catalog, scenarios, automations, events]) => this.buildDashboard(layout, catalog, scenarios, automations, events)),
   );
 
-  constructor(private api: HomeApiService) {
+  constructor(
+    private api: HomeApiService,
+    private realtime: HomeRealtimeService,
+  ) {
+    this.realtime.connect();
+    this.realtime.messages$
+      .subscribe((message) => {
+        if (message.type === 'DEVICE_STATE_CHANGED' || message.type === 'ROOM_UPDATED' || message.type === 'NEW_EVENT') {
+          this.load().subscribe();
+        }
+      });
   }
 
   load(): Observable<SmartHomeLayout> {
@@ -50,10 +73,16 @@ export class HomeFacadeService {
     return combineLatest([
       this.api.getLayout().pipe(catchError(() => of(EMPTY_LAYOUT))),
       this.api.getCatalog().pipe(catchError(() => of([]))),
+      this.api.getScenarios().pipe(catchError(() => of([]))),
+      this.api.getAutomations().pipe(catchError(() => of([]))),
+      this.api.getEvents().pipe(catchError(() => of([]))),
     ]).pipe(
-      tap(([layout, catalog]) => {
+      tap(([layout, catalog, scenarios, automations, events]) => {
         this.layoutSubject.next(this.normalizeLayout(layout));
         this.catalogSubject.next(catalog);
+        this.scenariosSubject.next(scenarios);
+        this.automationsSubject.next(automations);
+        this.eventsSubject.next(events);
       }),
       map(([layout]) => layout),
       catchError(() => {
@@ -65,13 +94,25 @@ export class HomeFacadeService {
   }
 
   getRoom(roomId: string): RoomVm | null {
-    return this.buildDashboard(this.layoutSubject.value, this.catalogSubject.value)
+    return this.buildDashboard(
+      this.layoutSubject.value,
+      this.catalogSubject.value,
+      this.scenariosSubject.value,
+      this.automationsSubject.value,
+      this.eventsSubject.value,
+    )
       .rooms
       .find((room) => room.id === roomId) ?? null;
   }
 
   getRoomWidgets(roomId: string): WidgetVm[] {
-    return this.buildDashboard(this.layoutSubject.value, this.catalogSubject.value)
+    return this.buildDashboard(
+      this.layoutSubject.value,
+      this.catalogSubject.value,
+      this.scenariosSubject.value,
+      this.automationsSubject.value,
+      this.eventsSubject.value,
+    )
       .widgets
       .filter((widget) => widget.roomId === roomId && !widget.hide)
       .sort((a, b) => a.order - b.order);
@@ -234,7 +275,13 @@ export class HomeFacadeService {
     );
   }
 
-  private buildDashboard(layout: SmartHomeLayout, catalog: HomeAssistantCatalogWidget[]): HomeDashboardVm {
+  private buildDashboard(
+    layout: SmartHomeLayout,
+    catalog: HomeAssistantCatalogWidget[],
+    scenarios: SmartHomeScenario[],
+    automations: SmartHomeAutomation[],
+    events: SmartHomeEvent[],
+  ): HomeDashboardVm {
     const catalogById = new Map(catalog.map((item) => [item.id, item]));
     const widgets = layout.widgets
       .map((widget) => this.buildWidgetVm(widget, catalogById.get(widget.entityId)))
@@ -254,6 +301,9 @@ export class HomeFacadeService {
       deviceCount: widgets.filter((widget) => !widget.isSensor && !widget.hide).length,
       sensorCount: widgets.filter((widget) => widget.isSensor && !widget.hide).length,
       hiddenWidgetCount: widgets.filter((widget) => widget.hide).length,
+      scenarioCount: scenarios.length,
+      automationCount: automations.length,
+      eventCount: events.length,
     };
   }
 

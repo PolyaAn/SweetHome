@@ -4,6 +4,7 @@ import { HomeDashboardVm, HomeUiState, WidgetVm } from '../../models/home.model'
 import {
   countText,
   DEVICE_FORMS,
+  EVENT_FORMS,
   ROOM_FORMS,
   RULE_FORMS,
   SCENARIO_FORMS,
@@ -35,9 +36,9 @@ export class HomePageComponent {
     {label: 'Комнаты', icon: 'meeting_room', route: '/home/rooms', color: 'orange', countKey: 'visibleRoomCount', forms: ROOM_FORMS},
     {label: 'Устройства', icon: 'power', route: '/home/devices', color: 'blue', countKey: 'deviceCount', forms: DEVICE_FORMS},
     {label: 'Датчики', icon: 'sensors', route: '/home/sensors', color: 'cyan', countKey: 'sensorCount', forms: SENSOR_FORMS},
-    {label: 'Сценарии', icon: 'play_circle', route: '/home/scenarios', color: 'gold', caption: countText(0, SCENARIO_FORMS)},
-    {label: 'Автоматизации', icon: 'rule', route: '/home/automations', color: 'green', caption: countText(0, RULE_FORMS)},
-    {label: 'Журнал событий', icon: 'history', route: '/home/events', color: 'orange', caption: 'Сегодня'},
+    {label: 'Сценарии', icon: 'play_circle', route: '/home/scenarios', color: 'gold', countKey: 'scenarioCount', forms: SCENARIO_FORMS},
+    {label: 'Автоматизации', icon: 'rule', route: '/home/automations', color: 'green', countKey: 'automationCount', forms: RULE_FORMS},
+    {label: 'Журнал событий', icon: 'history', route: '/home/events', color: 'orange', countKey: 'eventCount', forms: EVENT_FORMS},
     {label: 'Настройки дома', icon: 'settings', route: '/home/rooms', color: 'orange', caption: 'Пользователи, хабы, интеграции'},
   ];
 
