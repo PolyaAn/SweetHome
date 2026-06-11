@@ -1,115 +1,158 @@
 <section class="movie-module">
-  <div class="movie-filters">
+  <section class="movie-toolbar">
     <div class="movie-search-row">
-      <input
-        type="text"
-        class="movie-filter-input"
-        [value]="searchQuery"
-        (input)="onSearchChange($any($event.target).value)"
-        placeholder="Поиск по названию и комментарию"
-      />
-      <button
-        type="button"
-        class="movie-filter-toggle"
-        *ngIf="isPhone"
-        (click)="togglePhoneFilters()"
-        [attr.aria-label]="showPhoneFilters ? 'Скрыть фильтры' : 'Показать фильтры'">
-        <mat-icon [fontIcon]="showPhoneFilters ? 'filter_alt_off' : 'filter_alt'"></mat-icon>
+      <label class="movie-search-field">
+        <input
+          type="text"
+          [value]="draftSearchQuery"
+          (input)="onSearchInput($any($event.target).value)"
+          placeholder="Поиск по названию и комментарию"
+        />
+        <button type="button" *ngIf="draftSearchQuery" class="movie-search-clear" (click)="clearSearch()">
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </label>
+
+      <button type="button" class="movie-toolbar-button" (click)="toggleFilters()">
+        <mat-icon fontIcon="filter_alt"></mat-icon>
+        <span>Фильтры</span>
+        <span class="movie-toolbar-badge" *ngIf="activeFiltersCount">{{ activeFiltersCount }}</span>
       </button>
     </div>
-    <div class="movie-filter-range" *ngIf="!isPhone || showPhoneFilters">
-      <span>Рейтинг</span>
-      <div class="movie-filter-fields">
-        <label class="movie-filter-field">
-          <span>от</span>
-          <select
-            class="movie-filter-select"
-            [value]="minRating"
-            (change)="onMinRatingChange($any($event.target).value)">
-            <option
-              *ngFor="let rating of ratingOptions"
-              [value]="rating"
-              [selected]="(rating + '') === minRating">
-              {{ rating }}
-            </option>
-          </select>
-        </label>
-        <label class="movie-filter-field">
-          <span>до</span>
-          <select
-            class="movie-filter-select"
-            [value]="maxRating"
-            (change)="onMaxRatingChange($any($event.target).value)">
-            <option
-              *ngFor="let rating of ratingOptions"
-              [value]="rating"
-              [selected]="(rating + '') === maxRating">
-              {{ rating }}
-            </option>
-          </select>
-        </label>
-      </div>
-    </div>
-    <label class="movie-filter-field movie-filter-genre" *ngIf="!isPhone || showPhoneFilters">
-      <span>Жанр</span>
-      <select
-        class="movie-filter-select"
-        [value]="selectedGenreId"
-        (change)="onGenreChange($any($event.target).value)">
-        <option value="all">Любой жанр</option>
-        <option *ngFor="let genre of genreOptions" [value]="genre.id">{{ genre.name }}</option>
-      </select>
-    </label>
-  </div>
 
-  <p *ngIf="!movies.length">Фильмы не найдены</p>
-  <p *ngIf="movies.length && !filteredMovies.length">По вашему запросу ничего не найдено</p>
-
-  <div class="movie-list" *ngIf="filteredMovies.length">
-    <article class="movie-item" [class.movie-item--grid]="viewMode !== 'grid'" *ngFor="let movie of filteredMovies">
-      <div
-        class="movie-item__head"
-        [class.movie-item__head--grid]="viewMode !== 'grid'"
-        (click)="openMovieEdit(movie.id)">
-        <div class="movie-item__title">
-          <h3>{{ movie.name }}</h3>
-        </div>
-        <span class="movie-rating">{{ movie.types }}
-          <span *ngIf="movie.rating"> |</span>
-          <span *ngIf="movie.rating" class="rating"> {{ movie.rating }}</span>
-<!--          <button-->
-<!--            *ngIf="!movie.rating"-->
-<!--            type="button"-->
-<!--            class="movie-rating-add"-->
-<!--            aria-label="Добавить рейтинг">-->
-<!--            +-->
-<!--          </button>-->
-        </span>
-      </div>
-      <div class="movie-meta" [class.movie-meta--grid]="viewMode !== 'grid'">
-        <div class="movie-meta-genres" *ngIf="getGenres(movie).length">
-          <span class="movie-meta-genre" [class.movie-meta-genre--grid]="viewMode !== 'grid'" *ngFor="let genre of getGenres(movie)">
-            {{ genre.name.toLocaleLowerCase() }}
-          </span>
+    <section class="movie-filters" *ngIf="showFilters">
+      <div class="movie-filter-group">
+        <span class="movie-filter-label">Тип</span>
+        <div class="movie-chip-list">
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.contentTypes.includes(type.code)"
+            *ngFor="let type of dictionaries.contentTypes"
+            (click)="toggleContentType(type.code)">
+            {{ type.name }}
+          </button>
         </div>
       </div>
-      <div *ngIf="viewMode === 'grid'">
-      <p
-        #commentBlock
-        class="movie-comment"
-        [attr.data-movie-id]="movie.id"
-        [class.expanded]="isCommentExpanded(movie.id)"
-        *ngIf="viewMode === 'grid' && movie.comment">
-        {{ movie.comment }}
-      </p>
-      <button
-        type="button"
-        class="movie-comment-toggle"
-        *ngIf="viewMode === 'grid' && movie.comment && showToggle(movie.id)"
-        (click)="toggleComment(movie.id)">
-        {{ isCommentExpanded(movie.id) ? 'Свернуть' : 'Показать еще' }}
-      </button>
+
+      <div class="movie-filter-group">
+        <span class="movie-filter-label">Жанры</span>
+        <div class="movie-chip-list">
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.genres.includes(genre)"
+            *ngFor="let genre of dictionaries.genres"
+            (click)="toggleGenre(genre)">
+            {{ genre }}
+          </button>
+        </div>
       </div>
+
+      <div class="movie-filter-group">
+        <span class="movie-filter-label">Страны</span>
+        <div class="movie-chip-list">
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.countries.includes(country)"
+            *ngFor="let country of dictionaries.countries"
+            (click)="toggleCountry(country)">
+            {{ country }}
+          </button>
+        </div>
+      </div>
+
+      <div class="movie-filter-grid">
+        <label class="movie-filter-field">
+          <span>Рейтинг от</span>
+          <input type="number" min="0" max="10" step="0.1" [value]="filters.ratingFrom" (input)="updateRatingFrom($any($event.target).value)" />
+        </label>
+
+        <label class="movie-filter-field">
+          <span>Рейтинг до</span>
+          <input type="number" min="0" max="10" step="0.1" [value]="filters.ratingTo" (input)="updateRatingTo($any($event.target).value)" />
+        </label>
+      </div>
+
+      <div class="movie-filter-group">
+        <span class="movie-filter-label">Сортировка</span>
+        <div class="movie-chip-list">
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.sortBy === 'UPDATED_AT' && filters.sortDirection === 'DESC'"
+            (click)="updateSort('UPDATED_AT', 'DESC')">
+            Сначала новые
+          </button>
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.sortBy === 'TITLE' && filters.sortDirection === 'ASC'"
+            (click)="updateSort('TITLE', 'ASC')">
+            По названию
+          </button>
+          <button
+            type="button"
+            class="movie-chip"
+            [class.movie-chip--active]="filters.sortBy === 'RATING' && filters.sortDirection === 'DESC'"
+            (click)="updateSort('RATING', 'DESC')">
+            По рейтингу
+          </button>
+        </div>
+      </div>
+
+      <div class="movie-filter-actions">
+        <button type="button" class="movie-secondary-button" (click)="resetFilters()">Сбросить</button>
+        <button type="button" class="movie-primary-button" (click)="applyFilters()">Применить</button>
+      </div>
+    </section>
+  </section>
+
+  <section class="movie-state movie-state--loading" *ngIf="listLoading">
+    <article class="movie-skeleton" *ngFor="let item of [1, 2, 3, 4]"></article>
+  </section>
+
+  <section class="movie-state" *ngIf="!listLoading && errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="movie-primary-button" (click)="retry()">Повторить</button>
+  </section>
+
+  <section class="movie-state" *ngIf="!listLoading && !errorMessage && !movies.length && !searchQuery && !activeFiltersCount">
+    <p>Фильмы пока не добавлены</p>
+    <button type="button" class="movie-primary-button" (click)="addMovie()">Добавить фильм</button>
+  </section>
+
+  <section class="movie-state" *ngIf="!listLoading && !errorMessage && !movies.length && (searchQuery || activeFiltersCount)">
+    <p>Ничего не найдено</p>
+    <button type="button" class="movie-secondary-button" (click)="resetFilters()">Сбросить фильтры</button>
+  </section>
+
+  <section class="movie-list" [class.movie-list--grid]="viewMode === 'grid'" *ngIf="!listLoading && !errorMessage && movies.length">
+    <article
+      class="movie-card"
+      [class.movie-card--grid]="viewMode === 'grid'"
+      *ngFor="let movie of movies; trackBy: trackByMovieId"
+      (click)="openMovie(movie.movieId)">
+      <div class="movie-card__head">
+        <h3>{{ movie.title }}</h3>
+        <div class="movie-card__badge">
+          <span>{{ getTypeLabel(movie.contentType) }}</span>
+          <span *ngIf="movie.rating !== null && movie.rating !== undefined">| {{ movie.rating }}</span>
+        </div>
+      </div>
+
+      <div class="movie-card__meta">
+        <span class="movie-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
+      </div>
+
+      <p class="movie-card__country" *ngIf="movie.country">{{ movie.country }}</p>
     </article>
+  </section>
+
+  <div class="movie-load-more" *ngIf="!listLoading && !errorMessage && movies.length && hasNext">
+    <button type="button" class="movie-secondary-button" [disabled]="loadingMore" (click)="loadMore()">
+      {{ loadingMore ? 'Загрузка...' : 'Показать ещё' }}
+    </button>
   </div>
 </section>

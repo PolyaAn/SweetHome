@@ -1,55 +1,46 @@
 @import '../../../../styles/shared-styles';
 
-.movie-edit {
+.movie-form-page {
   padding: 16px;
-  @include ui-glass-surface(16px);
-  border-radius: 0;
-  border: none;
+}
+
+.movie-form-card {
+  @include ui-glass-surface(18px);
+  padding: 16px;
   display: grid;
   gap: 12px;
-  color: $color-text-main;
 }
 
-.movie-edit-card {
-  display: grid;
-  gap: 8px;
-  color: $color-text-main;
+.movie-form-loading {
+  color: $alpha-sand-72;
+  font-size: 13px;
 }
 
-.movie-edit-card h2 {
-  margin: 0;
-  @include ui-section-title;
-}
-
-.movie-edit-row {
+.movie-form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-
-  @media only screen and (max-width: 767px) {
-    grid-template-columns: 1fr;
-  }
 }
 
-.movie-edit-field {
+.movie-form-field {
   display: grid;
   gap: 6px;
 }
 
-.movie-edit-field > span {
+.movie-form-field > span {
+  color: $alpha-sand-72;
   font-size: 12px;
   font-weight: 600;
-  color: $alpha-sand-72;
 }
 
-.movie-edit-field input,
-.movie-edit-field select,
-.movie-edit-field textarea {
+.movie-form-field input,
+.movie-form-field select,
+.movie-form-field textarea {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
   border: 1px solid $alpha-white-24;
-  border-radius: 10px;
+  border-radius: 12px;
   background: $alpha-white-06;
   color: $color-text-main;
   padding: 10px 12px;
@@ -61,33 +52,62 @@
   }
 }
 
-.movie-edit-field textarea {
+.movie-form-field textarea {
   resize: vertical;
-  min-height: 96px;
+  min-height: 120px;
 }
 
-.movie-edit-genres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.movie-form-chips {
+  @include ui-tags-wrap(8px);
 }
 
-.movie-edit-genre {
+.movie-form-chip {
   @include ui-tag-button;
   cursor: pointer;
 }
 
-.movie-edit-genre.active {
+.movie-form-chip--active {
   @include ui-tag-active;
 }
 
-.movie-edit-submit {
-  @include ui-primary-button(12px);
-  height: 40px;
-  width: 100%;
+.movie-form-error {
+  color: $color-accent-peach;
+  font-size: 12px;
+}
+
+.movie-form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.movie-form-submit {
+  @include ui-primary-button(14px);
   border: none;
+  height: 48px;
   cursor: pointer;
-  justify-self: stretch;
-  margin-top: 8px;
-  padding: 8px 12px;
+}
+
+.movie-form-delete {
+  @include ui-ghost-button(14px);
+  height: 48px;
+  cursor: pointer;
+  color: $color-accent-peach;
+}
+
+.movie-form-submit:disabled,
+.movie-form-delete:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media only screen and (max-width: 767px) {
+  .movie-form-page {
+    padding: 12px;
+  }
+
+  .movie-form-row,
+  .movie-form-actions {
+    grid-template-columns: 1fr;
+  }
 }

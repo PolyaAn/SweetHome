@@ -33,6 +33,21 @@ const routes: Routes = [
   },
   {
     path: 'movie',
+    redirectTo: 'movies',
+    pathMatch: 'full',
+  },
+  {
+    path: 'movie/add',
+    redirectTo: 'movies/create',
+    pathMatch: 'full',
+  },
+  {
+    path: 'movie/edit/:id',
+    redirectTo: 'movies/:id/edit',
+    pathMatch: 'full',
+  },
+  {
+    path: 'movies',
     loadChildren: () =>
       import('./modules/movie-module/movie-module.module').then((m) => m.MovieModuleModule),
   },
