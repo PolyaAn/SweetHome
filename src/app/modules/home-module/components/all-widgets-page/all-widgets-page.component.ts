@@ -56,8 +56,12 @@ export class AllWidgetsPageComponent {
   }
 
   selectedRoomMissing(widget: WidgetVm, rooms: RoomVm[]): boolean {
-    const roomId = widget.roomId?.trim();
-    return !!roomId && !rooms.some((room) => room.id.trim() === roomId);
+    const roomId = this.normalizeId(widget.roomId);
+    return !!roomId && !rooms.some((room) => this.normalizeId(room.id) === roomId);
+  }
+
+  selectedRoom(widget: WidgetVm, room: RoomVm): boolean {
+    return this.normalizeId(widget.roomId) === this.normalizeId(room.id);
   }
 
   isOn(widget: WidgetVm): boolean {
@@ -78,5 +82,9 @@ export class AllWidgetsPageComponent {
 
   emptyText(kind: WidgetKind): string {
     return kind === 'sensor' ? 'Датчики не добавлены' : 'Устройства не добавлены';
+  }
+
+  private normalizeId(value: string | null | undefined): string {
+    return (value ?? '').trim();
   }
 }

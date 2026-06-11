@@ -70,7 +70,15 @@ export class RoomDevicesPageComponent {
   }
 
   selectedRoomMissing(widget: WidgetVm, rooms: RoomVm[]): boolean {
-    const roomId = widget.roomId?.trim();
-    return !!roomId && !rooms.some((room) => room.id.trim() === roomId);
+    const roomId = this.normalizeId(widget.roomId);
+    return !!roomId && !rooms.some((room) => this.normalizeId(room.id) === roomId);
+  }
+
+  selectedRoom(widget: WidgetVm, room: RoomVm): boolean {
+    return this.normalizeId(widget.roomId) === this.normalizeId(room.id);
+  }
+
+  private normalizeId(value: string | null | undefined): string {
+    return (value ?? '').trim();
   }
 }

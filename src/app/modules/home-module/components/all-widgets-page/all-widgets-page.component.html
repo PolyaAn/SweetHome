@@ -45,11 +45,19 @@
                 [value]="widget.roomId || ''"
                 [disabled]="state.saving"
                 (change)="changeRoom(widget.id, roomIdFromEvent($event))">
-                <option value="">Без комнаты</option>
-                <option *ngIf="selectedRoomMissing(widget, vm.rooms)" [value]="widget.roomId || ''">
+                <option value="" [selected]="!widget.roomId">Без комнаты</option>
+                <option
+                  *ngIf="selectedRoomMissing(widget, vm.rooms)"
+                  [value]="widget.roomId || ''"
+                  [selected]="!!widget.roomId">
                   Привязанная комната не найдена
                 </option>
-                <option *ngFor="let room of vm.rooms" [value]="room.id">{{ room.name }}</option>
+                <option
+                  *ngFor="let room of vm.rooms"
+                  [value]="room.id"
+                  [selected]="selectedRoom(widget, room)">
+                  {{ room.name }}
+                </option>
               </select>
             </label>
             <button
