@@ -6,7 +6,7 @@
 
 .home-page {
   min-height: 100%;
-  padding: 18px 16px 92px;
+  padding: 18px 16px;
   color: $color-text-main;
   background:
     radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.24), transparent 36%),
@@ -265,47 +265,6 @@
   }
 }
 
-.bottom-nav {
-  position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 14px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(9, 18, 25, 0.92);
-  backdrop-filter: blur(10px);
-
-  a {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    min-height: 46px;
-    padding: 7px 8px;
-    border-radius: 10px;
-    color: rgba(249, 241, 230, 0.68);
-    text-decoration: none;
-
-    &.active {
-      color: $color-text-light;
-      background: linear-gradient(135deg, #9e4d1f, #be6127);
-    }
-  }
-
-  mat-icon {
-    width: 19px;
-    height: 19px;
-    font-size: 19px;
-  }
-
-  span {
-    font-size: 11px;
-  }
-}
-
 @media (min-width: 768px) {
   .home-page {
     max-width: 430px;
@@ -313,10 +272,5 @@
     margin: 24px auto;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 22px;
-  }
-
-  .bottom-nav {
-    position: sticky;
-    margin-top: 18px;
   }
 }
