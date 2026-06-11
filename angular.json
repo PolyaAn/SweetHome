@@ -27,6 +27,11 @@
               "src/assets",
               "src/manifest.webmanifest",
               {
+                "glob": "apple-touch-icon*.png",
+                "input": "src",
+                "output": "/"
+              },
+              {
                 "glob": "sw.js",
                 "input": "src",
                 "output": "/"
@@ -106,6 +111,11 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
+              {
+                "glob": "apple-touch-icon*.png",
+                "input": "src",
+                "output": "/"
+              },
               {
                 "glob": "sw.js",
                 "input": "src",
