@@ -32,7 +32,10 @@
 
         <section class="section-head">
           <h2>Устройства</h2>
-          <span>{{ devicesCount(vm.devices.length) }}</span>
+          <div class="section-actions">
+            <span>{{ devicesCount(vm.devices.length) }}</span>
+            <a class="section-link" [routerLink]="['/home/rooms', vm.room.id, 'devices', 'add']">Добавить устройство</a>
+          </div>
         </section>
 
         <section class="device-list" *ngIf="vm.devices.length; else noDevices">
@@ -114,10 +117,7 @@
   </ng-template>
 
   <ng-template #noDevices>
-    <section class="empty compact">
-      <p>Устройства не добавлены</p>
-      <a [routerLink]="['/home/rooms', vm.room?.id, 'devices', 'add']">Добавить устройство</a>
-    </section>
+    <section class="empty compact">Устройства не добавлены</section>
   </ng-template>
 
   <ng-template #notFound>
