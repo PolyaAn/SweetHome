@@ -9,11 +9,6 @@
     </section>
 
     <section class="link-list">
-      <a [routerLink]="['/home/rooms', room.id]">
-        <mat-icon fontIcon="info"></mat-icon>
-        <span>Информация о комнате</span>
-        <mat-icon fontIcon="chevron_right"></mat-icon>
-      </a>
       <a [routerLink]="['/home/rooms', room.id, 'devices']">
         <mat-icon fontIcon="devices"></mat-icon>
         <span>Устройства и датчики <small>{{ roomSummary(room) }}</small></span>
