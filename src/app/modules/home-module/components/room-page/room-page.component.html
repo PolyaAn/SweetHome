@@ -6,8 +6,8 @@
         <article></article>
         <article></article>
       </div>
-      <div class="device-grid">
-        <article class="device-card skeleton-card" *ngFor="let item of [1, 2, 3, 4]"></article>
+      <div class="device-list">
+        <article class="device-row skeleton-card" *ngFor="let item of [1, 2, 3]"></article>
       </div>
     </section>
 
@@ -35,13 +35,16 @@
           <span>{{ devicesCount(vm.devices.length) }}</span>
         </section>
 
-        <section class="device-grid" *ngIf="vm.devices.length; else noDevices">
-          <article class="device-card" [class.cover-card]="isCover(device)" *ngFor="let device of vm.devices">
-            <mat-icon [fontIcon]="device.icon"></mat-icon>
-            <div class="device-copy">
-              <h3>{{ displayName(device) }}</h3>
-              <p [class.enabled]="isOn(device)">{{ value(device) }}</p>
+        <section class="device-list" *ngIf="vm.devices.length; else noDevices">
+          <article class="device-row" [class.cover-row]="isCover(device)" *ngFor="let device of vm.devices">
+            <div class="device-main">
+              <mat-icon [fontIcon]="device.icon"></mat-icon>
+              <div class="device-copy">
+                <strong>{{ displayName(device) }}</strong>
+                <span [class.enabled]="isOn(device)">{{ value(device) }}</span>
+              </div>
             </div>
+
             <div class="widget-controls">
               <ng-container *ngIf="device.catalogMatched; else unavailable">
                 <button
