@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { finalize, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
+import { finalize, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { PendingChangesComponent } from '../../guards/movie-form-deactivate.guard';
 import {
   ApiErrorResponse,
   MovieContentType,
@@ -12,7 +13,6 @@ import {
   MovieUpsertRequest,
 } from '../../models/movie.model';
 import { MovieModuleService } from '../../services/movie-module.service';
-import { PendingChangesComponent } from '../../guards/movie-form-deactivate.guard';
 
 type MovieAddForm = FormGroup;
 
@@ -45,6 +45,7 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
     countries: [],
   };
   selectedGenres: string[] = [];
+  allowNavigationAfterSave: boolean = false;
   isSaving: boolean = false;
   isLoading: boolean = false;
 
@@ -113,6 +114,7 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
       )
       .subscribe({
         next: () => {
+          this.allowNavigationAfterSave = true;
           this.form.markAsPristine();
           this.toastService.success('Фильм сохранён');
           this.router.navigate(['/movies']);
@@ -138,6 +140,10 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
   }
 
   private canLeavePage(): boolean {
+    if (this.allowNavigationAfterSave) {
+      return true;
+    }
+
     return !this.form.dirty && !this.selectedGenres.length;
   }
 
