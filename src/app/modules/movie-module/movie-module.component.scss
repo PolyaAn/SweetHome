@@ -72,12 +72,31 @@
   @include ui-ghost-button(12px);
 }
 
+.movie-toolbar-button {
+  position: relative;
+}
+
+.movie-toolbar-button--icon {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  gap: 0;
+}
+
+.movie-toolbar-button--active {
+  border-color: $color-accent-main;
+  color: $color-accent-main;
+}
+
 .movie-primary-button {
   @include ui-primary-button(12px);
   border: none;
 }
 
 .movie-toolbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
   min-width: 18px;
   height: 18px;
   border-radius: 999px;
@@ -238,14 +257,12 @@
     padding: 12px;
   }
 
-  .movie-search-row,
   .movie-filter-grid,
   .movie-filter-actions {
     grid-template-columns: 1fr;
     display: grid;
   }
 
-  .movie-toolbar-button,
   .movie-secondary-button,
   .movie-primary-button {
     width: 100%;

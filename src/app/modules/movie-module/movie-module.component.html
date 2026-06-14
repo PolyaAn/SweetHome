@@ -13,9 +13,14 @@
         </button>
       </label>
 
-      <button type="button" class="movie-toolbar-button" (click)="toggleFilters()">
+      <button
+        type="button"
+        class="movie-toolbar-button movie-toolbar-button--icon"
+        [class.movie-toolbar-button--active]="showFilters || activeFiltersCount > 0"
+        (click)="toggleFilters()"
+        aria-label="Фильтры"
+        title="Фильтры">
         <mat-icon fontIcon="filter_alt"></mat-icon>
-        <span>Фильтры</span>
         <span class="movie-toolbar-badge" *ngIf="activeFiltersCount">{{ activeFiltersCount }}</span>
       </button>
     </div>
