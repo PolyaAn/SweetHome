@@ -45,10 +45,10 @@
 
     <label class="movie-form-field">
       <span>Страна</span>
-      <input type="text" list="movie-country-list" formControlName="country" placeholder="Введите страну" />
-      <datalist id="movie-country-list">
-        <option *ngFor="let country of dictionaries.countries" [value]="country"></option>
-      </datalist>
+      <select formControlName="country">
+        <option value="">Не выбрана</option>
+        <option *ngFor="let country of dictionaries.countries" [value]="country">{{ country }}</option>
+      </select>
       <small class="movie-form-error" *ngIf="getControl('country')?.touched && getControl('country')?.hasError('maxlength')">Название страны слишком длинное</small>
       <small class="movie-form-error" *ngIf="getControl('country')?.touched && getControl('country')?.errors?.['api']">{{ getControl('country')?.errors?.['api'] }}</small>
     </label>
