@@ -425,8 +425,10 @@
 
 .movie-card__chip {
   @include ui-tag-button;
-  padding: 4px 8px;
+  padding: 2px 4px;
   color: $alpha-sand-72;
+  font-size: 20px;
+  text-transform: lowercase;
 }
 
 .movie-card__country {
