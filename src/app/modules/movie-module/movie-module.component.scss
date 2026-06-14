@@ -358,6 +358,8 @@
 .movie-list {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  width: 100%;
 }
 
 .movie-list--grid {
@@ -365,9 +367,14 @@
 }
 
 .movie-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 12px;
   cursor: pointer;
   transition: transform 0.18s ease;
+  overflow: hidden;
 }
 
 .movie-card:active {
@@ -376,6 +383,7 @@
 
 .movie-card__head {
   display: flex;
+  min-width: 0;
   gap: 10px;
   justify-content: space-between;
   align-items: flex-start;
@@ -395,6 +403,7 @@
 .movie-card__badge {
   flex-shrink: 0;
   display: inline-flex;
+  max-width: 100%;
   gap: 4px;
   align-items: center;
   min-height: 22px;
@@ -405,6 +414,8 @@
   color: $alpha-sand-72;
   font-size: 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .movie-card__meta {
