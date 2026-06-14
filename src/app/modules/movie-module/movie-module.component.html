@@ -150,7 +150,7 @@
         </div>
       </div>
 
-      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('sort')">
+      <div class="movie-filter-section movie-filter-section--sort" [class.movie-filter-section--expanded]="isFilterSectionExpanded('sort')">
         <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('sort')">
           <span class="movie-filter-toggle__title">Сортировка</span>
           <span class="movie-filter-toggle__value">{{ sortSummary }}</span>
