@@ -216,9 +216,6 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
-    if (this.showFilters && !this.expandedFilterSection) {
-      this.expandedFilterSection = 'contentType';
-    }
   }
 
   toggleContentType(type: MovieContentType): void {
@@ -252,7 +249,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   resetFilters(): void {
     this.filters = {...this.defaultFilters};
-    this.expandedFilterSection = 'contentType';
+    this.expandedFilterSection = null;
     this.loadMovies(true);
   }
 
