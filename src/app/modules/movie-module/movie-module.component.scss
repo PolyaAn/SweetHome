@@ -371,7 +371,7 @@
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 12px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: transform 0.18s ease;
   overflow: hidden;
@@ -420,19 +420,19 @@
 
 .movie-card__meta {
   @include ui-tags-wrap(6px);
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 .movie-card__chip {
   @include ui-tag-button;
-  padding: 2px 4px;
+  padding: 0 6px;
   color: $alpha-sand-72;
   font-size: 12px;
   text-transform: lowercase;
 }
 
 .movie-card__country {
-  margin: 10px 0 0;
+  margin: 4px 0 0;
   color: $alpha-sand-74;
   font-size: 13px;
 }
