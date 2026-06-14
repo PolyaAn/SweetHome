@@ -26,84 +26,161 @@
     </div>
 
     <section class="movie-filters" *ngIf="showFilters">
-      <div class="movie-filter-group">
-        <span class="movie-filter-label">Тип</span>
-        <div class="movie-chip-list">
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.contentTypes.includes(type.code)"
-            *ngFor="let type of dictionaries.contentTypes"
-            (click)="toggleContentType(type.code)">
-            {{ type.name }}
-          </button>
+      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('contentType')">
+        <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('contentType')">
+          <span class="movie-filter-toggle__title">Тип</span>
+          <span class="movie-filter-toggle__value">{{ selectedContentTypeLabel }}</span>
+          <mat-icon class="movie-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('contentType') ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
+
+        <div class="movie-filter-content" *ngIf="isFilterSectionExpanded('contentType')">
+          <div class="movie-chip-list">
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.contentTypes.includes(type.code)"
+              *ngFor="let type of dictionaries.contentTypes"
+              (click)="toggleContentType(type.code)">
+              {{ type.name }}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="movie-filter-group">
-        <span class="movie-filter-label">Жанры</span>
-        <div class="movie-chip-list">
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.genres.includes(genre)"
-            *ngFor="let genre of dictionaries.genres"
-            (click)="toggleGenre(genre)">
-            {{ genre }}
-          </button>
+      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('genres')">
+        <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('genres')">
+          <span class="movie-filter-toggle__title">Жанры</span>
+          <span class="movie-filter-toggle__value">{{ genresSummary }}</span>
+          <mat-icon class="movie-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('genres') ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
+
+        <div class="movie-filter-content" *ngIf="isFilterSectionExpanded('genres')">
+          <div class="movie-chip-list">
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.genres.includes(genre)"
+              *ngFor="let genre of dictionaries.genres"
+              (click)="toggleGenre(genre)">
+              {{ genre }}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="movie-filter-group">
-        <span class="movie-filter-label">Страны</span>
-        <div class="movie-chip-list">
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.countries.includes(country)"
-            *ngFor="let country of dictionaries.countries"
-            (click)="toggleCountry(country)">
-            {{ country }}
-          </button>
+      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('countries')">
+        <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('countries')">
+          <span class="movie-filter-toggle__title">Страны</span>
+          <span class="movie-filter-toggle__value">{{ countriesSummary }}</span>
+          <mat-icon class="movie-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('countries') ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
+
+        <div class="movie-filter-content" *ngIf="isFilterSectionExpanded('countries')">
+          <div class="movie-chip-list">
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.countries.includes(country)"
+              *ngFor="let country of dictionaries.countries"
+              (click)="toggleCountry(country)">
+              {{ country }}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="movie-filter-grid">
-        <label class="movie-filter-field">
-          <span>Рейтинг от</span>
-          <input type="number" min="0" max="10" step="0.1" [value]="filters.ratingFrom" (input)="updateRatingFrom($any($event.target).value)" />
-        </label>
+      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('rating')">
+        <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('rating')">
+          <span class="movie-filter-toggle__title">Рейтинг</span>
+          <span class="movie-filter-toggle__value">{{ ratingSummary }}</span>
+          <mat-icon class="movie-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('rating') ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
 
-        <label class="movie-filter-field">
-          <span>Рейтинг до</span>
-          <input type="number" min="0" max="10" step="0.1" [value]="filters.ratingTo" (input)="updateRatingTo($any($event.target).value)" />
-        </label>
+        <div
+          class="movie-filter-content movie-filter-content--rating"
+          *ngIf="isFilterSectionExpanded('rating')"
+          [style.--range-start]="ratingStartPercent + '%'"
+          [style.--range-end]="ratingEndPercent + '%'">
+          <p class="movie-filter-hint">Выберите диапазон рейтинга</p>
+
+          <div class="movie-rating-slider">
+            <div class="movie-rating-slider__scale">
+              <span *ngFor="let mark of ratingScaleMarks">{{ mark }}</span>
+            </div>
+
+            <div class="movie-rating-slider__track"></div>
+
+            <input
+              class="movie-rating-slider__input movie-rating-slider__input--from"
+              type="range"
+              min="0"
+              max="10"
+              step="0.5"
+              [value]="ratingFromValue"
+              (input)="updateRatingFrom($any($event.target).value)" />
+
+            <input
+              class="movie-rating-slider__input movie-rating-slider__input--to"
+              type="range"
+              min="0"
+              max="10"
+              step="0.5"
+              [value]="ratingToValue"
+              (input)="updateRatingTo($any($event.target).value)" />
+
+            <div class="movie-rating-slider__values">
+              <span>{{ ratingFromValue | number:'1.1-1' }}</span>
+              <span>{{ ratingToValue | number:'1.1-1' }}</span>
+            </div>
+          </div>
+
+          <div class="movie-filter-presets">
+            <span class="movie-filter-presets__label">Быстрый выбор</span>
+            <div class="movie-rating-presets">
+              <button
+                type="button"
+                class="movie-rating-presets__chip"
+                [class.movie-rating-presets__chip--active]="isRatingPresetActive(preset.from, preset.to)"
+                *ngFor="let preset of ratingPresets"
+                (click)="applyRatingPreset(preset.from, preset.to)">
+                {{ preset.label }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="movie-filter-group">
-        <span class="movie-filter-label">Сортировка</span>
-        <div class="movie-chip-list">
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.sortBy === 'UPDATED_AT' && filters.sortDirection === 'DESC'"
-            (click)="updateSort('UPDATED_AT', 'DESC')">
-            Сначала новые
-          </button>
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.sortBy === 'TITLE' && filters.sortDirection === 'ASC'"
-            (click)="updateSort('TITLE', 'ASC')">
-            По названию
-          </button>
-          <button
-            type="button"
-            class="movie-chip"
-            [class.movie-chip--active]="filters.sortBy === 'RATING' && filters.sortDirection === 'DESC'"
-            (click)="updateSort('RATING', 'DESC')">
-            По рейтингу
-          </button>
+      <div class="movie-filter-section" [class.movie-filter-section--expanded]="isFilterSectionExpanded('sort')">
+        <button type="button" class="movie-filter-toggle" (click)="toggleFilterSection('sort')">
+          <span class="movie-filter-toggle__title">Сортировка</span>
+          <span class="movie-filter-toggle__value">{{ sortSummary }}</span>
+          <mat-icon class="movie-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('sort') ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
+
+        <div class="movie-filter-content" *ngIf="isFilterSectionExpanded('sort')">
+          <div class="movie-chip-list">
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.sortBy === 'UPDATED_AT' && filters.sortDirection === 'DESC'"
+              (click)="updateSort('UPDATED_AT', 'DESC')">
+              Сначала новые
+            </button>
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.sortBy === 'TITLE' && filters.sortDirection === 'ASC'"
+              (click)="updateSort('TITLE', 'ASC')">
+              По названию
+            </button>
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="filters.sortBy === 'RATING' && filters.sortDirection === 'DESC'"
+              (click)="updateSort('RATING', 'DESC')">
+              По рейтингу
+            </button>
+          </div>
         </div>
       </div>
 

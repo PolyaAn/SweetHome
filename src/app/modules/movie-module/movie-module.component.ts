@@ -31,6 +31,14 @@ type MovieFiltersState = {
   sortDirection: SortDirection;
 };
 
+type MovieFilterSection = 'contentType' | 'genres' | 'countries' | 'rating' | 'sort';
+
+type RatingPreset = {
+  label: string;
+  from: number | null;
+  to: number | null;
+};
+
 @Component({
   selector: 'app-movie-module',
   templateUrl: './movie-module.component.html',
@@ -40,6 +48,8 @@ type MovieFiltersState = {
 export class MovieModuleComponent extends BaseComponent implements OnInit {
   private readonly search$ = new Subject<string>();
   private readonly pageSize = 20;
+  private readonly ratingMin = 0;
+  private readonly ratingMax = 10;
   private readonly defaultFilters: MovieFiltersState = {
     contentTypes: [],
     genres: [],
@@ -74,6 +84,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   draftSearchQuery: string = '';
   filters: MovieFiltersState = {...this.defaultFilters};
   showFilters: boolean = false;
+  expandedFilterSection: MovieFilterSection | null = null;
   listLoading: boolean = false;
   dictionariesLoading: boolean = false;
   loadingMore: boolean = false;
@@ -82,6 +93,14 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   total: number = 0;
   hasNext: boolean = false;
   viewMode: MovieViewMode = 'list';
+  readonly ratingScaleMarks: number[] = [0, 2, 4, 6, 8, 10];
+  readonly ratingPresets: RatingPreset[] = [
+    { label: 'Любой', from: null, to: null },
+    { label: '6+', from: 6, to: 10 },
+    { label: '7+', from: 7, to: 10 },
+    { label: '8+', from: 8, to: 10 },
+    { label: '9+', from: 9, to: 10 },
+  ];
 
   get isPhone(): boolean {
     return this.ss.isPhone;
@@ -93,11 +112,69 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     count += this.filters.contentTypes.length ? 1 : 0;
     count += this.filters.genres.length ? 1 : 0;
     count += this.filters.countries.length ? 1 : 0;
-    count += this.filters.ratingFrom ? 1 : 0;
-    count += this.filters.ratingTo ? 1 : 0;
+    count += this.filters.ratingFrom || this.filters.ratingTo ? 1 : 0;
     count += this.filters.sortBy !== this.defaultFilters.sortBy || this.filters.sortDirection !== this.defaultFilters.sortDirection ? 1 : 0;
 
     return count;
+  }
+
+  get selectedContentTypeLabel(): string {
+    if (!this.filters.contentTypes.length) {
+      return 'Любой';
+    }
+
+    if (this.filters.contentTypes.length === 1) {
+      return this.getTypeLabel(this.filters.contentTypes[0]);
+    }
+
+    return `${this.filters.contentTypes.length} выбрано`;
+  }
+
+  get genresSummary(): string {
+    return this.getSelectionSummary(this.filters.genres.length);
+  }
+
+  get countriesSummary(): string {
+    return this.getSelectionSummary(this.filters.countries.length);
+  }
+
+  get ratingSummary(): string {
+    const from: number | null = this.getRatingBound(this.filters.ratingFrom);
+    const to: number | null = this.getRatingBound(this.filters.ratingTo);
+
+    if (from === null && to === null) {
+      return 'Любой';
+    }
+
+    if (from !== null && to !== null) {
+      return `${this.formatRatingValue(from)} - ${this.formatRatingValue(to)}`;
+    }
+
+    if (from !== null) {
+      return `${this.formatRatingValue(from)}+`;
+    }
+
+    return `До ${this.formatRatingValue(to ?? this.ratingMax)}`;
+  }
+
+  get sortSummary(): string {
+    return this.getSortLabel(this.filters.sortBy, this.filters.sortDirection);
+  }
+
+  get ratingFromValue(): number {
+    return this.getRatingBound(this.filters.ratingFrom) ?? this.ratingMin;
+  }
+
+  get ratingToValue(): number {
+    return this.getRatingBound(this.filters.ratingTo) ?? this.ratingMax;
+  }
+
+  get ratingStartPercent(): number {
+    return ((this.ratingFromValue - this.ratingMin) / (this.ratingMax - this.ratingMin)) * 100;
+  }
+
+  get ratingEndPercent(): number {
+    return ((this.ratingToValue - this.ratingMin) / (this.ratingMax - this.ratingMin)) * 100;
   }
 
   ngOnInit(): void {
@@ -139,29 +216,31 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
+    if (this.showFilters && !this.expandedFilterSection) {
+      this.expandedFilterSection = 'contentType';
+    }
   }
 
   toggleContentType(type: MovieContentType): void {
     this.filters.contentTypes = this.toggleItem(this.filters.contentTypes, type);
-    this.loadMovies(true);
   }
 
   toggleGenre(genre: string): void {
     this.filters.genres = this.toggleItem(this.filters.genres, genre);
-    this.loadMovies(true);
   }
 
   toggleCountry(country: string): void {
     this.filters.countries = this.toggleItem(this.filters.countries, country);
-    this.loadMovies(true);
   }
 
   updateRatingFrom(value: string): void {
-    this.filters.ratingFrom = value;
+    const nextFrom: number = this.clampRating(Number(value), this.ratingMin, this.ratingToValue);
+    this.filters.ratingFrom = this.stringifyRating(nextFrom);
   }
 
   updateRatingTo(value: string): void {
-    this.filters.ratingTo = value;
+    const nextTo: number = this.clampRating(Number(value), this.ratingFromValue, this.ratingMax);
+    this.filters.ratingTo = this.stringifyRating(nextTo);
   }
 
   applyFilters(): void {
@@ -173,13 +252,31 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   resetFilters(): void {
     this.filters = {...this.defaultFilters};
+    this.expandedFilterSection = 'contentType';
     this.loadMovies(true);
   }
 
   updateSort(sortBy: MovieSortBy, sortDirection: SortDirection): void {
     this.filters.sortBy = sortBy;
     this.filters.sortDirection = sortDirection;
-    this.loadMovies(true);
+  }
+
+  toggleFilterSection(section: MovieFilterSection): void {
+    this.expandedFilterSection = this.expandedFilterSection === section ? null : section;
+  }
+
+  isFilterSectionExpanded(section: MovieFilterSection): boolean {
+    return this.expandedFilterSection === section;
+  }
+
+  applyRatingPreset(from: number | null, to: number | null): void {
+    this.filters.ratingFrom = from === null ? '' : this.stringifyRating(from);
+    this.filters.ratingTo = to === null ? '' : this.stringifyRating(to);
+  }
+
+  isRatingPresetActive(from: number | null, to: number | null): boolean {
+    return this.filters.ratingFrom === (from === null ? '' : this.stringifyRating(from))
+      && this.filters.ratingTo === (to === null ? '' : this.stringifyRating(to));
   }
 
   openMovie(movieId: string): void {
@@ -288,5 +385,54 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     return items.includes(value)
       ? items.filter((item: T) => item !== value)
       : [...items, value];
+  }
+
+  private getSelectionSummary(count: number): string {
+    if (!count) {
+      return 'Любой';
+    }
+
+    if (count === 1) {
+      return '1 выбрано';
+    }
+
+    return `${count} выбрано`;
+  }
+
+  private getSortLabel(sortBy: MovieSortBy, sortDirection: SortDirection): string {
+    if (sortBy === 'TITLE' && sortDirection === 'ASC') {
+      return 'По названию';
+    }
+
+    if (sortBy === 'RATING' && sortDirection === 'DESC') {
+      return 'По рейтингу';
+    }
+
+    return 'Сначала новые';
+  }
+
+  private getRatingBound(value: string): number | null {
+    if (value === '') {
+      return null;
+    }
+
+    const parsed: number = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private clampRating(value: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) {
+      return min;
+    }
+
+    return Math.min(max, Math.max(min, value));
+  }
+
+  private formatRatingValue(value: number): string {
+    return value.toFixed(1);
+  }
+
+  private stringifyRating(value: number): string {
+    return value.toFixed(1);
   }
 }
