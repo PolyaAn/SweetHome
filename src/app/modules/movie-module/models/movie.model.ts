@@ -1,4 +1,4 @@
-export type MovieContentType = 'MOVIE' | 'CARTOON' | 'SERIES';
+export type MovieContentType = 'MOVIE' | 'CARTOON' | 'SERIES' | 'ANIME' | 'DORAMA';
 export type MovieSortBy = 'TITLE' | 'RATING' | 'CREATED_AT' | 'UPDATED_AT';
 export type SortDirection = 'ASC' | 'DESC';
 

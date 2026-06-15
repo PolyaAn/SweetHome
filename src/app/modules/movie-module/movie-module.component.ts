@@ -76,6 +76,8 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
       { code: 'MOVIE', name: 'фильм' },
       { code: 'CARTOON', name: 'мультфильм' },
       { code: 'SERIES', name: 'сериал' },
+      { code: 'ANIME', name: 'аниме' },
+      { code: 'DORAMA', name: 'дорама' },
     ],
     genres: [],
     countries: [],

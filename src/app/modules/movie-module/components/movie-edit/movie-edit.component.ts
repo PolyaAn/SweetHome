@@ -39,6 +39,8 @@ export class MovieEditComponent extends BaseComponent implements OnInit, Pending
     { code: 'MOVIE', name: 'фильм' },
     { code: 'CARTOON', name: 'мультфильм' },
     { code: 'SERIES', name: 'сериал' },
+    { code: 'ANIME', name: 'аниме' },
+    { code: 'DORAMA', name: 'дорама' },
   ];
 
   movieId: string = '';
