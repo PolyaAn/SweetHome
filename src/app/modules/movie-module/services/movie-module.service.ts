@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
+  MovieContentTypeDictionaryItem,
   MovieCreateResponse,
   MovieDetailsVm,
   MovieDictionariesResponse,
@@ -15,6 +16,13 @@ import {
 @Injectable()
 export class MovieModuleService {
   private readonly baseUrl: string = `${environment.apiHost}/api/v1/movies`;
+  private readonly fallbackContentTypes: MovieContentTypeDictionaryItem[] = [
+    { code: 'MOVIE', name: 'фильм' },
+    { code: 'CARTOON', name: 'мультфильм' },
+    { code: 'SERIES', name: 'сериал' },
+    { code: 'ANIME', name: 'аниме' },
+    { code: 'DORAMA', name: 'дорама' },
+  ];
 
   constructor(
     private http: HttpClient,
@@ -55,7 +63,26 @@ export class MovieModuleService {
   getDictionaries(): Observable<MovieDictionariesResponse> {
     return this.http.get<MovieDictionariesResponse>(`${this.baseUrl}/dictionaries`, {
       withCredentials: true,
+    }).pipe(
+      map((response: MovieDictionariesResponse) => this.normalizeDictionaries(response)),
+    );
+  }
+
+  private normalizeDictionaries(response: MovieDictionariesResponse): MovieDictionariesResponse {
+    const contentTypesMap: Map<string, MovieContentTypeDictionaryItem> = new Map();
+
+    this.fallbackContentTypes.forEach((item: MovieContentTypeDictionaryItem) => {
+      contentTypesMap.set(item.code, item);
     });
+
+    (response.contentTypes || []).forEach((item: MovieContentTypeDictionaryItem) => {
+      contentTypesMap.set(item.code, item);
+    });
+
+    return {
+      ...response,
+      contentTypes: Array.from(contentTypesMap.values()),
+    };
   }
 
   private buildSearchParams(filter: MovieSearchFilter): HttpParams {
