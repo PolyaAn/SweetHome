@@ -112,6 +112,12 @@ export class MovieEditComponent extends BaseComponent implements OnInit, Pending
     return this.selectedGenres.includes(genre);
   }
 
+  selectCountry(country: string): void {
+    this.form.get('country')?.setValue(country);
+    this.form.get('country')?.markAsDirty();
+    this.form.get('country')?.markAsTouched();
+  }
+
   submit(): void {
     if (this.form.invalid || !this.selectedGenres.length || this.isSaving || !this.movieId) {
       this.form.markAllAsTouched();

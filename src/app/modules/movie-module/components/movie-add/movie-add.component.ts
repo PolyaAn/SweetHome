@@ -97,6 +97,12 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
     return this.selectedGenres.includes(genre);
   }
 
+  selectCountry(country: string): void {
+    this.form.get('country')?.setValue(country);
+    this.form.get('country')?.markAsDirty();
+    this.form.get('country')?.markAsTouched();
+  }
+
   submit(): void {
     if (this.form.invalid || !this.selectedGenres.length || this.isSaving) {
       this.form.markAllAsTouched();
