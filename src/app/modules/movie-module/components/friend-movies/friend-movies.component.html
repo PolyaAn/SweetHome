@@ -1,0 +1,54 @@
+<section class="friend-movies">
+  <section class="friend-movies-header">
+    <p class="friend-movies-header__caption">Список друга</p>
+    <h2>{{ ownerNickname || 'Пользователь' }}</h2>
+    <p class="friend-movies-header__meta" *ngIf="total">{{ total }} фильмов</p>
+  </section>
+
+  <section class="friend-movies-state friend-movies-state--loading" *ngIf="listLoading">
+    <article class="friend-movies-skeleton" *ngFor="let item of [1, 2, 3, 4]"></article>
+  </section>
+
+  <section class="friend-movies-state" *ngIf="!listLoading && errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="friend-movies-primary-button" (click)="retry()">Повторить</button>
+  </section>
+
+  <section class="friend-movies-state" *ngIf="!listLoading && !errorMessage && !movies.length">
+    <p>У этого пользователя нет доступных фильмов</p>
+  </section>
+
+  <section class="friend-movies-list" *ngIf="!listLoading && !errorMessage && movies.length">
+    <article class="friend-movies-card" *ngFor="let movie of movies; trackBy: trackByMovieId">
+      <div class="friend-movies-card__content">
+        <div class="friend-movies-card__head">
+          <h3>{{ movie.title }}</h3>
+          <div class="friend-movies-card__badge">
+            <span>{{ getTypeLabel(movie.contentType) }}</span>
+            <span *ngIf="movie.rating !== null && movie.rating !== undefined">| {{ movie.rating }}</span>
+          </div>
+        </div>
+
+        <div class="friend-movies-card__meta">
+          <span class="friend-movies-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
+        </div>
+
+        <p class="friend-movies-card__country" *ngIf="movie.country">{{ movie.country }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="friend-movies-add-button"
+        [disabled]="movie.isInMyList || isAddingMovie(movie.movieId)"
+        (click)="addMovie(movie)">
+        <mat-icon [fontIcon]="movie.isInMyList ? 'check' : 'add'"></mat-icon>
+      </button>
+    </article>
+  </section>
+
+  <div class="friend-movies-load-more" *ngIf="!listLoading && !errorMessage && movies.length && hasNext">
+    <button type="button" class="friend-movies-secondary-button" [disabled]="loadingMore" (click)="loadMore()">
+      {{ loadingMore ? 'Загрузка...' : 'Показать ещё' }}
+    </button>
+  </div>
+</section>

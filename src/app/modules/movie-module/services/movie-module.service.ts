@@ -3,12 +3,18 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
+  AddSharedMovieRequest,
+  AddSharedMovieResponse,
+  MovieFriendSearchResponse,
+  MovieFriendsShareSettingsUpdateRequest,
+  MovieFriendsShareSettingsVm,
   MovieContentTypeDictionaryItem,
   MovieCreateResponse,
   MovieDetailsVm,
   MovieDictionariesResponse,
   MovieListResponse,
   MovieSearchFilter,
+  SharedMovieListResponse,
   MovieUpdateResponse,
   MovieUpsertRequest,
 } from '../models/movie.model';
@@ -66,6 +72,52 @@ export class MovieModuleService {
     }).pipe(
       map((response: MovieDictionariesResponse) => this.normalizeDictionaries(response)),
     );
+  }
+
+  searchFriends(query: string): Observable<MovieFriendSearchResponse> {
+    let params: HttpParams = new HttpParams();
+
+    if (query) {
+      params = params.set('query', query);
+    }
+
+    return this.http.get<MovieFriendSearchResponse>(`${this.baseUrl}/friends`, {
+      params,
+      withCredentials: true,
+    });
+  }
+
+  getFriendsShareSettings(): Observable<MovieFriendsShareSettingsVm> {
+    return this.http.get<MovieFriendsShareSettingsVm>(`${this.baseUrl}/friends/share-settings`, {
+      withCredentials: true,
+    });
+  }
+
+  updateFriendsShareSettings(shareMovies: boolean): Observable<MovieFriendsShareSettingsVm> {
+    const payload: MovieFriendsShareSettingsUpdateRequest = {shareMovies};
+
+    return this.http.put<MovieFriendsShareSettingsVm>(`${this.baseUrl}/friends/share-settings`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  getFriendMovies(friendUserId: string, page: number, pageSize: number): Observable<SharedMovieListResponse> {
+    const params: HttpParams = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+
+    return this.http.get<SharedMovieListResponse>(`${this.baseUrl}/friends/${friendUserId}`, {
+      params,
+      withCredentials: true,
+    });
+  }
+
+  addSharedMovie(sourceMovieId: string): Observable<AddSharedMovieResponse> {
+    const payload: AddSharedMovieRequest = {sourceMovieId};
+
+    return this.http.post<AddSharedMovieResponse>(`${this.baseUrl}/friends/import`, payload, {
+      withCredentials: true,
+    });
   }
 
   private normalizeDictionaries(response: MovieDictionariesResponse): MovieDictionariesResponse {

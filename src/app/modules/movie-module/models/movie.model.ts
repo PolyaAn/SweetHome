@@ -71,6 +71,49 @@ export interface MovieUpdateResponse {
   updatedAt: string;
 }
 
+export interface MovieFriendListItemVm {
+  userId: string;
+  nickname: string;
+  moviesCount?: number;
+}
+
+export interface MovieFriendSearchResponse {
+  items: MovieFriendListItemVm[];
+  total: number;
+}
+
+export interface MovieFriendsShareSettingsVm {
+  shareMovies: boolean;
+}
+
+export interface MovieFriendsShareSettingsUpdateRequest {
+  shareMovies: boolean;
+}
+
+export interface SharedMovieListItemVm extends MovieListItemVm {
+  ownerUserId: string;
+  ownerNickname: string;
+  isInMyList: boolean;
+}
+
+export interface SharedMovieListResponse {
+  ownerUserId: string;
+  ownerNickname: string;
+  items: SharedMovieListItemVm[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasNext: boolean;
+}
+
+export interface AddSharedMovieRequest {
+  sourceMovieId: string;
+}
+
+export interface AddSharedMovieResponse {
+  movieId: string;
+}
+
 export interface ApiFieldError {
   field: string;
   message: string;

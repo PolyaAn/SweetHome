@@ -20,7 +20,7 @@
 
 .movie-search-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
 }
@@ -445,6 +445,10 @@
 @media only screen and (max-width: 767px) {
   .movie-module {
     padding: 12px;
+  }
+
+  .movie-search-row {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .movie-filter-actions {

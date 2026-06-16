@@ -5,12 +5,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MovieModuleComponent } from './movie-module.component';
 import { MovieModuleRoutingModule } from './movie-module-routing.module';
 import { MovieModuleService } from './services/movie-module.service';
+import { FriendMoviesComponent } from './components/friend-movies/friend-movies.component';
 import { MovieAddComponent } from './components/movie-add/movie-add.component';
 import { MovieEditComponent } from './components/movie-edit/movie-edit.component';
+import { MovieFriendsComponent } from './components/movie-friends/movie-friends.component';
 import { MovieFormDeactivateGuard } from './guards/movie-form-deactivate.guard';
 
 @NgModule({
-  declarations: [MovieModuleComponent, MovieAddComponent, MovieEditComponent],
+  declarations: [
+    MovieModuleComponent,
+    MovieAddComponent,
+    MovieEditComponent,
+    MovieFriendsComponent,
+    FriendMoviesComponent,
+  ],
   imports: [
     CommonModule,
     MovieModuleRoutingModule,

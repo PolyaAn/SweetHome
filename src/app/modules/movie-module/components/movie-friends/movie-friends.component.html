@@ -1,0 +1,54 @@
+<section class="movie-friends">
+  <section class="movie-friends-toolbar">
+    <label class="movie-friends-search">
+      <input
+        type="text"
+        [value]="draftSearchQuery"
+        (input)="onSearchInput($any($event.target).value)"
+        placeholder="Поиск друзей по нику"
+      />
+      <button type="button" *ngIf="draftSearchQuery" class="movie-friends-search__clear" (click)="clearSearch()">
+        <mat-icon fontIcon="close"></mat-icon>
+      </button>
+    </label>
+
+    <label class="movie-friends-share" [class.movie-friends-share--disabled]="settingsLoading || shareLoading">
+      <input
+        type="checkbox"
+        [checked]="shareMovies"
+        [disabled]="settingsLoading || shareLoading"
+        (change)="toggleShareMovies($any($event.target).checked)"
+      />
+      <span>Делиться моим списком</span>
+    </label>
+  </section>
+
+  <section class="movie-friends-state movie-friends-state--loading" *ngIf="friendsLoading">
+    <article class="movie-friends-skeleton" *ngFor="let item of [1, 2, 3, 4]"></article>
+  </section>
+
+  <section class="movie-friends-state" *ngIf="!friendsLoading && errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="movie-friends-primary-button" (click)="retry()">Повторить</button>
+  </section>
+
+  <section class="movie-friends-state" *ngIf="!friendsLoading && !errorMessage && !friends.length && !searchQuery">
+    <p>Нет друзей, которые разрешили просмотр списка фильмов</p>
+  </section>
+
+  <section class="movie-friends-state" *ngIf="!friendsLoading && !errorMessage && !friends.length && searchQuery">
+    <p>По запросу ничего не найдено</p>
+  </section>
+
+  <section class="movie-friends-list" *ngIf="!friendsLoading && !errorMessage && friends.length">
+    <button
+      type="button"
+      class="movie-friends-card"
+      *ngFor="let friend of friends; trackBy: trackByUserId"
+      (click)="openFriend(friend.userId)">
+      <span class="movie-friends-card__nickname">{{ friend.nickname }}</span>
+      <span class="movie-friends-card__meta" *ngIf="friend.moviesCount !== undefined">{{ friend.moviesCount }} фильмов</span>
+      <mat-icon class="movie-friends-card__icon" fontIcon="chevron_right"></mat-icon>
+    </button>
+  </section>
+</section>

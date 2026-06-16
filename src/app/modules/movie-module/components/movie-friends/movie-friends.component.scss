@@ -1,0 +1,173 @@
+@import '../../../../styles/shared-styles';
+
+.movie-friends {
+  padding: 16px;
+  color: $color-text-main;
+}
+
+.movie-friends-toolbar,
+.movie-friends-card,
+.movie-friends-state,
+.movie-friends-skeleton {
+  @include ui-glass-surface(18px);
+}
+
+.movie-friends-toolbar {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.movie-friends-search {
+  position: relative;
+  display: block;
+}
+
+.movie-friends-search input {
+  @include ui-input-field;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 38px;
+}
+
+.movie-friends-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: $alpha-sand-72;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie-friends-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: $color-text-main;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.movie-friends-share input {
+  width: 18px;
+  height: 18px;
+  accent-color: $color-accent-main;
+}
+
+.movie-friends-share--disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.movie-friends-state {
+  padding: 24px 16px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+}
+
+.movie-friends-state p {
+  margin: 0;
+  color: $alpha-sand-74;
+}
+
+.movie-friends-state--loading {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.movie-friends-skeleton {
+  height: 72px;
+  margin-bottom: 8px;
+  animation: movie-friends-skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.movie-friends-list {
+  display: grid;
+  gap: 10px;
+}
+
+.movie-friends-card {
+  width: 100%;
+  border: 0;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  color: $color-text-main;
+  cursor: pointer;
+  text-align: left;
+}
+
+.movie-friends-card__nickname {
+  min-width: 0;
+  color: $color-text-accent;
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movie-friends-card__meta {
+  color: $alpha-sand-72;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.movie-friends-card__icon {
+  color: $color-accent-main;
+}
+
+.movie-friends-primary-button {
+  @include ui-primary-button(12px);
+  height: 42px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+@media only screen and (max-width: 767px) {
+  .movie-friends {
+    padding: 12px;
+  }
+
+  .movie-friends-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .movie-friends-card__meta {
+    grid-column: 1 / 2;
+  }
+
+  .movie-friends-card__icon {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+  }
+}
+
+@keyframes movie-friends-skeleton-pulse {
+  0% {
+    opacity: 0.52;
+  }
+
+  50% {
+    opacity: 0.92;
+  }
+
+  100% {
+    opacity: 0.52;
+  }
+}

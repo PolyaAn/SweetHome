@@ -1,0 +1,194 @@
+@import '../../../../styles/shared-styles';
+
+.friend-movies {
+  padding: 16px;
+  color: $color-text-main;
+}
+
+.friend-movies-header,
+.friend-movies-card,
+.friend-movies-state,
+.friend-movies-skeleton {
+  @include ui-glass-surface(18px);
+}
+
+.friend-movies-header {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.friend-movies-header h2,
+.friend-movies-header__caption,
+.friend-movies-header__meta {
+  margin: 0;
+}
+
+.friend-movies-header__caption,
+.friend-movies-header__meta {
+  color: $alpha-sand-72;
+}
+
+.friend-movies-header h2 {
+  margin-top: 4px;
+  color: $color-text-accent;
+}
+
+.friend-movies-header__meta {
+  margin-top: 8px;
+}
+
+.friend-movies-state {
+  padding: 24px 16px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+}
+
+.friend-movies-state p {
+  margin: 0;
+  color: $alpha-sand-74;
+}
+
+.friend-movies-state--loading {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.friend-movies-skeleton {
+  height: 92px;
+  margin-bottom: 8px;
+  animation: friend-movies-skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.friend-movies-list {
+  display: grid;
+  gap: 10px;
+}
+
+.friend-movies-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+.friend-movies-card__content {
+  min-width: 0;
+}
+
+.friend-movies-card__head {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.friend-movies-card__head h3 {
+  margin: 0;
+  min-width: 0;
+  color: $color-text-accent;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-movies-card__badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid $alpha-white-24;
+  background: $alpha-white-06;
+  color: $alpha-sand-72;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.friend-movies-card__meta {
+  @include ui-tags-wrap(6px);
+  margin-top: 4px;
+}
+
+.friend-movies-card__chip {
+  @include ui-tag-button;
+  padding: 0 6px;
+  color: $alpha-sand-72;
+  font-size: 12px;
+  text-transform: lowercase;
+}
+
+.friend-movies-card__country {
+  margin: 4px 0 0;
+  color: $alpha-sand-74;
+  font-size: 13px;
+}
+
+.friend-movies-add-button,
+.friend-movies-secondary-button,
+.friend-movies-primary-button {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.friend-movies-add-button,
+.friend-movies-secondary-button {
+  @include ui-ghost-button(12px);
+}
+
+.friend-movies-add-button {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+}
+
+.friend-movies-primary-button {
+  @include ui-primary-button(12px);
+  border: none;
+  padding: 0 14px;
+}
+
+.friend-movies-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+@media only screen and (max-width: 767px) {
+  .friend-movies {
+    padding: 12px;
+  }
+
+  .friend-movies-card {
+    grid-template-columns: 1fr;
+  }
+
+  .friend-movies-add-button {
+    width: 100%;
+  }
+}
+
+@keyframes friend-movies-skeleton-pulse {
+  0% {
+    opacity: 0.52;
+  }
+
+  50% {
+    opacity: 0.92;
+  }
+
+  100% {
+    opacity: 0.52;
+  }
+}

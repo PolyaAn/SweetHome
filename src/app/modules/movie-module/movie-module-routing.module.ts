@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MovieModuleComponent } from './movie-module.component';
+import { FriendMoviesComponent } from './components/friend-movies/friend-movies.component';
 import { MovieAddComponent } from './components/movie-add/movie-add.component';
 import { MovieEditComponent } from './components/movie-edit/movie-edit.component';
+import { MovieFriendsComponent } from './components/movie-friends/movie-friends.component';
 import { MovieFormDeactivateGuard } from './guards/movie-form-deactivate.guard';
+import { MovieModuleComponent } from './movie-module.component';
 
 const routes: Routes = [
   {
@@ -19,6 +21,20 @@ const routes: Routes = [
     canDeactivate: [MovieFormDeactivateGuard],
     data: {
       title: 'ДОБАВИТЬ ФИЛЬМ',
+    },
+  },
+  {
+    path: 'friends',
+    component: MovieFriendsComponent,
+    data: {
+      title: 'ДРУЗЬЯ',
+    },
+  },
+  {
+    path: 'friends/:friendUserId',
+    component: FriendMoviesComponent,
+    data: {
+      title: 'ФИЛЬМЫ ДРУГА',
     },
   },
   {
