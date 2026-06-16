@@ -1,4 +1,4 @@
-<section class="movie-module">
+<section class="movie-module" [class.movie-module--grid]="viewMode === 'grid'">
   <section class="movie-toolbar">
     <div class="movie-search-row">
       <label class="movie-search-field">
@@ -258,7 +258,7 @@
 
       <p class="movie-card__country" *ngIf="movie.country">{{ movie.country }}</p>
 
-      <div class="movie-card__actions" *ngIf="hasComment(movie)">
+      <div class="movie-card__actions" *ngIf="viewMode !== 'grid' && hasComment(movie)">
         <button
           type="button"
           class="movie-card__toggle"
@@ -271,7 +271,7 @@
 
       <div
         class="movie-card__comment"
-        *ngIf="hasComment(movie) && isMovieExpanded(movie.movieId)"
+        *ngIf="viewMode !== 'grid' && hasComment(movie) && isMovieExpanded(movie.movieId)"
         (click)="$event.stopPropagation()">
         {{ getMovieComment(movie) }}
       </div>
