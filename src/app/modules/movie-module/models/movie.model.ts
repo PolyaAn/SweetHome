@@ -1,6 +1,7 @@
 export type MovieContentType = 'MOVIE' | 'CARTOON' | 'SERIES' | 'ANIME' | 'DORAMA';
 export type MovieSortBy = 'TITLE' | 'RATING' | 'CREATED_AT' | 'UPDATED_AT';
 export type SortDirection = 'ASC' | 'DESC';
+export type MovieRatingPresence = 'WITH_RATING' | 'WITHOUT_RATING';
 
 export interface MovieListItemVm {
   movieId: string;
@@ -33,6 +34,7 @@ export interface MovieSearchFilter {
   contentTypes?: MovieContentType[];
   genres?: string[];
   countries?: string[];
+  ratingPresence?: MovieRatingPresence[];
   ratingFrom?: number | null;
   ratingTo?: number | null;
   page?: number;

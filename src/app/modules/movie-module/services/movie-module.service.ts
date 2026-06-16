@@ -104,6 +104,14 @@ export class MovieModuleService {
       params = params.append('countries', country);
     });
 
+    if (filter.ratingPresence?.includes('WITH_RATING')) {
+      params = params.set('withRating', 'true');
+    }
+
+    if (filter.ratingPresence?.includes('WITHOUT_RATING')) {
+      params = params.set('withoutRating', 'true');
+    }
+
     if (filter.ratingFrom !== null && filter.ratingFrom !== undefined) {
       params = params.set('ratingFrom', String(filter.ratingFrom));
     }

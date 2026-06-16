@@ -101,9 +101,33 @@
           *ngIf="isFilterSectionExpanded('rating')"
           [style.--range-start]="ratingStartPercent + '%'"
           [style.--range-end]="ratingEndPercent + '%'">
+          <div class="movie-chip-list">
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="isAnyRatingActive"
+              (click)="clearRatingFilter()">
+              Любой
+            </button>
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="hasOnlyWithRating"
+              (click)="toggleRatingPresence('WITH_RATING')">
+              С оценкой
+            </button>
+            <button
+              type="button"
+              class="movie-chip"
+              [class.movie-chip--active]="hasOnlyWithoutRating"
+              (click)="toggleRatingPresence('WITHOUT_RATING')">
+              Без оценки
+            </button>
+          </div>
+
           <p class="movie-filter-hint">Выберите диапазон рейтинга</p>
 
-          <div class="movie-rating-slider">
+          <div class="movie-rating-slider" [class.movie-rating-slider--disabled]="isRatingRangeDisabled">
             <div class="movie-rating-slider__scale">
               <span *ngFor="let mark of ratingScaleMarks">{{ mark }}</span>
             </div>
@@ -116,6 +140,7 @@
               min="0"
               max="10"
               step="0.5"
+              [disabled]="isRatingRangeDisabled"
               [value]="ratingFromValue"
               (input)="updateRatingFrom($any($event.target).value)" />
 
@@ -125,6 +150,7 @@
               min="0"
               max="10"
               step="0.5"
+              [disabled]="isRatingRangeDisabled"
               [value]="ratingToValue"
               (input)="updateRatingTo($any($event.target).value)" />
 
@@ -140,6 +166,7 @@
               <button
                 type="button"
                 class="movie-rating-presets__chip"
+                [disabled]="isRatingRangeDisabled"
                 [class.movie-rating-presets__chip--active]="isRatingPresetActive(preset.from, preset.to)"
                 *ngFor="let preset of ratingPresets"
                 (click)="applyRatingPreset(preset.from, preset.to)">

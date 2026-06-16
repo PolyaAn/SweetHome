@@ -14,6 +14,7 @@ import {
   MovieDictionariesResponse,
   MovieListItemVm,
   MovieListResponse,
+  MovieRatingPresence,
   MovieSearchFilter,
   MovieSortBy,
   SortDirection,
@@ -25,6 +26,7 @@ type MovieFiltersState = {
   contentTypes: MovieContentType[];
   genres: string[];
   countries: string[];
+  ratingPresence: MovieRatingPresence[];
   ratingFrom: string;
   ratingTo: string;
   sortBy: MovieSortBy;
@@ -57,6 +59,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     contentTypes: [],
     genres: [],
     countries: [],
+    ratingPresence: [],
     ratingFrom: '',
     ratingTo: '',
     sortBy: 'UPDATED_AT',
@@ -117,6 +120,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     count += this.filters.contentTypes.length ? 1 : 0;
     count += this.filters.genres.length ? 1 : 0;
     count += this.filters.countries.length ? 1 : 0;
+    count += this.filters.ratingPresence.length ? 1 : 0;
     count += this.filters.ratingFrom || this.filters.ratingTo ? 1 : 0;
     count += this.filters.sortBy !== this.defaultFilters.sortBy || this.filters.sortDirection !== this.defaultFilters.sortDirection ? 1 : 0;
 
@@ -146,24 +150,48 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   get ratingSummary(): string {
     const from: number | null = this.getRatingBound(this.filters.ratingFrom);
     const to: number | null = this.getRatingBound(this.filters.ratingTo);
+    const hasWithRating: boolean = this.filters.ratingPresence.includes('WITH_RATING');
+    const hasWithoutRating: boolean = this.filters.ratingPresence.includes('WITHOUT_RATING');
+    const ratingPresenceSummary: string | null = this.getRatingPresenceSummary(hasWithRating, hasWithoutRating);
+    const rangeSummary: string | null = this.getRatingRangeSummary(from, to);
 
-    if (from === null && to === null) {
+    if (!ratingPresenceSummary && !rangeSummary) {
       return 'Любой';
     }
 
-    if (from !== null && to !== null) {
-      return `${this.formatRatingValue(from)} - ${this.formatRatingValue(to)}`;
+    if (ratingPresenceSummary && rangeSummary) {
+      return `${ratingPresenceSummary}, ${rangeSummary}`;
     }
 
-    if (from !== null) {
-      return `${this.formatRatingValue(from)}+`;
-    }
-
-    return `До ${this.formatRatingValue(to ?? this.ratingMax)}`;
+    return ratingPresenceSummary || rangeSummary || 'Любой';
   }
 
   get sortSummary(): string {
     return this.getSortLabel(this.filters.sortBy, this.filters.sortDirection);
+  }
+
+  get hasActiveRatingRange(): boolean {
+    return this.filters.ratingFrom !== '' || this.filters.ratingTo !== '';
+  }
+
+  get hasOnlyWithRating(): boolean {
+    return this.filters.ratingPresence.length === 1 && this.filters.ratingPresence[0] === 'WITH_RATING';
+  }
+
+  get hasOnlyWithoutRating(): boolean {
+    return this.filters.ratingPresence.length === 1 && this.filters.ratingPresence[0] === 'WITHOUT_RATING';
+  }
+
+  get hasAllRatingPresence(): boolean {
+    return this.filters.ratingPresence.length === 2;
+  }
+
+  get isRatingRangeDisabled(): boolean {
+    return this.hasOnlyWithoutRating;
+  }
+
+  get isAnyRatingActive(): boolean {
+    return !this.filters.ratingPresence.length && !this.hasActiveRatingRange;
   }
 
   get ratingFromValue(): number {
@@ -240,13 +268,39 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     this.persistFilters();
   }
 
+  toggleRatingPresence(presence: MovieRatingPresence): void {
+    this.filters.ratingPresence = this.toggleItem(this.filters.ratingPresence, presence);
+
+    if (this.hasOnlyWithoutRating) {
+      this.filters.ratingFrom = '';
+      this.filters.ratingTo = '';
+    }
+
+    this.persistFilters();
+  }
+
+  clearRatingFilter(): void {
+    this.filters.ratingPresence = [];
+    this.filters.ratingFrom = '';
+    this.filters.ratingTo = '';
+    this.persistFilters();
+  }
+
   updateRatingFrom(value: string): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
     const nextFrom: number = this.clampRating(Number(value), this.ratingMin, this.ratingToValue);
     this.filters.ratingFrom = this.stringifyRating(nextFrom);
     this.persistFilters();
   }
 
   updateRatingTo(value: string): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
     const nextTo: number = this.clampRating(Number(value), this.ratingFromValue, this.ratingMax);
     this.filters.ratingTo = this.stringifyRating(nextTo);
     this.persistFilters();
@@ -281,6 +335,10 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   }
 
   applyRatingPreset(from: number | null, to: number | null): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
     this.filters.ratingFrom = from === null ? '' : this.stringifyRating(from);
     this.filters.ratingTo = to === null ? '' : this.stringifyRating(to);
     this.persistFilters();
@@ -384,6 +442,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
       contentTypes: this.filters.contentTypes,
       genres: this.filters.genres,
       countries: this.filters.countries,
+      ratingPresence: this.filters.ratingPresence,
       ratingFrom: Number.isFinite(ratingFrom) ? ratingFrom : null,
       ratingTo: Number.isFinite(ratingTo) ? ratingTo : null,
       page: this.currentPage,
@@ -409,6 +468,38 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     }
 
     return `${count} выбрано`;
+  }
+
+  private getRatingPresenceSummary(hasWithRating: boolean, hasWithoutRating: boolean): string | null {
+    if (hasWithRating && hasWithoutRating) {
+      return 'С оценкой и без';
+    }
+
+    if (hasWithRating) {
+      return 'С оценкой';
+    }
+
+    if (hasWithoutRating) {
+      return 'Без оценки';
+    }
+
+    return null;
+  }
+
+  private getRatingRangeSummary(from: number | null, to: number | null): string | null {
+    if (from === null && to === null) {
+      return null;
+    }
+
+    if (from !== null && to !== null) {
+      return `${this.formatRatingValue(from)} - ${this.formatRatingValue(to)}`;
+    }
+
+    if (from !== null) {
+      return `${this.formatRatingValue(from)}+`;
+    }
+
+    return `До ${this.formatRatingValue(to ?? this.ratingMax)}`;
   }
 
   private getSortLabel(sortBy: MovieSortBy, sortDirection: SortDirection): string {
@@ -497,6 +588,9 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
       countries: Array.isArray(source.countries)
         ? source.countries.filter((item: unknown): item is string => typeof item === 'string')
         : [],
+      ratingPresence: Array.isArray(source.ratingPresence)
+        ? source.ratingPresence.filter((item: unknown): item is MovieRatingPresence => this.isMovieRatingPresence(item))
+        : [],
       ratingFrom: normalizedRange.ratingFrom,
       ratingTo: normalizedRange.ratingTo,
       sortBy,
@@ -537,6 +631,10 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
       || value === 'SERIES'
       || value === 'ANIME'
       || value === 'DORAMA';
+  }
+
+  private isMovieRatingPresence(value: unknown): value is MovieRatingPresence {
+    return value === 'WITH_RATING' || value === 'WITHOUT_RATING';
   }
 
   private isMovieSortBy(value: unknown): value is MovieSortBy {
