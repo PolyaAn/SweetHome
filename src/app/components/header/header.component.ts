@@ -47,6 +47,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isMainPage: boolean = false;
   isMoviePage: boolean = false;
   isMovieListPage: boolean = false;
+  isFriendMoviesPage: boolean = false;
   isHomePage: boolean = false;
   isHomeRootPage: boolean = false;
   isHomeRoomsPage: boolean = false;
@@ -57,14 +58,19 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   homeWidgetCount: number | null = null;
   pageTitle: string = '';
   movieViewMode: MovieViewMode = 'list';
+  friendMoviesOwnerNickname: string = '';
+  friendMoviesTotal: number | null = null;
 
   ngOnInit(): void {
     this.isMainPage = this.router.url.startsWith('/main');
     this.isMoviePage = this.router.url.startsWith('/movies');
     this.isMovieListPage = this.router.url === '/movies';
+    this.isFriendMoviesPage = /^\/movies\/friends\/[^/]+$/.test(this.router.url.split('?')[0]);
     this.setHomeRouteState();
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
+    this.watchFriendMoviesOwnerNickname();
+    this.watchFriendMoviesTotal();
     this.watchHomeRoomTitle();
     this.watchHomeWidgetCount();
     this.routeWatcher();
@@ -95,6 +101,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
           this.isMainPage = this.router.url.startsWith('/main');
           this.isMoviePage = this.router.url.startsWith('/movies');
           this.isMovieListPage = this.router.url === '/movies';
+          this.isFriendMoviesPage = /^\/movies\/friends\/[^/]+$/.test(this.router.url.split('?')[0]);
           this.setHomeRouteState();
           this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
@@ -137,6 +144,29 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       });
   }
 
+  private watchFriendMoviesOwnerNickname(): void {
+    this.ss.friendMoviesOwnerNickname$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (nickname: string) => {
+          this.friendMoviesOwnerNickname = nickname;
+          this.pageTitle = this.getCurrentPageTitle();
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  private watchFriendMoviesTotal(): void {
+    this.ss.friendMoviesTotal$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (count: number | null) => {
+          this.friendMoviesTotal = count;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
   private getCurrentPageTitle(): string {
     const url = this.router.url.split('?')[0];
     let snapshot: ActivatedRouteSnapshot = this.router.routerState.snapshot.root;
@@ -155,7 +185,27 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       return `${title} (${this.homeWidgetCount})`;
     }
 
+    if (/^\/movies\/friends\/[^/]+$/.test(url)) {
+      return 'ФИЛЬМЫ';
+    }
+
     return title;
+  }
+
+  get friendMoviesCountLabel(): string {
+    const count: number = this.friendMoviesTotal ?? 0;
+    const mod10: number = count % 10;
+    const mod100: number = count % 100;
+
+    if (mod10 === 1 && mod100 !== 11) {
+      return 'фильм';
+    }
+
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return 'фильма';
+    }
+
+    return 'фильмов';
   }
 
   editMainPage(): void {

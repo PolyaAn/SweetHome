@@ -1,10 +1,4 @@
 <section class="friend-movies">
-  <section class="friend-movies-header">
-    <p class="friend-movies-header__caption">Список друга</p>
-    <h2>{{ ownerNickname || 'Пользователь' }}</h2>
-    <p class="friend-movies-header__meta" *ngIf="total">{{ total }} фильмов</p>
-  </section>
-
   <section class="friend-movies-state friend-movies-state--loading" *ngIf="listLoading">
     <article class="friend-movies-skeleton" *ngFor="let item of [1, 2, 3, 4]"></article>
   </section>

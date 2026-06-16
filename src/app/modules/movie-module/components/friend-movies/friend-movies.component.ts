@@ -7,6 +7,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
+import { SharedService } from '../../../../shared/services/shared.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { MovieContentTypeDictionaryItem, SharedMovieListItemVm, SharedMovieListResponse } from '../../models/movie.model';
 import { MovieModuleService } from '../../services/movie-module.service';
@@ -24,6 +25,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
     private route: ActivatedRoute,
     private ms: MovieModuleService,
     private cdr: ChangeDetectorRef,
+    private ss: SharedService,
     private toastService: ToastService,
   ) {
     super();
@@ -55,9 +57,19 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.friendUserId = params.get('friendUserId') || '';
           this.currentPage = 1;
           this.movies = [];
+          this.ownerNickname = '';
+          this.total = 0;
+          this.ss.setFriendMoviesOwnerNickname('');
+          this.ss.setFriendMoviesTotal(null);
           this.loadMovies(true);
         },
       });
+  }
+
+  override ngOnDestroy(): void {
+    this.ss.setFriendMoviesOwnerNickname('');
+    this.ss.setFriendMoviesTotal(null);
+    super.ngOnDestroy();
   }
 
   retry(): void {
@@ -117,6 +129,8 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
   private loadMovies(reset: boolean): void {
     if (!this.friendUserId) {
       this.errorMessage = 'Пользователь не найден';
+      this.ss.setFriendMoviesOwnerNickname('');
+      this.ss.setFriendMoviesTotal(null);
       this.cdr.markForCheck();
       return;
     }
@@ -145,9 +159,13 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.total = response.total;
           this.hasNext = response.hasNext;
           this.movies = reset ? response.items : [...this.movies, ...response.items];
+          this.ss.setFriendMoviesOwnerNickname(response.ownerNickname);
+          this.ss.setFriendMoviesTotal(response.total);
         },
         error: () => {
           this.errorMessage = 'Не удалось загрузить список фильмов друга';
+          this.ss.setFriendMoviesOwnerNickname('');
+          this.ss.setFriendMoviesTotal(null);
           if (!reset) {
             this.currentPage = Math.max(1, this.currentPage - 1);
           }

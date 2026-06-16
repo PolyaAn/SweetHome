@@ -12,11 +12,20 @@
           aria-label="Назад"
           fontIcon="arrow_back">
         </mat-icon>
-        <h1 class="page-title">{{ pageTitle }}</h1>
+        <h1 class="page-title" *ngIf="!isFriendMoviesPage; else friendMoviesTitle">{{ pageTitle }}</h1>
+        <ng-template #friendMoviesTitle>
+          <div class="page-title-group">
+            <h1 class="page-title">{{ pageTitle }}</h1>
+            <span class="page-title-accent" *ngIf="friendMoviesOwnerNickname">{{ friendMoviesOwnerNickname }}</span>
+          </div>
+        </ng-template>
       </div>
     </ng-template>
   </div>
   <div class="right">
+    <span class="page-meta" *ngIf="isFriendMoviesPage && friendMoviesTotal !== null">
+      {{ friendMoviesTotal }} {{ friendMoviesCountLabel }}
+    </span>
     <mat-icon *ngIf="isMovieListPage"
               (click)="openFriends()"
               class="icon"

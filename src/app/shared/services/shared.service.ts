@@ -16,6 +16,8 @@ export class SharedService {
   readonly movieViewMode$: BehaviorSubject<MovieViewMode> = new BehaviorSubject<MovieViewMode>('list');
   readonly homeRoomTitle$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   readonly homeWidgetCount$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
+  readonly friendMoviesOwnerNickname$: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  readonly friendMoviesTotal$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
 
   get isPhone(): boolean {
     return window.innerWidth < 768;
@@ -35,6 +37,14 @@ export class SharedService {
 
   setHomeWidgetCount(count: number | null): void {
     this.homeWidgetCount$.next(count);
+  }
+
+  setFriendMoviesOwnerNickname(nickname: string): void {
+    this.friendMoviesOwnerNickname$.next(nickname);
+  }
+
+  setFriendMoviesTotal(count: number | null): void {
+    this.friendMoviesTotal$.next(count);
   }
 
   openDialog<T, D = any>(component: ComponentType<T>, config: D): void {
