@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, switchMap, takeUntil } from 'rxjs';
+import { EMPTY, Observable, finalize, map, switchMap, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -10,6 +10,7 @@ import {
   MovieContentTypeDictionaryItem,
   MovieDetailsVm,
   MovieDictionariesResponse,
+  MovieListItemVm,
   MovieUpsertRequest,
 } from '../../models/movie.model';
 import { MovieModuleService } from '../../services/movie-module.service';
@@ -124,11 +125,20 @@ export class MovieEditComponent extends BaseComponent implements OnInit, Pending
       return;
     }
 
+    const payload: MovieUpsertRequest = this.buildPayload();
     this.isSaving = true;
     this.clearApiErrors();
 
-    this.ms.updateMovie(this.movieId, this.buildPayload())
+    this.findDuplicateMovie(payload, this.movieId)
       .pipe(
+        switchMap((hasDuplicate: boolean) => {
+          if (hasDuplicate) {
+            this.showDuplicateWarning();
+            return EMPTY;
+          }
+
+          return this.ms.updateMovie(this.movieId, payload);
+        }),
         takeUntil(this.unsubscribe$),
         finalize(() => {
           this.isSaving = false;
@@ -243,6 +253,39 @@ export class MovieEditComponent extends BaseComponent implements OnInit, Pending
     });
 
     return true;
+  }
+
+  private findDuplicateMovie(payload: MovieUpsertRequest, excludedMovieId: string): Observable<boolean> {
+    return this.ms.getMovies({
+      query: payload.title,
+      contentTypes: [payload.contentType],
+      page: 1,
+      pageSize: 100,
+    }).pipe(
+      map((response) => response.items.some((movie: MovieListItemVm) => this.isDuplicateMovie(movie, payload, excludedMovieId))),
+    );
+  }
+
+  private isDuplicateMovie(movie: MovieListItemVm, payload: MovieUpsertRequest, excludedMovieId: string): boolean {
+    return movie.movieId !== excludedMovieId
+      && movie.contentType === payload.contentType
+      && this.normalizeTitle(movie.title) === this.normalizeTitle(payload.title);
+  }
+
+  private normalizeTitle(value: string): string {
+    return value.trim().toLocaleLowerCase('ru-RU');
+  }
+
+  private showDuplicateWarning(): void {
+    const control: AbstractControl | null = this.form.get('title');
+    const message: string = 'Фильм с таким названием уже есть в списке';
+
+    control?.setErrors({
+      ...(control.errors || {}),
+      api: message,
+    });
+    control?.markAsTouched();
+    this.toastService.warning(message);
   }
 
   private clearApiErrors(): void {

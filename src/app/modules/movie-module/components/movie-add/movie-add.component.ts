@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, takeUntil } from 'rxjs';
+import { EMPTY, Observable, finalize, map, switchMap, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { PendingChangesComponent } from '../../guards/movie-form-deactivate.guard';
@@ -9,6 +9,7 @@ import {
   ApiErrorResponse,
   MovieContentType,
   MovieContentTypeDictionaryItem,
+  MovieListItemVm,
   MovieDictionariesResponse,
   MovieUpsertRequest,
 } from '../../models/movie.model';
@@ -109,11 +110,20 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
       return;
     }
 
+    const payload: MovieUpsertRequest = this.buildPayload();
     this.isSaving = true;
     this.clearApiErrors();
 
-    this.ms.createMovie(this.buildPayload())
+    this.findDuplicateMovie(payload)
       .pipe(
+        switchMap((hasDuplicate: boolean) => {
+          if (hasDuplicate) {
+            this.showDuplicateWarning();
+            return EMPTY;
+          }
+
+          return this.ms.createMovie(payload);
+        }),
         takeUntil(this.unsubscribe$),
         finalize(() => {
           this.isSaving = false;
@@ -191,6 +201,38 @@ export class MovieAddComponent extends BaseComponent implements OnInit, PendingC
     });
 
     return true;
+  }
+
+  private findDuplicateMovie(payload: MovieUpsertRequest): Observable<boolean> {
+    return this.ms.getMovies({
+      query: payload.title,
+      contentTypes: [payload.contentType],
+      page: 1,
+      pageSize: 100,
+    }).pipe(
+      map((response) => response.items.some((movie: MovieListItemVm) => this.isDuplicateMovie(movie, payload))),
+    );
+  }
+
+  private isDuplicateMovie(movie: MovieListItemVm, payload: MovieUpsertRequest): boolean {
+    return movie.contentType === payload.contentType
+      && this.normalizeTitle(movie.title) === this.normalizeTitle(payload.title);
+  }
+
+  private normalizeTitle(value: string): string {
+    return value.trim().toLocaleLowerCase('ru-RU');
+  }
+
+  private showDuplicateWarning(): void {
+    const control: AbstractControl | null = this.form.get('title');
+    const message: string = 'Фильм с таким названием уже есть в списке';
+
+    control?.setErrors({
+      ...(control.errors || {}),
+      api: message,
+    });
+    control?.markAsTouched();
+    this.toastService.warning(message);
   }
 
   private clearApiErrors(): void {
