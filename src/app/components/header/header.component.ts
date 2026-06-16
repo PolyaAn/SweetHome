@@ -187,6 +187,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/movies/create']);
   }
 
+  openFriends(): void {
+    this.router.navigate(['/movies/friends']);
+  }
+
   openHomeSettings(): void {
     this.router.navigate(['/home/rooms']);
   }

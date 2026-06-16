@@ -357,10 +357,6 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/movies/create']);
   }
 
-  openFriends(): void {
-    this.router.navigate(['/movies/friends']);
-  }
-
   retry(): void {
     this.loadMovies(true);
   }

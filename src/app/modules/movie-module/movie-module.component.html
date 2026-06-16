@@ -15,14 +15,6 @@
 
       <button
         type="button"
-        class="movie-toolbar-button"
-        (click)="openFriends()">
-        <mat-icon fontIcon="people"></mat-icon>
-        <span>Друзья</span>
-      </button>
-
-      <button
-        type="button"
         class="movie-toolbar-button movie-toolbar-button--icon"
         [class.movie-toolbar-button--active]="showFilters || activeFiltersCount > 0"
         (click)="toggleFilters()"

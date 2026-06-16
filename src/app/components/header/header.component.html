@@ -18,6 +18,13 @@
   </div>
   <div class="right">
     <mat-icon *ngIf="isMovieListPage"
+              (click)="openFriends()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Друзья"
+              fontIcon="people">
+    </mat-icon>
+    <mat-icon *ngIf="isMovieListPage"
               (click)="addMovie()"
               class="icon"
               aria-hidden="false"
