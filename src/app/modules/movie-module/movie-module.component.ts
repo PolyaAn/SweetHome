@@ -31,6 +31,8 @@ type MovieFiltersState = {
   sortDirection: SortDirection;
 };
 
+type MovieFiltersStorageState = MovieFiltersState;
+
 type MovieFilterSection = 'contentType' | 'genres' | 'countries' | 'rating' | 'sort';
 
 type RatingPreset = {
@@ -46,6 +48,7 @@ type RatingPreset = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MovieModuleComponent extends BaseComponent implements OnInit {
+  private readonly filtersStorageKey = 'movie-module.filters';
   private readonly search$ = new Subject<string>();
   private readonly pageSize = 20;
   private readonly ratingMin = 0;
@@ -180,6 +183,8 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restoreFilters();
+
     this.ss.movieViewMode$
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
@@ -222,24 +227,29 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   toggleContentType(type: MovieContentType): void {
     this.filters.contentTypes = this.toggleItem(this.filters.contentTypes, type);
+    this.persistFilters();
   }
 
   toggleGenre(genre: string): void {
     this.filters.genres = this.toggleItem(this.filters.genres, genre);
+    this.persistFilters();
   }
 
   toggleCountry(country: string): void {
     this.filters.countries = this.toggleItem(this.filters.countries, country);
+    this.persistFilters();
   }
 
   updateRatingFrom(value: string): void {
     const nextFrom: number = this.clampRating(Number(value), this.ratingMin, this.ratingToValue);
     this.filters.ratingFrom = this.stringifyRating(nextFrom);
+    this.persistFilters();
   }
 
   updateRatingTo(value: string): void {
     const nextTo: number = this.clampRating(Number(value), this.ratingFromValue, this.ratingMax);
     this.filters.ratingTo = this.stringifyRating(nextTo);
+    this.persistFilters();
   }
 
   applyFilters(): void {
@@ -252,12 +262,14 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   resetFilters(): void {
     this.filters = {...this.defaultFilters};
     this.expandedFilterSection = null;
+    this.persistFilters();
     this.loadMovies(true);
   }
 
   updateSort(sortBy: MovieSortBy, sortDirection: SortDirection): void {
     this.filters.sortBy = sortBy;
     this.filters.sortDirection = sortDirection;
+    this.persistFilters();
   }
 
   toggleFilterSection(section: MovieFilterSection): void {
@@ -271,6 +283,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   applyRatingPreset(from: number | null, to: number | null): void {
     this.filters.ratingFrom = from === null ? '' : this.stringifyRating(from);
     this.filters.ratingTo = to === null ? '' : this.stringifyRating(to);
+    this.persistFilters();
   }
 
   isRatingPresetActive(from: number | null, to: number | null): boolean {
@@ -433,5 +446,107 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
 
   private stringifyRating(value: number): string {
     return value.toFixed(1);
+  }
+
+  private restoreFilters(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const rawValue: string | null = window.localStorage.getItem(this.filtersStorageKey);
+    if (!rawValue) {
+      return;
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(rawValue);
+      this.filters = this.sanitizeFilters(parsed);
+    } catch {
+      this.filters = {...this.defaultFilters};
+      window.localStorage.removeItem(this.filtersStorageKey);
+    }
+  }
+
+  private persistFilters(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.localStorage.setItem(this.filtersStorageKey, JSON.stringify(this.filters));
+  }
+
+  private sanitizeFilters(value: unknown): MovieFiltersStorageState {
+    if (!value || typeof value !== 'object') {
+      return {...this.defaultFilters};
+    }
+
+    const source: Partial<MovieFiltersStorageState> = value as Partial<MovieFiltersStorageState>;
+    const sortBy: MovieSortBy = this.isMovieSortBy(source.sortBy) ? source.sortBy : this.defaultFilters.sortBy;
+    const sortDirection: SortDirection = this.isSortDirection(source.sortDirection) ? source.sortDirection : this.defaultFilters.sortDirection;
+    const ratingFrom: string = this.normalizeStoredRating(source.ratingFrom);
+    const ratingTo: string = this.normalizeStoredRating(source.ratingTo);
+    const normalizedRange: { ratingFrom: string; ratingTo: string } = this.normalizeRatingRange(ratingFrom, ratingTo);
+
+    return {
+      contentTypes: Array.isArray(source.contentTypes)
+        ? source.contentTypes.filter((item: unknown): item is MovieContentType => this.isMovieContentType(item))
+        : [],
+      genres: Array.isArray(source.genres)
+        ? source.genres.filter((item: unknown): item is string => typeof item === 'string')
+        : [],
+      countries: Array.isArray(source.countries)
+        ? source.countries.filter((item: unknown): item is string => typeof item === 'string')
+        : [],
+      ratingFrom: normalizedRange.ratingFrom,
+      ratingTo: normalizedRange.ratingTo,
+      sortBy,
+      sortDirection,
+    };
+  }
+
+  private normalizeStoredRating(value: unknown): string {
+    if (typeof value !== 'string' || value === '') {
+      return '';
+    }
+
+    const parsed: number = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return '';
+    }
+
+    return this.stringifyRating(this.clampRating(parsed, this.ratingMin, this.ratingMax));
+  }
+
+  private normalizeRatingRange(ratingFrom: string, ratingTo: string): { ratingFrom: string; ratingTo: string } {
+    const fromValue: number | null = this.getRatingBound(ratingFrom);
+    const toValue: number | null = this.getRatingBound(ratingTo);
+
+    if (fromValue === null || toValue === null || fromValue <= toValue) {
+      return {ratingFrom, ratingTo};
+    }
+
+    return {
+      ratingFrom: this.stringifyRating(toValue),
+      ratingTo: this.stringifyRating(fromValue),
+    };
+  }
+
+  private isMovieContentType(value: unknown): value is MovieContentType {
+    return value === 'MOVIE'
+      || value === 'CARTOON'
+      || value === 'SERIES'
+      || value === 'ANIME'
+      || value === 'DORAMA';
+  }
+
+  private isMovieSortBy(value: unknown): value is MovieSortBy {
+    return value === 'TITLE'
+      || value === 'RATING'
+      || value === 'CREATED_AT'
+      || value === 'UPDATED_AT';
+  }
+
+  private isSortDirection(value: unknown): value is SortDirection {
+    return value === 'ASC' || value === 'DESC';
   }
 }
