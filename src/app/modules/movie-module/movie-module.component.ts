@@ -101,6 +101,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   total: number = 0;
   hasNext: boolean = false;
   viewMode: MovieViewMode = 'list';
+  expandedMovieIds: Set<string> = new Set<string>();
   readonly ratingScaleMarks: number[] = [0, 2, 4, 6, 8, 10];
   readonly ratingPresets: RatingPreset[] = [
     { label: 'Любой', from: null, to: null },
@@ -353,6 +354,36 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     this.router.navigate(['/movies', movieId, 'edit']);
   }
 
+  hasComment(movie: MovieListItemVm): boolean {
+    return Boolean(this.getMovieComment(movie));
+  }
+
+  isMovieExpanded(movieId: string): boolean {
+    return this.expandedMovieIds.has(movieId);
+  }
+
+  toggleMovieComment(event: Event, movie: MovieListItemVm): void {
+    event.stopPropagation();
+
+    if (!this.hasComment(movie)) {
+      return;
+    }
+
+    const nextExpandedMovieIds: Set<string> = new Set<string>(this.expandedMovieIds);
+
+    if (nextExpandedMovieIds.has(movie.movieId)) {
+      nextExpandedMovieIds.delete(movie.movieId);
+    } else {
+      nextExpandedMovieIds.add(movie.movieId);
+    }
+
+    this.expandedMovieIds = nextExpandedMovieIds;
+  }
+
+  getMovieComment(movie: MovieListItemVm): string {
+    return String(movie.comment || '').trim();
+  }
+
   addMovie(): void {
     this.router.navigate(['/movies/create']);
   }
@@ -403,6 +434,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
     if (reset) {
       this.currentPage = 1;
       this.movies = [];
+      this.expandedMovieIds = new Set<string>();
       this.errorMessage = '';
       this.listLoading = true;
     } else {

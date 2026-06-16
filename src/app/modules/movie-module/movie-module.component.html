@@ -241,6 +241,7 @@
     <article
       class="movie-card"
       [class.movie-card--grid]="viewMode === 'grid'"
+      [class.movie-card--expanded]="isMovieExpanded(movie.movieId)"
       *ngFor="let movie of movies; trackBy: trackByMovieId"
       (click)="openMovie(movie.movieId)">
       <div class="movie-card__head">
@@ -256,6 +257,24 @@
       </div>
 
       <p class="movie-card__country" *ngIf="movie.country">{{ movie.country }}</p>
+
+      <div class="movie-card__actions" *ngIf="hasComment(movie)">
+        <button
+          type="button"
+          class="movie-card__toggle"
+          [attr.aria-expanded]="isMovieExpanded(movie.movieId)"
+          (click)="toggleMovieComment($event, movie)">
+          <span>{{ isMovieExpanded(movie.movieId) ? 'Скрыть комментарий' : 'Показать комментарий' }}</span>
+          <mat-icon [fontIcon]="isMovieExpanded(movie.movieId) ? 'expand_less' : 'expand_more'"></mat-icon>
+        </button>
+      </div>
+
+      <div
+        class="movie-card__comment"
+        *ngIf="hasComment(movie) && isMovieExpanded(movie.movieId)"
+        (click)="$event.stopPropagation()">
+        {{ getMovieComment(movie) }}
+      </div>
     </article>
   </section>
 

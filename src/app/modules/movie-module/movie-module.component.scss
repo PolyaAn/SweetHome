@@ -377,6 +377,10 @@
   overflow: hidden;
 }
 
+.movie-card--expanded {
+  padding-bottom: 12px;
+}
+
 .movie-card:active {
   transform: scale(0.99);
 }
@@ -435,6 +439,40 @@
   margin: 4px 0 0;
   color: $alpha-sand-74;
   font-size: 13px;
+}
+
+.movie-card__actions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.movie-card__toggle {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: $color-accent-main;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.movie-card__toggle mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.movie-card__comment {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid $alpha-white-24;
+  color: $color-text-main;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
 }
 
 .movie-load-more {
