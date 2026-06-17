@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   AddSharedMovieRequest,
@@ -15,6 +15,7 @@ import {
   MovieListResponse,
   MovieSearchFilter,
   SharedMovieListResponse,
+  SharedMovieListItemVm,
   MovieUpdateResponse,
   MovieUpsertRequest,
 } from '../models/movie.model';
@@ -118,6 +119,26 @@ export class MovieModuleService {
     return this.http.post<AddSharedMovieResponse>(`${this.baseUrl}/friends/import`, payload, {
       withCredentials: true,
     });
+  }
+
+  addSharedMovieWithoutFriendRating(sourceMovie: SharedMovieListItemVm): Observable<AddSharedMovieResponse> {
+    return this.addSharedMovie(sourceMovie.movieId).pipe(
+      // Import currently copies the shared rating, so the client clears it immediately.
+      switchMap((response: AddSharedMovieResponse) => {
+        const payload: MovieUpsertRequest = {
+          title: sourceMovie.title,
+          contentType: sourceMovie.contentType,
+          rating: null,
+          genres: [...sourceMovie.genres],
+          country: sourceMovie.country ?? null,
+          comment: sourceMovie.comment ?? null,
+        };
+
+        return this.updateMovie(response.movieId, payload).pipe(
+          map(() => response),
+        );
+      }),
+    );
   }
 
   private normalizeDictionaries(response: MovieDictionariesResponse): MovieDictionariesResponse {

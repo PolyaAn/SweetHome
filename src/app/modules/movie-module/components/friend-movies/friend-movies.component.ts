@@ -93,7 +93,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
     this.addingMovieIds.add(movie.movieId);
     this.cdr.markForCheck();
 
-    this.ms.addSharedMovie(movie.movieId)
+    this.ms.addSharedMovieWithoutFriendRating(movie)
       .pipe(
         takeUntil(this.unsubscribe$),
         finalize(() => {
