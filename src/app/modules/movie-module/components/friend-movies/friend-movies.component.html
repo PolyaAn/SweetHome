@@ -27,16 +27,18 @@
           <span class="friend-movies-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
         </div>
 
-        <p class="friend-movies-card__country" *ngIf="movie.country">{{ movie.country }}</p>
-      </div>
+        <div class="friend-movies-card__footer">
+          <p class="friend-movies-card__country" *ngIf="movie.country">{{ movie.country }}</p>
 
-      <button
-        type="button"
-        class="friend-movies-add-button"
-        [disabled]="movie.isInMyList || isAddingMovie(movie.movieId)"
-        (click)="addMovie(movie)">
-        <mat-icon [fontIcon]="movie.isInMyList ? 'check' : 'add'"></mat-icon>
-      </button>
+          <button
+            type="button"
+            class="friend-movies-add-button"
+            [disabled]="movie.isInMyList || isAddingMovie(movie.movieId)"
+            (click)="addMovie(movie)">
+            <mat-icon [fontIcon]="movie.isInMyList ? 'check' : 'add'"></mat-icon>
+          </button>
+        </div>
+      </div>
     </article>
   </section>
 

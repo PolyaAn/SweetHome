@@ -43,10 +43,7 @@
 }
 
 .friend-movies-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: end;
+  display: block;
   padding: 8px 12px;
   overflow: hidden;
 }
@@ -106,9 +103,17 @@
 }
 
 .friend-movies-card__country {
-  margin: 4px 0 0;
+  margin: 0;
   color: $alpha-sand-74;
   font-size: 13px;
+}
+
+.friend-movies-card__footer {
+  margin-top: 6px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .friend-movies-add-button,
@@ -131,8 +136,7 @@
   height: 44px;
   padding: 0;
   border-radius: 12px;
-  align-self: end;
-  margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .friend-movies-add-button .mat-icon,
