@@ -96,6 +96,11 @@
   border: none;
 }
 
+.friend-movies-secondary-button,
+.friend-movies-primary-button {
+  min-width: 148px;
+}
+
 .friend-movies-toolbar-badge {
   position: absolute;
   top: -4px;
