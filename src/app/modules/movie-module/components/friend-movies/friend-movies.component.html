@@ -6,7 +6,7 @@
           type="text"
           [value]="draftSearchQuery"
           (input)="onSearchInput($any($event.target).value)"
-          placeholder="РџРѕРёСЃРє РїРѕ РЅР°Р·РІР°РЅРёСЋ Рё РєРѕРјРјРµРЅС‚Р°СЂРёСЋ"
+          placeholder="Поиск по названию и комментарию"
         />
         <button type="button" *ngIf="draftSearchQuery" class="friend-movies-search-clear" (click)="clearSearch()">
           <mat-icon fontIcon="close"></mat-icon>
@@ -18,8 +18,8 @@
         class="friend-movies-toolbar-button friend-movies-toolbar-button--icon"
         [class.friend-movies-toolbar-button--active]="showFilters || activeFiltersCount > 0"
         (click)="toggleFilters()"
-        aria-label="Р¤РёР»СЊС‚СЂС‹"
-        title="Р¤РёР»СЊС‚СЂС‹">
+        aria-label="Фильтры"
+        title="Фильтры">
         <mat-icon fontIcon="filter_alt"></mat-icon>
         <span class="friend-movies-toolbar-badge" *ngIf="activeFiltersCount">{{ activeFiltersCount }}</span>
       </button>
@@ -28,7 +28,7 @@
     <section class="friend-movies-filters" *ngIf="showFilters">
       <div class="friend-movies-filter-section" [class.friend-movies-filter-section--expanded]="isFilterSectionExpanded('contentType')">
         <button type="button" class="friend-movies-filter-toggle" (click)="toggleFilterSection('contentType')">
-          <span class="friend-movies-filter-toggle__title">РўРёРї</span>
+          <span class="friend-movies-filter-toggle__title">Тип</span>
           <span class="friend-movies-filter-toggle__value">{{ selectedContentTypeLabel }}</span>
           <mat-icon class="friend-movies-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('contentType') ? 'expand_less' : 'expand_more'"></mat-icon>
         </button>
@@ -49,7 +49,7 @@
 
       <div class="friend-movies-filter-section" [class.friend-movies-filter-section--expanded]="isFilterSectionExpanded('genres')">
         <button type="button" class="friend-movies-filter-toggle" (click)="toggleFilterSection('genres')">
-          <span class="friend-movies-filter-toggle__title">Р–Р°РЅСЂС‹</span>
+          <span class="friend-movies-filter-toggle__title">Жанры</span>
           <span class="friend-movies-filter-toggle__value">{{ genresSummary }}</span>
           <mat-icon class="friend-movies-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('genres') ? 'expand_less' : 'expand_more'"></mat-icon>
         </button>
@@ -70,7 +70,7 @@
 
       <div class="friend-movies-filter-section" [class.friend-movies-filter-section--expanded]="isFilterSectionExpanded('countries')">
         <button type="button" class="friend-movies-filter-toggle" (click)="toggleFilterSection('countries')">
-          <span class="friend-movies-filter-toggle__title">РЎС‚СЂР°РЅС‹</span>
+          <span class="friend-movies-filter-toggle__title">Страны</span>
           <span class="friend-movies-filter-toggle__value">{{ countriesSummary }}</span>
           <mat-icon class="friend-movies-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('countries') ? 'expand_less' : 'expand_more'"></mat-icon>
         </button>
@@ -91,7 +91,7 @@
 
       <div class="friend-movies-filter-section" [class.friend-movies-filter-section--expanded]="isFilterSectionExpanded('rating')">
         <button type="button" class="friend-movies-filter-toggle" (click)="toggleFilterSection('rating')">
-          <span class="friend-movies-filter-toggle__title">Р РµР№С‚РёРЅРі</span>
+          <span class="friend-movies-filter-toggle__title">Рейтинг</span>
           <span class="friend-movies-filter-toggle__value">{{ ratingSummary }}</span>
           <mat-icon class="friend-movies-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('rating') ? 'expand_less' : 'expand_more'"></mat-icon>
         </button>
@@ -107,25 +107,25 @@
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="isAnyRatingActive"
               (click)="clearRatingFilter()">
-              Р›СЋР±РѕР№
+              Любой
             </button>
             <button
               type="button"
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="hasOnlyWithRating"
               (click)="toggleRatingPresence('WITH_RATING')">
-              РЎ РѕС†РµРЅРєРѕР№
+              С оценкой
             </button>
             <button
               type="button"
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="hasOnlyWithoutRating"
               (click)="toggleRatingPresence('WITHOUT_RATING')">
-              Р‘РµР· РѕС†РµРЅРєРё
+              Без оценки
             </button>
           </div>
 
-          <p class="friend-movies-filter-hint">Р’С‹Р±РµСЂРёС‚Рµ РґРёР°РїР°Р·РѕРЅ СЂРµР№С‚РёРЅРіР°</p>
+          <p class="friend-movies-filter-hint">Выберите диапазон рейтинга</p>
 
           <div class="friend-movies-rating-slider" [class.friend-movies-rating-slider--disabled]="isRatingRangeDisabled">
             <div class="friend-movies-rating-slider__scale">
@@ -161,7 +161,7 @@
           </div>
 
           <div class="friend-movies-filter-presets">
-            <span class="friend-movies-filter-presets__label">Р‘С‹СЃС‚СЂС‹Р№ РІС‹Р±РѕСЂ</span>
+            <span class="friend-movies-filter-presets__label">Быстрый выбор</span>
             <div class="friend-movies-rating-presets">
               <button
                 type="button"
@@ -179,7 +179,7 @@
 
       <div class="friend-movies-filter-section friend-movies-filter-section--sort" [class.friend-movies-filter-section--expanded]="isFilterSectionExpanded('sort')">
         <button type="button" class="friend-movies-filter-toggle" (click)="toggleFilterSection('sort')">
-          <span class="friend-movies-filter-toggle__title">РЎРѕСЂС‚РёСЂРѕРІРєР°</span>
+          <span class="friend-movies-filter-toggle__title">Сортировка</span>
           <span class="friend-movies-filter-toggle__value">{{ sortSummary }}</span>
           <mat-icon class="friend-movies-filter-toggle__icon" [fontIcon]="isFilterSectionExpanded('sort') ? 'expand_less' : 'expand_more'"></mat-icon>
         </button>
@@ -191,29 +191,29 @@
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="filters.sortBy === 'UPDATED_AT' && filters.sortDirection === 'DESC'"
               (click)="updateSort('UPDATED_AT', 'DESC')">
-              РЎРЅР°С‡Р°Р»Р° РЅРѕРІС‹Рµ
+              Сначала новые
             </button>
             <button
               type="button"
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="filters.sortBy === 'TITLE' && filters.sortDirection === 'ASC'"
               (click)="updateSort('TITLE', 'ASC')">
-              РџРѕ РЅР°Р·РІР°РЅРёСЋ
+              По названию
             </button>
             <button
               type="button"
               class="friend-movies-chip"
               [class.friend-movies-chip--active]="filters.sortBy === 'RATING' && filters.sortDirection === 'DESC'"
               (click)="updateSort('RATING', 'DESC')">
-              РџРѕ СЂРµР№С‚РёРЅРіСѓ
+              По рейтингу
             </button>
           </div>
         </div>
       </div>
 
       <div class="friend-movies-filter-actions">
-        <button type="button" class="friend-movies-secondary-button" (click)="resetFilters()">РЎР±СЂРѕСЃРёС‚СЊ</button>
-        <button type="button" class="friend-movies-primary-button" (click)="applyFilters()">РџСЂРёРјРµРЅРёС‚СЊ</button>
+        <button type="button" class="friend-movies-secondary-button" (click)="resetFilters()">Сбросить</button>
+        <button type="button" class="friend-movies-primary-button" (click)="applyFilters()">Применить</button>
       </div>
     </section>
   </section>
@@ -224,16 +224,16 @@
 
   <section class="friend-movies-state" *ngIf="!listLoading && errorMessage">
     <p>{{ errorMessage }}</p>
-    <button type="button" class="friend-movies-primary-button" (click)="retry()">РџРѕРІС‚РѕСЂРёС‚СЊ</button>
+    <button type="button" class="friend-movies-primary-button" (click)="retry()">Повторить</button>
   </section>
 
   <section class="friend-movies-state" *ngIf="!listLoading && !errorMessage && !movies.length && !searchQuery && !activeFiltersCount">
-    <p>РЈ СЌС‚РѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РЅРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С„РёР»СЊРјРѕРІ</p>
+    <p>У этого пользователя нет доступных фильмов</p>
   </section>
 
   <section class="friend-movies-state" *ngIf="!listLoading && !errorMessage && !movies.length && (searchQuery || activeFiltersCount)">
-    <p>РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ</p>
-    <button type="button" class="friend-movies-secondary-button" (click)="resetFilters()">РЎР±СЂРѕСЃРёС‚СЊ С„РёР»СЊС‚СЂС‹</button>
+    <p>Ничего не найдено</p>
+    <button type="button" class="friend-movies-secondary-button" (click)="resetFilters()">Сбросить фильтры</button>
   </section>
 
   <section class="friend-movies-list" *ngIf="!listLoading && !errorMessage && movies.length">
@@ -270,7 +270,7 @@
 
   <div class="friend-movies-load-more" *ngIf="!listLoading && !errorMessage && movies.length && hasNext">
     <button type="button" class="friend-movies-secondary-button" [disabled]="loadingMore" (click)="loadMore()">
-      {{ loadingMore ? 'Р—Р°РіСЂСѓР·РєР°...' : 'РџРѕРєР°Р·Р°С‚СЊ РµС‰С‘' }}
+      {{ loadingMore ? 'Загрузка...' : 'Показать ещё' }}
     </button>
   </div>
 </section>

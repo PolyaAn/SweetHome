@@ -81,11 +81,11 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
   movies: SharedMovieListItemVm[] = [];
   dictionaries: MovieDictionariesResponse = {
     contentTypes: [
-      { code: 'MOVIE', name: 'С„РёР»СЊРј' },
-      { code: 'CARTOON', name: 'РјСѓР»СЊС‚С„РёР»СЊРј' },
-      { code: 'SERIES', name: 'СЃРµСЂРёР°Р»' },
-      { code: 'ANIME', name: 'Р°РЅРёРјРµ' },
-      { code: 'DORAMA', name: 'РґРѕСЂР°РјР°' },
+      { code: 'MOVIE', name: 'фильм' },
+      { code: 'CARTOON', name: 'мультфильм' },
+      { code: 'SERIES', name: 'сериал' },
+      { code: 'ANIME', name: 'аниме' },
+      { code: 'DORAMA', name: 'дорама' },
     ],
     genres: [],
     countries: [],
@@ -105,7 +105,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
   addingMovieIds: Set<string> = new Set<string>();
   readonly ratingScaleMarks: number[] = [0, 2, 4, 6, 8, 10];
   readonly ratingPresets: RatingPreset[] = [
-    { label: 'Р›СЋР±РѕР№', from: null, to: null },
+    { label: 'Любой', from: null, to: null },
     { label: '6+', from: 6, to: 10 },
     { label: '7+', from: 7, to: 10 },
     { label: '8+', from: 8, to: 10 },
@@ -131,14 +131,14 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
 
   get selectedContentTypeLabel(): string {
     if (!this.filters.contentTypes.length) {
-      return 'Р›СЋР±РѕР№';
+      return 'Любой';
     }
 
     if (this.filters.contentTypes.length === 1) {
       return this.getTypeLabel(this.filters.contentTypes[0]);
     }
 
-    return `${this.filters.contentTypes.length} РІС‹Р±СЂР°РЅРѕ`;
+    return `${this.filters.contentTypes.length} выбрано`;
   }
 
   get genresSummary(): string {
@@ -158,14 +158,14 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
     const rangeSummary: string | null = this.getRatingRangeSummary(from, to);
 
     if (!ratingPresenceSummary && !rangeSummary) {
-      return 'Р›СЋР±РѕР№';
+      return 'Любой';
     }
 
     if (ratingPresenceSummary && rangeSummary) {
       return `${ratingPresenceSummary}, ${rangeSummary}`;
     }
 
-    return ratingPresenceSummary || rangeSummary || 'Р›СЋР±РѕР№';
+    return ratingPresenceSummary || rangeSummary || 'Любой';
   }
 
   get sortSummary(): string {
@@ -393,10 +393,10 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.movies = this.movies.map((item: SharedMovieListItemVm) => item.movieId === movie.movieId
             ? {...item, isInMyList: true}
             : item);
-          this.toastService.success('Р¤РёР»СЊРј РґРѕР±Р°РІР»РµРЅ РІ РІР°С€ СЃРїРёСЃРѕРє');
+          this.toastService.success('Фильм добавлен в ваш список');
         },
         error: () => {
-          this.toastService.error('РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ С„РёР»СЊРј РІ РІР°С€ СЃРїРёСЃРѕРє');
+          this.toastService.error('Не удалось добавить фильм в ваш список');
         },
       });
   }
@@ -429,14 +429,14 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.cdr.markForCheck();
         },
         error: () => {
-          this.toastService.error('РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРїСЂР°РІРѕС‡РЅРёРєРё РєРёРЅРѕ');
+          this.toastService.error('Не удалось загрузить справочники кино');
         },
       });
   }
 
   private loadMovies(reset: boolean): void {
     if (!this.friendUserId) {
-      this.errorMessage = 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ';
+      this.errorMessage = 'Пользователь не найден';
       this.ss.setFriendMoviesOwnerNickname('');
       this.ss.setFriendMoviesTotal(null);
       this.cdr.markForCheck();
@@ -471,7 +471,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.ss.setFriendMoviesTotal(response.total);
         },
         error: () => {
-          this.errorMessage = 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРїРёСЃРѕРє С„РёР»СЊРјРѕРІ РґСЂСѓРіР°';
+          this.errorMessage = 'Не удалось загрузить список фильмов друга';
           this.ss.setFriendMoviesOwnerNickname('');
           this.ss.setFriendMoviesTotal(null);
           if (!reset) {
@@ -508,27 +508,27 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
 
   private getSelectionSummary(count: number): string {
     if (!count) {
-      return 'Р›СЋР±РѕР№';
+      return 'Любой';
     }
 
     if (count === 1) {
-      return '1 РІС‹Р±СЂР°РЅРѕ';
+      return '1 выбрано';
     }
 
-    return `${count} РІС‹Р±СЂР°РЅРѕ`;
+    return `${count} выбрано`;
   }
 
   private getRatingPresenceSummary(hasWithRating: boolean, hasWithoutRating: boolean): string | null {
     if (hasWithRating && hasWithoutRating) {
-      return 'РЎ РѕС†РµРЅРєРѕР№ Рё Р±РµР·';
+      return 'С оценкой и без';
     }
 
     if (hasWithRating) {
-      return 'РЎ РѕС†РµРЅРєРѕР№';
+      return 'С оценкой';
     }
 
     if (hasWithoutRating) {
-      return 'Р‘РµР· РѕС†РµРЅРєРё';
+      return 'Без оценки';
     }
 
     return null;
@@ -547,19 +547,19 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
       return `${this.formatRatingValue(from)}+`;
     }
 
-    return `Р”Рѕ ${this.formatRatingValue(to ?? this.ratingMax)}`;
+    return `До ${this.formatRatingValue(to ?? this.ratingMax)}`;
   }
 
   private getSortLabel(sortBy: MovieSortBy, sortDirection: SortDirection): string {
     if (sortBy === 'TITLE' && sortDirection === 'ASC') {
-      return 'РџРѕ РЅР°Р·РІР°РЅРёСЋ';
+      return 'По названию';
     }
 
     if (sortBy === 'RATING' && sortDirection === 'DESC') {
-      return 'РџРѕ СЂРµР№С‚РёРЅРіСѓ';
+      return 'По рейтингу';
     }
 
-    return 'РЎРЅР°С‡Р°Р»Р° РЅРѕРІС‹Рµ';
+    return 'Сначала новые';
   }
 
   private getRatingBound(value: string): number | null {
