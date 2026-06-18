@@ -428,6 +428,10 @@
   text-overflow: ellipsis;
 }
 
+.movie-card__rating {
+  color: #f9f1e6;
+}
+
 .movie-card__meta {
   @include ui-tags-wrap(6px);
   margin-top: 4px;
