@@ -243,7 +243,7 @@
           <h3>{{ movie.title }}</h3>
           <div class="friend-movies-card__badge">
             <span>{{ getTypeLabel(movie.contentType) }}</span>
-            <span *ngIf="movie.rating !== null && movie.rating !== undefined">| {{ movie.rating }}</span>
+            <span class="friend-movies-card__rating" *ngIf="movie.rating !== null && movie.rating !== undefined">| {{ movie.rating }}</span>
           </div>
         </div>
 
