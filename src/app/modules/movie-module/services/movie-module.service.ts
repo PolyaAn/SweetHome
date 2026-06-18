@@ -102,13 +102,9 @@ export class MovieModuleService {
     });
   }
 
-  getFriendMovies(friendUserId: string, page: number, pageSize: number): Observable<SharedMovieListResponse> {
-    const params: HttpParams = new HttpParams()
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
-
+  getFriendMovies(friendUserId: string, filter: MovieSearchFilter): Observable<SharedMovieListResponse> {
     return this.http.get<SharedMovieListResponse>(`${this.baseUrl}/friends/${friendUserId}`, {
-      params,
+      params: this.buildSearchParams(filter),
       withCredentials: true,
     });
   }

@@ -5,10 +5,310 @@
   color: $color-text-main;
 }
 
+.friend-movies-toolbar,
+.friend-movies-filters,
 .friend-movies-card,
 .friend-movies-state,
 .friend-movies-skeleton {
   @include ui-glass-surface(22px);
+}
+
+.friend-movies-toolbar {
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.friend-movies-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.friend-movies-search-field {
+  position: relative;
+  display: block;
+}
+
+.friend-movies-search-field input {
+  @include ui-input-field;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 42px;
+  padding-right: 38px;
+}
+
+.friend-movies-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: $alpha-sand-72;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.friend-movies-toolbar-button,
+.friend-movies-secondary-button,
+.friend-movies-primary-button {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.friend-movies-toolbar-button,
+.friend-movies-secondary-button,
+.friend-movies-add-button {
+  @include ui-ghost-button(12px);
+}
+
+.friend-movies-toolbar-button {
+  position: relative;
+}
+
+.friend-movies-toolbar-button--icon {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  gap: 0;
+}
+
+.friend-movies-toolbar-button--active {
+  border-color: $color-accent-main;
+  color: $color-accent-main;
+}
+
+.friend-movies-primary-button {
+  @include ui-primary-button(12px);
+  border: none;
+}
+
+.friend-movies-toolbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: $color-accent-main;
+  color: $color-text-light;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.friend-movies-filters {
+  margin-top: 12px;
+  padding: 8px;
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+}
+
+.friend-movies-filter-section {
+  border-bottom: 1px solid $alpha-white-24;
+}
+
+.friend-movies-filter-section:last-child {
+  border-bottom: 0;
+}
+
+.friend-movies-filter-section--sort {
+  border-bottom: 0;
+  margin-bottom: 14px;
+}
+
+.friend-movies-filter-toggle {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: $color-text-main;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+.friend-movies-filter-toggle__title {
+  font-size: 17px;
+}
+
+.friend-movies-filter-toggle__value {
+  min-width: 0;
+  color: $color-accent-main;
+  font-size: 16px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-movies-filter-toggle__icon {
+  color: $color-accent-main;
+}
+
+.friend-movies-filter-content {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.friend-movies-filter-content--rating {
+  gap: 16px;
+}
+
+.friend-movies-filter-hint,
+.friend-movies-filter-presets__label {
+  margin: 0;
+  color: $alpha-sand-72;
+  font-size: 13px;
+}
+
+.friend-movies-filter-presets {
+  display: grid;
+  gap: 10px;
+}
+
+.friend-movies-chip-list {
+  @include ui-tags-wrap(8px);
+}
+
+.friend-movies-chip {
+  @include ui-tag-button;
+  cursor: pointer;
+}
+
+.friend-movies-chip--active {
+  @include ui-tag-active;
+}
+
+.friend-movies-rating-slider {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.friend-movies-rating-slider__scale {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  color: $alpha-sand-72;
+  font-size: 13px;
+}
+
+.friend-movies-rating-slider__scale span:last-child {
+  text-align: right;
+}
+
+.friend-movies-rating-slider__track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      to right,
+      $alpha-white-24 0,
+      $alpha-white-24 var(--range-start),
+      $color-accent-main var(--range-start),
+      $color-accent-main var(--range-end),
+      $alpha-white-24 var(--range-end),
+      $alpha-white-24 100%
+    );
+}
+
+.friend-movies-rating-slider__track::before {
+  content: '';
+  position: absolute;
+  inset: -5px 0 auto 0;
+  height: 16px;
+  background:
+    radial-gradient(circle, $alpha-white-38 0 3px, transparent 4px) left center / 20% 100% repeat-x;
+  pointer-events: none;
+}
+
+.friend-movies-rating-slider__input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34px;
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.friend-movies-rating-slider__input::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: $color-accent-main;
+  border: 2px solid $color-text-light;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.friend-movies-rating-slider__input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: $color-accent-main;
+  border: 2px solid $color-text-light;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.friend-movies-rating-slider__input::-webkit-slider-runnable-track,
+.friend-movies-rating-slider__input::-moz-range-track {
+  background: transparent;
+}
+
+.friend-movies-rating-slider__values {
+  display: flex;
+  justify-content: space-between;
+  color: $color-accent-main;
+  font-size: 13px;
+}
+
+.friend-movies-rating-slider--disabled {
+  opacity: 0.5;
+}
+
+.friend-movies-rating-presets {
+  @include ui-tags-wrap(8px);
+}
+
+.friend-movies-rating-presets__chip {
+  @include ui-tag-button;
+  cursor: pointer;
+}
+
+.friend-movies-rating-presets__chip--active {
+  @include ui-tag-active;
+}
+
+.friend-movies-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 14px 6px;
 }
 
 .friend-movies-state {
@@ -122,20 +422,6 @@
   gap: 4px;
 }
 
-.friend-movies-add-button,
-.friend-movies-secondary-button,
-.friend-movies-primary-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.friend-movies-add-button,
-.friend-movies-secondary-button {
-  @include ui-ghost-button(12px);
-}
-
 .friend-movies-add-button {
   width: 44px;
   min-width: 44px;
@@ -148,13 +434,6 @@
 .friend-movies-add-button .mat-icon,
 .friend-movies-add-button mat-icon {
   color: $color-accent-cream;
-}
-
-.friend-movies-primary-button {
-  @include ui-primary-button(12px);
-  border: none;
-  height: 42px;
-  padding: 0 14px;
 }
 
 .friend-movies-load-more {
@@ -171,6 +450,33 @@
 @media only screen and (max-width: 767px) {
   .friend-movies {
     padding: 12px 8px 16px;
+  }
+
+  .friend-movies-toolbar {
+    padding: 12px;
+  }
+
+  .friend-movies-filter-toggle {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title icon'
+      'value value';
+    align-items: start;
+  }
+
+  .friend-movies-filter-toggle__title {
+    grid-area: title;
+  }
+
+  .friend-movies-filter-toggle__value {
+    grid-area: value;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .friend-movies-filter-toggle__icon {
+    grid-area: icon;
+    justify-self: end;
   }
 
   .friend-movies-card {

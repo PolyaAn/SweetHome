@@ -5,12 +5,43 @@ import {
   OnInit,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { finalize, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { SharedService } from '../../../../shared/services/shared.service';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { MovieContentTypeDictionaryItem, SharedMovieListItemVm, SharedMovieListResponse } from '../../models/movie.model';
+import {
+  MovieContentType,
+  MovieContentTypeDictionaryItem,
+  MovieDictionariesResponse,
+  MovieRatingPresence,
+  MovieSearchFilter,
+  MovieSortBy,
+  SharedMovieListItemVm,
+  SharedMovieListResponse,
+  SortDirection,
+} from '../../models/movie.model';
 import { MovieModuleService } from '../../services/movie-module.service';
+
+type FriendMovieFiltersState = {
+  contentTypes: MovieContentType[];
+  genres: string[];
+  countries: string[];
+  ratingPresence: MovieRatingPresence[];
+  ratingFrom: string;
+  ratingTo: string;
+  sortBy: MovieSortBy;
+  sortDirection: SortDirection;
+};
+
+type FriendMovieFiltersStorageState = FriendMovieFiltersState;
+
+type FriendMovieFilterSection = 'contentType' | 'genres' | 'countries' | 'rating' | 'sort';
+
+type RatingPreset = {
+  label: string;
+  from: number | null;
+  to: number | null;
+};
 
 @Component({
   selector: 'app-friend-movies',
@@ -19,7 +50,21 @@ import { MovieModuleService } from '../../services/movie-module.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FriendMoviesComponent extends BaseComponent implements OnInit {
+  private readonly filtersStorageKey = 'friend-movies.filters';
+  private readonly search$ = new Subject<string>();
   private readonly pageSize = 20;
+  private readonly ratingMin = 0;
+  private readonly ratingMax = 10;
+  private readonly defaultFilters: FriendMovieFiltersState = {
+    contentTypes: [],
+    genres: [],
+    countries: [],
+    ratingPresence: [],
+    ratingFrom: '',
+    ratingTo: '',
+    sortBy: 'UPDATED_AT',
+    sortDirection: 'DESC',
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -34,22 +79,153 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
   friendUserId: string = '';
   ownerNickname: string = '';
   movies: SharedMovieListItemVm[] = [];
+  dictionaries: MovieDictionariesResponse = {
+    contentTypes: [
+      { code: 'MOVIE', name: 'С„РёР»СЊРј' },
+      { code: 'CARTOON', name: 'РјСѓР»СЊС‚С„РёР»СЊРј' },
+      { code: 'SERIES', name: 'СЃРµСЂРёР°Р»' },
+      { code: 'ANIME', name: 'Р°РЅРёРјРµ' },
+      { code: 'DORAMA', name: 'РґРѕСЂР°РјР°' },
+    ],
+    genres: [],
+    countries: [],
+  };
   total: number = 0;
   currentPage: number = 1;
   hasNext: boolean = false;
+  searchQuery: string = '';
+  draftSearchQuery: string = '';
+  filters: FriendMovieFiltersState = {...this.defaultFilters};
+  showFilters: boolean = false;
+  expandedFilterSection: FriendMovieFilterSection | null = null;
   listLoading: boolean = false;
+  dictionariesLoading: boolean = false;
   loadingMore: boolean = false;
   errorMessage: string = '';
   addingMovieIds: Set<string> = new Set<string>();
-  readonly fallbackContentTypes: MovieContentTypeDictionaryItem[] = [
-    { code: 'MOVIE', name: 'фильм' },
-    { code: 'CARTOON', name: 'мультфильм' },
-    { code: 'SERIES', name: 'сериал' },
-    { code: 'ANIME', name: 'аниме' },
-    { code: 'DORAMA', name: 'дорама' },
+  readonly ratingScaleMarks: number[] = [0, 2, 4, 6, 8, 10];
+  readonly ratingPresets: RatingPreset[] = [
+    { label: 'Р›СЋР±РѕР№', from: null, to: null },
+    { label: '6+', from: 6, to: 10 },
+    { label: '7+', from: 7, to: 10 },
+    { label: '8+', from: 8, to: 10 },
+    { label: '9+', from: 9, to: 10 },
   ];
 
+  get isPhone(): boolean {
+    return this.ss.isPhone;
+  }
+
+  get activeFiltersCount(): number {
+    let count = 0;
+
+    count += this.filters.contentTypes.length ? 1 : 0;
+    count += this.filters.genres.length ? 1 : 0;
+    count += this.filters.countries.length ? 1 : 0;
+    count += this.filters.ratingPresence.length ? 1 : 0;
+    count += this.filters.ratingFrom || this.filters.ratingTo ? 1 : 0;
+    count += this.filters.sortBy !== this.defaultFilters.sortBy || this.filters.sortDirection !== this.defaultFilters.sortDirection ? 1 : 0;
+
+    return count;
+  }
+
+  get selectedContentTypeLabel(): string {
+    if (!this.filters.contentTypes.length) {
+      return 'Р›СЋР±РѕР№';
+    }
+
+    if (this.filters.contentTypes.length === 1) {
+      return this.getTypeLabel(this.filters.contentTypes[0]);
+    }
+
+    return `${this.filters.contentTypes.length} РІС‹Р±СЂР°РЅРѕ`;
+  }
+
+  get genresSummary(): string {
+    return this.getSelectionSummary(this.filters.genres.length);
+  }
+
+  get countriesSummary(): string {
+    return this.getSelectionSummary(this.filters.countries.length);
+  }
+
+  get ratingSummary(): string {
+    const from: number | null = this.getRatingBound(this.filters.ratingFrom);
+    const to: number | null = this.getRatingBound(this.filters.ratingTo);
+    const hasWithRating: boolean = this.filters.ratingPresence.includes('WITH_RATING');
+    const hasWithoutRating: boolean = this.filters.ratingPresence.includes('WITHOUT_RATING');
+    const ratingPresenceSummary: string | null = this.getRatingPresenceSummary(hasWithRating, hasWithoutRating);
+    const rangeSummary: string | null = this.getRatingRangeSummary(from, to);
+
+    if (!ratingPresenceSummary && !rangeSummary) {
+      return 'Р›СЋР±РѕР№';
+    }
+
+    if (ratingPresenceSummary && rangeSummary) {
+      return `${ratingPresenceSummary}, ${rangeSummary}`;
+    }
+
+    return ratingPresenceSummary || rangeSummary || 'Р›СЋР±РѕР№';
+  }
+
+  get sortSummary(): string {
+    return this.getSortLabel(this.filters.sortBy, this.filters.sortDirection);
+  }
+
+  get hasActiveRatingRange(): boolean {
+    return this.filters.ratingFrom !== '' || this.filters.ratingTo !== '';
+  }
+
+  get hasOnlyWithRating(): boolean {
+    return this.filters.ratingPresence.length === 1 && this.filters.ratingPresence[0] === 'WITH_RATING';
+  }
+
+  get hasOnlyWithoutRating(): boolean {
+    return this.filters.ratingPresence.length === 1 && this.filters.ratingPresence[0] === 'WITHOUT_RATING';
+  }
+
+  get isRatingRangeDisabled(): boolean {
+    return this.hasOnlyWithoutRating;
+  }
+
+  get isAnyRatingActive(): boolean {
+    return !this.filters.ratingPresence.length && !this.hasActiveRatingRange;
+  }
+
+  get ratingFromValue(): number {
+    return this.getRatingBound(this.filters.ratingFrom) ?? this.ratingMin;
+  }
+
+  get ratingToValue(): number {
+    return this.getRatingBound(this.filters.ratingTo) ?? this.ratingMax;
+  }
+
+  get ratingStartPercent(): number {
+    return ((this.ratingFromValue - this.ratingMin) / (this.ratingMax - this.ratingMin)) * 100;
+  }
+
+  get ratingEndPercent(): number {
+    return ((this.ratingToValue - this.ratingMin) / (this.ratingMax - this.ratingMin)) * 100;
+  }
+
   ngOnInit(): void {
+    this.restoreFilters();
+
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (query: string) => {
+          this.searchQuery = query;
+          this.loadMovies(true);
+        },
+      });
+
+    this.loadDictionaries();
+
     this.route.paramMap
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
@@ -59,6 +235,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.movies = [];
           this.ownerNickname = '';
           this.total = 0;
+          this.addingMovieIds = new Set<string>();
           this.ss.setFriendMoviesOwnerNickname('');
           this.ss.setFriendMoviesTotal(null);
           this.loadMovies(true);
@@ -70,6 +247,116 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
     this.ss.setFriendMoviesOwnerNickname('');
     this.ss.setFriendMoviesTotal(null);
     super.ngOnDestroy();
+  }
+
+  onSearchInput(value: string): void {
+    this.draftSearchQuery = value;
+    this.search$.next(value.trim());
+  }
+
+  clearSearch(): void {
+    this.draftSearchQuery = '';
+    this.search$.next('');
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+  }
+
+  toggleContentType(type: MovieContentType): void {
+    this.filters.contentTypes = this.toggleItem(this.filters.contentTypes, type);
+    this.persistFilters();
+  }
+
+  toggleGenre(genre: string): void {
+    this.filters.genres = this.toggleItem(this.filters.genres, genre);
+    this.persistFilters();
+  }
+
+  toggleCountry(country: string): void {
+    this.filters.countries = this.toggleItem(this.filters.countries, country);
+    this.persistFilters();
+  }
+
+  toggleRatingPresence(presence: MovieRatingPresence): void {
+    this.filters.ratingPresence = this.toggleItem(this.filters.ratingPresence, presence);
+
+    if (this.hasOnlyWithoutRating) {
+      this.filters.ratingFrom = '';
+      this.filters.ratingTo = '';
+    }
+
+    this.persistFilters();
+  }
+
+  clearRatingFilter(): void {
+    this.filters.ratingPresence = [];
+    this.filters.ratingFrom = '';
+    this.filters.ratingTo = '';
+    this.persistFilters();
+  }
+
+  updateRatingFrom(value: string): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
+    const nextFrom: number = this.clampRating(Number(value), this.ratingMin, this.ratingToValue);
+    this.filters.ratingFrom = this.stringifyRating(nextFrom);
+    this.persistFilters();
+  }
+
+  updateRatingTo(value: string): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
+    const nextTo: number = this.clampRating(Number(value), this.ratingFromValue, this.ratingMax);
+    this.filters.ratingTo = this.stringifyRating(nextTo);
+    this.persistFilters();
+  }
+
+  applyFilters(): void {
+    this.loadMovies(true);
+    if (this.isPhone) {
+      this.showFilters = false;
+    }
+  }
+
+  resetFilters(): void {
+    this.filters = {...this.defaultFilters};
+    this.expandedFilterSection = null;
+    this.persistFilters();
+    this.loadMovies(true);
+  }
+
+  updateSort(sortBy: MovieSortBy, sortDirection: SortDirection): void {
+    this.filters.sortBy = sortBy;
+    this.filters.sortDirection = sortDirection;
+    this.persistFilters();
+  }
+
+  toggleFilterSection(section: FriendMovieFilterSection): void {
+    this.expandedFilterSection = this.expandedFilterSection === section ? null : section;
+  }
+
+  isFilterSectionExpanded(section: FriendMovieFilterSection): boolean {
+    return this.expandedFilterSection === section;
+  }
+
+  applyRatingPreset(from: number | null, to: number | null): void {
+    if (this.isRatingRangeDisabled) {
+      return;
+    }
+
+    this.filters.ratingFrom = from === null ? '' : this.stringifyRating(from);
+    this.filters.ratingTo = to === null ? '' : this.stringifyRating(to);
+    this.persistFilters();
+  }
+
+  isRatingPresetActive(from: number | null, to: number | null): boolean {
+    return this.filters.ratingFrom === (from === null ? '' : this.stringifyRating(from))
+      && this.filters.ratingTo === (to === null ? '' : this.stringifyRating(to));
   }
 
   retry(): void {
@@ -106,10 +393,10 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.movies = this.movies.map((item: SharedMovieListItemVm) => item.movieId === movie.movieId
             ? {...item, isInMyList: true}
             : item);
-          this.toastService.success('Фильм добавлен в ваш список');
+          this.toastService.success('Р¤РёР»СЊРј РґРѕР±Р°РІР»РµРЅ РІ РІР°С€ СЃРїРёСЃРѕРє');
         },
         error: () => {
-          this.toastService.error('Не удалось добавить фильм в ваш список');
+          this.toastService.error('РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ С„РёР»СЊРј РІ РІР°С€ СЃРїРёСЃРѕРє');
         },
       });
   }
@@ -118,17 +405,38 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
     return this.addingMovieIds.has(movieId);
   }
 
-  getTypeLabel(code: string): string {
-    return this.fallbackContentTypes.find((item: MovieContentTypeDictionaryItem) => item.code === code)?.name || code;
+  getTypeLabel(code: MovieContentType): string {
+    return this.dictionaries.contentTypes.find((item: MovieContentTypeDictionaryItem) => item.code === code)?.name || code;
   }
 
   trackByMovieId(_: number, movie: SharedMovieListItemVm): string {
     return movie.movieId;
   }
 
+  private loadDictionaries(): void {
+    this.dictionariesLoading = true;
+    this.ms.getDictionaries()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.dictionariesLoading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (dictionaries: MovieDictionariesResponse) => {
+          this.dictionaries = dictionaries;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toastService.error('РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРїСЂР°РІРѕС‡РЅРёРєРё РєРёРЅРѕ');
+        },
+      });
+  }
+
   private loadMovies(reset: boolean): void {
     if (!this.friendUserId) {
-      this.errorMessage = 'Пользователь не найден';
+      this.errorMessage = 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ';
       this.ss.setFriendMoviesOwnerNickname('');
       this.ss.setFriendMoviesTotal(null);
       this.cdr.markForCheck();
@@ -144,7 +452,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
       this.loadingMore = true;
     }
 
-    this.ms.getFriendMovies(this.friendUserId, this.currentPage, this.pageSize)
+    this.ms.getFriendMovies(this.friendUserId, this.buildFilter())
       .pipe(
         takeUntil(this.unsubscribe$),
         finalize(() => {
@@ -163,7 +471,7 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           this.ss.setFriendMoviesTotal(response.total);
         },
         error: () => {
-          this.errorMessage = 'Не удалось загрузить список фильмов друга';
+          this.errorMessage = 'РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРїРёСЃРѕРє С„РёР»СЊРјРѕРІ РґСЂСѓРіР°';
           this.ss.setFriendMoviesOwnerNickname('');
           this.ss.setFriendMoviesTotal(null);
           if (!reset) {
@@ -171,5 +479,220 @@ export class FriendMoviesComponent extends BaseComponent implements OnInit {
           }
         },
       });
+  }
+
+  private buildFilter(): MovieSearchFilter {
+    const ratingFrom: number | null = this.filters.ratingFrom === '' ? null : Number(this.filters.ratingFrom);
+    const ratingTo: number | null = this.filters.ratingTo === '' ? null : Number(this.filters.ratingTo);
+
+    return {
+      query: this.searchQuery || null,
+      contentTypes: this.filters.contentTypes,
+      genres: this.filters.genres,
+      countries: this.filters.countries,
+      ratingPresence: this.filters.ratingPresence,
+      ratingFrom: Number.isFinite(ratingFrom) ? ratingFrom : null,
+      ratingTo: Number.isFinite(ratingTo) ? ratingTo : null,
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      sortBy: this.filters.sortBy,
+      sortDirection: this.filters.sortDirection,
+    };
+  }
+
+  private toggleItem<T>(items: T[], value: T): T[] {
+    return items.includes(value)
+      ? items.filter((item: T) => item !== value)
+      : [...items, value];
+  }
+
+  private getSelectionSummary(count: number): string {
+    if (!count) {
+      return 'Р›СЋР±РѕР№';
+    }
+
+    if (count === 1) {
+      return '1 РІС‹Р±СЂР°РЅРѕ';
+    }
+
+    return `${count} РІС‹Р±СЂР°РЅРѕ`;
+  }
+
+  private getRatingPresenceSummary(hasWithRating: boolean, hasWithoutRating: boolean): string | null {
+    if (hasWithRating && hasWithoutRating) {
+      return 'РЎ РѕС†РµРЅРєРѕР№ Рё Р±РµР·';
+    }
+
+    if (hasWithRating) {
+      return 'РЎ РѕС†РµРЅРєРѕР№';
+    }
+
+    if (hasWithoutRating) {
+      return 'Р‘РµР· РѕС†РµРЅРєРё';
+    }
+
+    return null;
+  }
+
+  private getRatingRangeSummary(from: number | null, to: number | null): string | null {
+    if (from === null && to === null) {
+      return null;
+    }
+
+    if (from !== null && to !== null) {
+      return `${this.formatRatingValue(from)} - ${this.formatRatingValue(to)}`;
+    }
+
+    if (from !== null) {
+      return `${this.formatRatingValue(from)}+`;
+    }
+
+    return `Р”Рѕ ${this.formatRatingValue(to ?? this.ratingMax)}`;
+  }
+
+  private getSortLabel(sortBy: MovieSortBy, sortDirection: SortDirection): string {
+    if (sortBy === 'TITLE' && sortDirection === 'ASC') {
+      return 'РџРѕ РЅР°Р·РІР°РЅРёСЋ';
+    }
+
+    if (sortBy === 'RATING' && sortDirection === 'DESC') {
+      return 'РџРѕ СЂРµР№С‚РёРЅРіСѓ';
+    }
+
+    return 'РЎРЅР°С‡Р°Р»Р° РЅРѕРІС‹Рµ';
+  }
+
+  private getRatingBound(value: string): number | null {
+    if (value === '') {
+      return null;
+    }
+
+    const parsed: number = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private clampRating(value: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) {
+      return min;
+    }
+
+    return Math.min(max, Math.max(min, value));
+  }
+
+  private formatRatingValue(value: number): string {
+    return value.toFixed(1);
+  }
+
+  private stringifyRating(value: number): string {
+    return value.toFixed(1);
+  }
+
+  private restoreFilters(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const rawValue: string | null = window.localStorage.getItem(this.filtersStorageKey);
+    if (!rawValue) {
+      return;
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(rawValue);
+      this.filters = this.sanitizeFilters(parsed);
+    } catch {
+      this.filters = {...this.defaultFilters};
+      window.localStorage.removeItem(this.filtersStorageKey);
+    }
+  }
+
+  private persistFilters(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.localStorage.setItem(this.filtersStorageKey, JSON.stringify(this.filters));
+  }
+
+  private sanitizeFilters(value: unknown): FriendMovieFiltersStorageState {
+    if (!value || typeof value !== 'object') {
+      return {...this.defaultFilters};
+    }
+
+    const source: Partial<FriendMovieFiltersStorageState> = value as Partial<FriendMovieFiltersStorageState>;
+    const sortBy: MovieSortBy = this.isMovieSortBy(source.sortBy) ? source.sortBy : this.defaultFilters.sortBy;
+    const sortDirection: SortDirection = this.isSortDirection(source.sortDirection) ? source.sortDirection : this.defaultFilters.sortDirection;
+    const ratingFrom: string = this.normalizeStoredRating(source.ratingFrom);
+    const ratingTo: string = this.normalizeStoredRating(source.ratingTo);
+    const normalizedRange: { ratingFrom: string; ratingTo: string } = this.normalizeRatingRange(ratingFrom, ratingTo);
+
+    return {
+      contentTypes: Array.isArray(source.contentTypes)
+        ? source.contentTypes.filter((item: unknown): item is MovieContentType => this.isMovieContentType(item))
+        : [],
+      genres: Array.isArray(source.genres)
+        ? source.genres.filter((item: unknown): item is string => typeof item === 'string')
+        : [],
+      countries: Array.isArray(source.countries)
+        ? source.countries.filter((item: unknown): item is string => typeof item === 'string')
+        : [],
+      ratingPresence: Array.isArray(source.ratingPresence)
+        ? source.ratingPresence.filter((item: unknown): item is MovieRatingPresence => this.isMovieRatingPresence(item))
+        : [],
+      ratingFrom: normalizedRange.ratingFrom,
+      ratingTo: normalizedRange.ratingTo,
+      sortBy,
+      sortDirection,
+    };
+  }
+
+  private normalizeStoredRating(value: unknown): string {
+    if (typeof value !== 'string' || value === '') {
+      return '';
+    }
+
+    const parsed: number = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return '';
+    }
+
+    return this.stringifyRating(this.clampRating(parsed, this.ratingMin, this.ratingMax));
+  }
+
+  private normalizeRatingRange(ratingFrom: string, ratingTo: string): { ratingFrom: string; ratingTo: string } {
+    const fromValue: number | null = this.getRatingBound(ratingFrom);
+    const toValue: number | null = this.getRatingBound(ratingTo);
+
+    if (fromValue === null || toValue === null || fromValue <= toValue) {
+      return {ratingFrom, ratingTo};
+    }
+
+    return {
+      ratingFrom: this.stringifyRating(toValue),
+      ratingTo: this.stringifyRating(fromValue),
+    };
+  }
+
+  private isMovieContentType(value: unknown): value is MovieContentType {
+    return value === 'MOVIE'
+      || value === 'CARTOON'
+      || value === 'SERIES'
+      || value === 'ANIME'
+      || value === 'DORAMA';
+  }
+
+  private isMovieRatingPresence(value: unknown): value is MovieRatingPresence {
+    return value === 'WITH_RATING' || value === 'WITHOUT_RATING';
+  }
+
+  private isMovieSortBy(value: unknown): value is MovieSortBy {
+    return value === 'TITLE'
+      || value === 'RATING'
+      || value === 'CREATED_AT'
+      || value === 'UPDATED_AT';
+  }
+
+  private isSortDirection(value: unknown): value is SortDirection {
+    return value === 'ASC' || value === 'DESC';
   }
 }
