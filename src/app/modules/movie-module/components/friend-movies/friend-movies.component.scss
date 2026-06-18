@@ -1,12 +1,15 @@
 @import '../../../../styles/shared-styles';
 
 .friend-movies {
-  padding: 14px 10px 18px;
+  padding: 16px;
   color: $color-text-main;
 }
 
 .friend-movies-toolbar,
-.friend-movies-filters,
+.friend-movies-filters {
+  @include ui-glass-surface(18px);
+}
+
 .friend-movies-card,
 .friend-movies-state,
 .friend-movies-skeleton {
@@ -449,34 +452,36 @@
 
 @media only screen and (max-width: 767px) {
   .friend-movies {
-    padding: 12px 8px 16px;
-  }
-
-  .friend-movies-toolbar {
     padding: 12px;
   }
 
-  .friend-movies-filter-toggle {
+  .friend-movies-search-row {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'title icon'
-      'value value';
-    align-items: start;
   }
 
-  .friend-movies-filter-toggle__title {
-    grid-area: title;
+  .friend-movies-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
+  .friend-movies-filter-toggle {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .friend-movies-filter-toggle__title,
   .friend-movies-filter-toggle__value {
-    grid-area: value;
-    text-align: left;
-    white-space: normal;
+    font-size: 15px;
   }
 
-  .friend-movies-filter-toggle__icon {
-    grid-area: icon;
-    justify-self: end;
+  .friend-movies-filter-content {
+    padding: 0 12px 12px;
+  }
+
+  .friend-movies-secondary-button,
+  .friend-movies-primary-button {
+    width: 100%;
   }
 
   .friend-movies-card {
