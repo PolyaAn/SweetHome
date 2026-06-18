@@ -23,12 +23,14 @@
           </div>
         </div>
 
-        <div class="friend-movies-card__meta">
-          <span class="friend-movies-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
-        </div>
-
         <div class="friend-movies-card__footer">
-          <p class="friend-movies-card__country" *ngIf="movie.country">{{ movie.country }}</p>
+          <div class="friend-movies-card__details">
+            <div class="friend-movies-card__meta">
+              <span class="friend-movies-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
+            </div>
+
+            <p class="friend-movies-card__country" *ngIf="movie.country">{{ movie.country }}</p>
+          </div>
 
           <button
             type="button"
