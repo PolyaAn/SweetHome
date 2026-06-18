@@ -447,14 +447,16 @@
 
 .movie-card__country {
   margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   color: $alpha-sand-74;
   font-size: 13px;
 }
 
-.movie-card__actions {
-  margin-top: 6px;
-  display: flex;
-  justify-content: flex-end;
+.movie-card__country-label {
+  min-width: 0;
 }
 
 .movie-card__toggle {
@@ -557,7 +559,7 @@
 
 .movie-card--grid .movie-card__country {
   grid-area: country;
-  justify-self: end;
+  justify-self: stretch;
   align-self: end;
   margin: 4px 0 0;
   color: $alpha-sand-74;
@@ -633,7 +635,7 @@
   }
 
   .movie-card--grid .movie-card__country {
-    justify-self: end;
+    justify-self: stretch;
     margin-top: 4px;
   }
 }

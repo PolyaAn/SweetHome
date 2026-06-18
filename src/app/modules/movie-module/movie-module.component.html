@@ -256,9 +256,8 @@
         <span class="movie-card__chip" *ngFor="let genre of movie.genres | slice:0:4">{{ genre }}</span>
       </div>
 
-      <p class="movie-card__country" *ngIf="movie.country">{{ movie.country }}</p>
-
-      <div class="movie-card__actions" *ngIf="hasComment(movie)">
+      <div class="movie-card__country" *ngIf="movie.country || hasComment(movie)">
+        <span class="movie-card__country-label" *ngIf="movie.country">{{ movie.country }}</span>
         <button
           type="button"
           class="movie-card__toggle"
