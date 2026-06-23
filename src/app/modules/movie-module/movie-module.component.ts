@@ -270,7 +270,7 @@ export class MovieModuleComponent extends BaseComponent implements OnInit {
   }
 
   toggleRatingPresence(presence: MovieRatingPresence): void {
-    this.filters.ratingPresence = this.toggleItem(this.filters.ratingPresence, presence);
+    this.filters.ratingPresence = this.filters.ratingPresence.includes(presence) ? [] : [presence];
 
     if (this.hasOnlyWithoutRating) {
       this.filters.ratingFrom = '';
