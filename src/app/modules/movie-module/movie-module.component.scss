@@ -431,6 +431,10 @@
   color: #0c171f;
 }
 
+.movie-card__rating-value {
+  font-weight: 700;
+}
+
 .movie-card__meta {
   @include ui-tags-wrap(6px);
   margin-top: 2px;

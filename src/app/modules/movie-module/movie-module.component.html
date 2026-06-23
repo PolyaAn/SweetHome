@@ -248,7 +248,7 @@
         <h3>{{ movie.title }}</h3>
         <div class="movie-card__badge">
           <span>{{ getTypeLabel(movie.contentType) }}</span>
-          <span class="movie-card__rating" *ngIf="movie.rating !== null && movie.rating !== undefined">| {{ movie.rating }}</span>
+          <span class="movie-card__rating" *ngIf="movie.rating !== null && movie.rating !== undefined">| <span class="movie-card__rating-value">{{ movie.rating }}</span></span>
         </div>
       </div>
 
