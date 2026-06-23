@@ -434,7 +434,7 @@
 
 .movie-card__meta {
   @include ui-tags-wrap(6px);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .movie-card__chip {
@@ -545,7 +545,7 @@
 
 .movie-card--grid .movie-card__meta {
   grid-area: genres;
-  margin-top: 4px;
+  margin-top: 2px;
   gap: 6px;
 }
 
