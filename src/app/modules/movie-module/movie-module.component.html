@@ -259,6 +259,7 @@
       <div class="movie-card__country" *ngIf="movie.country || hasComment(movie)">
         <span class="movie-card__country-label" *ngIf="movie.country">{{ movie.country }}</span>
         <button
+          *ngIf="hasComment(movie)"
           type="button"
           class="movie-card__toggle"
           [attr.aria-expanded]="isMovieExpanded(movie.movieId)"
