@@ -495,8 +495,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'head badge'
-    'genres badge'
-    'country country';
+    'genres country';
   align-items: start;
   gap: 4px 12px;
   padding: 8px 12px;
@@ -547,6 +546,7 @@
   grid-area: genres;
   margin-top: 2px;
   gap: 6px;
+  align-self: center;
 }
 
 .movie-card--grid .movie-card__chip {
@@ -559,8 +559,8 @@
 
 .movie-card--grid .movie-card__country {
   grid-area: country;
-  justify-self: stretch;
-  align-self: end;
+  justify-self: end;
+  align-self: center;
   margin: 2px 0 0;
   color: $alpha-sand-74;
   font-size: 13px;
