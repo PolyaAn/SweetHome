@@ -416,12 +416,11 @@
   max-width: 100%;
   gap: 4px;
   align-items: center;
-  min-height: 22px;
+  line-height: 22px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid $alpha-white-24;
-  background: $alpha-white-06;
-  color: $alpha-sand-72;
+  background: #fddba9;
+  color: #0a161f;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
@@ -535,12 +534,6 @@
   grid-area: badge;
   align-self: start;
   justify-self: end;
-  min-height: 22px;
-  padding: 0 10px;
-  font-size: 12px;
-  color: $alpha-sand-72;
-  background: $alpha-white-06;
-  border-color: $alpha-white-24;
 }
 
 .movie-card--grid .movie-card__meta {
