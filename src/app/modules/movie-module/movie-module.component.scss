@@ -522,8 +522,11 @@
 
 .movie-card--grid .movie-card__head {
   grid-area: head;
-  display: block;
+  display: flex;
   min-width: 0;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .movie-card--grid .movie-card__head h3 {
