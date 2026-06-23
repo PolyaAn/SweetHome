@@ -259,7 +259,7 @@
       <div class="movie-card__country" *ngIf="movie.country || hasComment(movie)">
         <span class="movie-card__country-label" *ngIf="movie.country">{{ movie.country }}</span>
         <button
-          *ngIf="hasComment(movie)"
+          *ngIf="hasComment(movie) && viewMode !== 'grid'"
           type="button"
           class="movie-card__toggle"
           [attr.aria-expanded]="isMovieExpanded(movie.movieId)"
@@ -271,7 +271,7 @@
 
       <div
         class="movie-card__comment"
-        *ngIf="hasComment(movie) && isMovieExpanded(movie.movieId)"
+        *ngIf="hasComment(movie) && isMovieExpanded(movie.movieId) && viewMode !== 'grid'"
         (click)="$event.stopPropagation()">
         {{ getMovieComment(movie) }}
       </div>
