@@ -21,6 +21,7 @@
 
   <ng-container *ngIf="tab === 'items'">
     <section class="wardrobe-toolbar">
+      <div class="wardrobe-search-row">
       <label class="wardrobe-search">
         <mat-icon fontIcon="search" aria-hidden="true"></mat-icon>
         <input type="search" [value]="searchQuery" (input)="onSearch($any($event.target).value)"
@@ -29,6 +30,10 @@
           <mat-icon fontIcon="close"></mat-icon>
         </button>
       </label>
+      <button type="button" class="wardrobe-add" (click)="addItem()" aria-label="Добавить вещь" title="Добавить вещь">
+        <mat-icon fontIcon="add" aria-hidden="true"></mat-icon>
+      </button>
+      </div>
 
       <div class="wardrobe-chips" role="group" aria-label="Категории">
         <button type="button" class="wardrobe-chip" [class.wardrobe-chip--active]="!category" (click)="selectCategory(null)">
@@ -70,14 +75,14 @@
 
     <section class="wardrobe-grid" *ngIf="!itemsError && items.length" [class.wardrobe-grid--refreshing]="itemsLoading">
       <article class="wardrobe-card" *ngFor="let item of items; trackBy: trackById"
-               tabindex="0" role="button" [attr.aria-label]="item.name"
-               (click)="openItem(item)" (keydown.enter)="openItem(item)">
+               tabindex="0" [attr.aria-label]="item.name + ', ' + categoryName(item.category) + '. Открыть'"
+               (click)="openItem(item)" (keydown.enter)="onCardKey($event, item)" (keydown.space)="onCardKey($event, item)">
         <div class="wardrobe-card__photo">
           <app-wardrobe-item-photo [item]="item" [accentHex]="colorOf(item.colors[0])?.hex ?? null"></app-wardrobe-item-photo>
           <button type="button" class="wardrobe-card__fav" [class.wardrobe-card__fav--on]="item.isFavorite"
                   [attr.aria-pressed]="item.isFavorite"
                   [attr.aria-label]="item.isFavorite ? 'Убрать из любимых' : 'В любимые'"
-                  (click)="toggleFavorite($event, item)" (keydown.enter)="$event.stopPropagation()">
+                  (click)="toggleFavorite($event, item)" (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
             <mat-icon [fontIcon]="item.isFavorite ? 'favorite' : 'favorite_border'"></mat-icon>
           </button>
         </div>

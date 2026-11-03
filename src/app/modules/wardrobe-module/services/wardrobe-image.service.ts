@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
+import { catchError, filter, finalize, map, Observable, of, shareReplay, Subscription } from 'rxjs';
 import { WardrobeItem } from '../models/wardrobe.model';
 import { WardrobeApiService } from './wardrobe-api.service';
 
@@ -12,7 +13,20 @@ export class WardrobeImageService implements OnDestroy {
   private readonly urls: Map<string, string> = new Map();
   private readonly pending: Map<string, Observable<string | null>> = new Map();
 
-  constructor(private api: WardrobeApiService) {
+  private readonly navigation: Subscription;
+
+  constructor(
+    private api: WardrobeApiService,
+    router: Router,
+  ) {
+    // Сервис живёт в ленивом модуле, который Angular не уничтожает: освобождаем фото, когда уходим из гардероба.
+    this.navigation = router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        if (!event.urlAfterRedirects.startsWith('/wardrobe')) {
+          this.clear();
+        }
+      });
   }
 
   getUrl(item: Pick<WardrobeItem, 'id' | 'hasImage' | 'imageUpdatedAt'>): Observable<string | null> {
@@ -58,6 +72,11 @@ export class WardrobeImageService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.navigation.unsubscribe();
+    this.clear();
+  }
+
+  private clear(): void {
     this.urls.forEach((url: string) => URL.revokeObjectURL(url));
     this.urls.clear();
   }

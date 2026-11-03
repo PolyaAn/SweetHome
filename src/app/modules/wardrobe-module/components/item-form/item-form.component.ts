@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, finalize, Observable, of, Subject, switchMap, takeUntil, catchError } from 'rxjs';
+import { catchError, debounceTime, finalize, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { WardrobePendingChanges } from '../../guards/wardrobe-form-deactivate.guard';
@@ -53,6 +54,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     private images: WardrobeImageService,
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -69,6 +71,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
 
   form: ItemFormState = this.emptyForm();
   errors: Partial<Record<keyof ItemFormState | 'file', string>> = {};
+  classifyFailed: boolean = false;
   submitted: boolean = false;
   saving: boolean = false;
   deleting: boolean = false;
@@ -115,6 +118,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   }
 
   get classificationText(): string {
+    if (this.classifyFailed) {
+      return 'Автоопределение сейчас недоступно — заполните поля вручную';
+    }
+
     const result: WardrobeClassification | null = this.classification;
     if (!result || !result.category) {
       return this.form.name.trim().length >= 3 ? 'Не удалось определить категорию — выберите вручную' : '';
@@ -223,11 +230,13 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       ? this.form.seasons.filter((x: WardrobeSeason) => x !== code)
       : [...this.form.seasons, code];
     this.touchManual('seasons');
+    this.clearError('seasons');
   }
 
   setAllSeasons(): void {
     this.form.seasons = [];
     this.touchManual('seasons');
+    this.clearError('seasons');
   }
 
   toggleStyle(code: WardrobeStyle): void {
@@ -241,6 +250,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   setWarmth(level: number): void {
     this.form.warmth = level;
     this.touchManual('warmth');
+    this.clearError('warmth');
   }
 
   toggleFavorite(): void {
@@ -310,12 +320,16 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     this.dominantHex = null;
     this.photoAction = this.item?.hasImage ? 'remove' : 'keep';
     this.markDirty();
+    // Цвет мог прийти с фото — пересчитываем автозаполнение уже без него.
+    this.scheduleClassification(true);
   }
 
   // ---------- действия ----------
 
   submit(): void {
     this.submitted = true;
+    // Ошибки сервера с прошлой попытки сбрасываем: клиентская проверка выставит актуальные заново.
+    this.errors = {file: this.errors.file};
     this.validateAll();
     if (this.hasErrors() || this.saving) {
       this.cdr.markForCheck();
@@ -343,21 +357,24 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       .subscribe({
         next: ({item, photoFailed}: { item: WardrobeItem; photoFailed: boolean }) => {
           if (photoFailed) {
-            this.toast.warning('Вещь сохранена, но фото загрузить не удалось. Попробуйте сохранить ещё раз');
-            if (this.isEdit) {
-              this.item = item;
-              return;
+            // Остаёмся на странице с выбранным фото: вещь уже создана, повторное «Сохранить» дозагрузит фото.
+            this.toast.warning('Вещь сохранена, но фото загрузить не удалось. Нажмите «Сохранить» ещё раз');
+            if (!this.isEdit) {
+              this.itemId = item.id;
+              this.location.replaceState(`/wardrobe/items/${encodeURIComponent(item.id)}/edit`);
             }
-            this.allowLeave = true;
-            this.router.navigate(['/wardrobe/items', item.id, 'edit'], {replaceUrl: true});
+            this.item = item;
+            this.manual = new Set<AutoField>(['category', 'colors', 'seasons', 'styles', 'warmth']);
+            this.auto.clear();
             return;
           }
 
+          const wasEdit: boolean = !!this.item;
           this.allowLeave = true;
           this.dirty = false;
 
-          this.toast.success(this.isEdit ? 'Изменения сохранены' : 'Вещь добавлена в гардероб');
-          this.router.navigate(['/wardrobe']);
+          this.toast.success(wasEdit ? 'Изменения сохранены' : 'Вещь добавлена в гардероб');
+          this.leave();
         },
         error: (error: { error?: WardrobeApiErrorResponse; status?: number }) => {
           if (error.status === 404) {
@@ -390,7 +407,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
           this.images.forget(this.itemId as string);
           this.allowLeave = true;
           this.toast.success('Вещь удалена');
-          this.router.navigate(['/wardrobe']);
+          this.leave();
         },
         error: () => this.toast.error('Не удалось удалить вещь'),
       });
@@ -465,12 +482,25 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       });
   }
 
+  /** Возврат после сохранения/удаления: назад по истории, чтобы «Назад» не открывал форму снова. */
+  private leave(): void {
+    const navigationId: number = (this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1;
+    if (navigationId > 1) {
+      this.location.back();
+      return;
+    }
+
+    this.router.navigate(['/wardrobe'], {replaceUrl: true});
+  }
+
   private scheduleClassification(force: boolean = false): void {
     if (this.manual.size === 5 && !force) {
       return;
     }
     if (this.form.name.trim().length < 2 && !this.dominantHex) {
       this.classification = null;
+      this.classifyFailed = false;
+      this.resetAutoFields();
       return;
     }
     this.classifying = true;
@@ -485,33 +515,40 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     }
 
     return this.api.classify(name.slice(0, 120), notes ? notes.slice(0, 1000) : null, this.dominantHex)
-      .pipe(catchError(() => of(null)));
+      .pipe(
+        tap(() => this.classifyFailed = false),
+        catchError(() => {
+          this.classifyFailed = true;
+          return of(null);
+        }),
+      );
   }
 
   private applyClassification(result: WardrobeClassification, force: boolean): void {
     this.classification = result;
     const canSet = (field: AutoField): boolean => force || !this.manual.has(field);
 
-    if (result.category && canSet('category')) {
-      this.form.category = result.category;
-      this.auto.add('category');
-    }
-    if (result.colors.length && canSet('colors')) {
-      this.form.colors = result.colors.slice(0, MAX_COLORS);
-      this.auto.add('colors');
-    }
-    if (result.category && canSet('seasons')) {
-      this.form.seasons = [...result.seasons];
-      this.auto.add('seasons');
-    }
-    if (result.styles.length && canSet('styles')) {
-      this.form.styles = [...result.styles];
-      this.auto.add('styles');
-    }
-    if (result.warmth && canSet('warmth')) {
-      this.form.warmth = result.warmth;
-      this.auto.add('warmth');
-    }
+    const defaults: ItemFormState = this.emptyForm();
+    // Поле с автозначением, для которого новая классификация ничего не дала, возвращаем к умолчанию,
+    // иначе «Штука» осталась бы синими джинсами от предыдущего названия.
+    const assign = <K extends AutoField>(field: K, value: ItemFormState[K] | null, has: boolean): void => {
+      if (!canSet(field)) {
+        return;
+      }
+      if (has) {
+        this.form[field] = value as ItemFormState[K];
+        this.auto.add(field);
+      } else if (this.auto.has(field)) {
+        this.form[field] = defaults[field];
+        this.auto.delete(field);
+      }
+    };
+
+    assign('category', result.category, !!result.category);
+    assign('colors', result.colors.slice(0, MAX_COLORS), result.colors.length > 0);
+    assign('seasons', [...result.seasons], !!result.category);
+    assign('styles', [...result.styles], result.styles.length > 0);
+    assign('warmth', result.warmth, !!result.warmth);
 
     if (force) {
       this.markDirty();
@@ -626,6 +663,20 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     this.errors = next as typeof this.errors;
     this.focusFirstError();
     return true;
+  }
+
+  private resetAutoFields(): void {
+    const defaults: ItemFormState = this.emptyForm();
+    this.auto.forEach((field: AutoField) => {
+      (this.form as unknown as Record<AutoField, unknown>)[field] = defaults[field];
+    });
+    this.auto.clear();
+  }
+
+  private clearError(field: keyof ItemFormState): void {
+    if (this.errors[field]) {
+      this.errors = {...this.errors, [field]: undefined};
+    }
   }
 
   private touchManual(field: AutoField): void {

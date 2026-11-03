@@ -69,6 +69,21 @@
   flex: none;
 }
 
+.picker__step--sign {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.picker__submit {
+  grid-column: 1 / -1;
+}
+
+.picker__for {
+  font-size: 14px;
+  font-weight: 500;
+  color: $alpha-sand-72;
+}
+
 .picker__temp-input {
   position: relative;
   flex: 1;

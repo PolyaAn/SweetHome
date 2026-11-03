@@ -4,7 +4,7 @@
       <h3 *ngIf="title">{{ title }}</h3>
       <p *ngIf="subtitle">{{ subtitle }}</p>
     </div>
-    <span class="outfit__score" *ngIf="score !== null" [attr.aria-label]="'Оценка ' + score + ' из 100'">{{ score }}</span>
+    <span class="outfit__score" *ngIf="score !== null" role="img" [attr.aria-label]="'Оценка ' + score + ' из 100'" [title]="'Оценка ' + score + ' из 100'">{{ score }}</span>
   </header>
 
   <div class="outfit__items" [style.--count]="items.length">

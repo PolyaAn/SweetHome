@@ -102,6 +102,7 @@
                   [class.wf-chip--active]="form.seasons.includes(s.code)" [attr.aria-pressed]="form.seasons.includes(s.code)"
                   (click)="toggleSeason(s.code)">{{ s.name }}</button>
         </div>
+        <span class="item-form__error" *ngIf="errors.seasons" role="alert" data-invalid="true">{{ errors.seasons }}</span>
       </div>
 
       <div class="wf-field" [attr.data-invalid]="!!errors.styles">
@@ -124,6 +125,7 @@
                   (click)="setWarmth(w.level)">{{ w.level }}</button>
         </div>
         <span class="wf-hint">{{ warmthName }}</span>
+        <span class="item-form__error" *ngIf="errors.warmth" role="alert" data-invalid="true">{{ errors.warmth }}</span>
       </div>
 
       <div class="item-form__row">
@@ -132,6 +134,7 @@
           <input type="text" name="brand" maxlength="100" autocomplete="off" [value]="form.brand"
                  (input)="onBrandInput($any($event.target).value)" [attr.data-invalid]="!!errors.brand" />
           <span class="item-form__error" *ngIf="errors.brand" role="alert">{{ errors.brand }}</span>
+          <span class="item-form__error" *ngIf="errors.isFavorite" role="alert">{{ errors.isFavorite }}</span>
         </label>
 
         <div class="wf-field wf-field--toggle">

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize, Observable, of, switchMap, takeUntil } from 'rxjs';
+import { catchError, debounceTime, finalize, map, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -16,8 +16,16 @@ import {
 import { WardrobeApiService } from '../../services/wardrobe-api.service';
 import { defaultTemperature } from '../../utils/wardrobe-format';
 
+interface SuggestParams {
+  occasion: WardrobeStyle;
+  temperature: number;
+  seed: number;
+}
+
 interface SuggestionView {
   suggestion: OutfitSuggestion;
+  /** Параметры, для которых получен именно этот вариант (а не текущие значения в форме). */
+  params: SuggestParams;
   name: string;
   savedOutfit: WardrobeOutfit | null;
   busy: boolean;
@@ -56,7 +64,10 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   error: string = '';
   response: OutfitSuggestResponse | null = null;
   views: SuggestionView[] = [];
+  /** Параметры показанных результатов: если пользователь уже поменял повод/погоду, подсказываем обновить. */
+  shownParams: SuggestParams | null = null;
   private seed: number = this.randomSeed();
+  private readonly request$: Subject<{ params: SuggestParams; immediate: boolean }> = new Subject();
 
   get temperatureLabel(): string {
     return `${this.temperature > 0 ? '+' : ''}${this.temperature}°C`;
@@ -72,6 +83,11 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     return 'Межсезонье — верхняя одежда по желанию';
   }
 
+  get isStale(): boolean {
+    return !!this.shownParams
+      && (this.shownParams.occasion !== this.occasion || this.shownParams.temperature !== this.temperature);
+  }
+
   ngOnInit(): void {
     this.api.getDictionaries()
       .pipe(takeUntil(this.unsubscribe$))
@@ -80,7 +96,47 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
         this.cdr.markForCheck();
       });
 
-    this.suggest();
+    // Каждый новый запрос отменяет предыдущий (switchMap): на экране всегда результат последних параметров.
+    this.request$
+      .pipe(
+        switchMap(({params, immediate}) => (immediate ? of(params) : of(params).pipe(debounceTime(350))).pipe(
+          tap(() => {
+            this.loading = true;
+            this.error = '';
+            this.cdr.markForCheck();
+          }),
+          switchMap((p: SuggestParams) => this.api.suggestOutfits({
+            occasion: p.occasion,
+            temperature: p.temperature,
+            count: 3,
+            seed: p.seed,
+          }).pipe(
+            map((response: OutfitSuggestResponse) => ({params: p, response, failed: false})),
+            catchError(() => of({params: p, response: null as OutfitSuggestResponse | null, failed: true})),
+          )),
+        )),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(({params, response, failed}) => {
+        this.loading = false;
+        if (failed || !response) {
+          this.error = 'Не удалось подобрать образы';
+        } else {
+          this.response = response;
+          this.shownParams = params;
+          this.views = response.outfits.map((suggestion: OutfitSuggestion, index: number) => ({
+            suggestion,
+            params,
+            name: this.defaultName(params, index),
+            savedOutfit: null,
+            busy: false,
+            worn: false,
+          }));
+        }
+        this.cdr.markForCheck();
+      });
+
+    this.suggest(false, true);
   }
 
   selectOccasion(style: WardrobeStyle): void {
@@ -88,7 +144,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
       return;
     }
     this.occasion = style;
-    this.suggest();
+    this.suggest(false);
   }
 
   setTemperature(value: number, refresh: boolean = true): void {
@@ -96,7 +152,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     this.temperature = clamped;
     this.temperatureText = String(clamped);
     if (refresh) {
-      this.suggest();
+      this.suggest(false);
     }
   }
 
@@ -108,61 +164,46 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     this.temperatureText = value;
   }
 
-  commitTemperature(): void {
+  commitTemperature(refresh: boolean = true): void {
     const parsed: number = Number(String(this.temperatureText).replace(',', '.').replace('−', '-'));
     if (!Number.isFinite(parsed) || String(this.temperatureText).trim() === '') {
       this.temperatureText = String(this.temperature);
       return;
     }
     if (Math.round(parsed) !== this.temperature) {
-      this.setTemperature(parsed);
+      this.setTemperature(parsed, refresh);
     } else {
       this.temperatureText = String(this.temperature);
     }
   }
 
-  more(): void {
-    this.seed = this.randomSeed();
-    this.suggest(false);
+  toggleSign(): void {
+    this.setTemperature(-this.temperature);
   }
 
-  suggest(resetSeed: boolean = false): void {
-    if (resetSeed) {
+  more(): void {
+    this.suggest(true, true);
+  }
+
+  /** «Подобрать»: сразу, с текущими параметрами. */
+  pick(): void {
+    this.commitTemperature(false);
+    this.suggest(true, true);
+  }
+
+  /**
+   * Изменения повода/погоды подбирают образы с небольшой задержкой (быстрые нажатия «−»/«+» дают один запрос),
+   * кнопки «Подобрать» и «Ещё варианты» — сразу.
+   */
+  suggest(newSeed: boolean = false, immediate: boolean = false): void {
+    if (newSeed) {
       this.seed = this.randomSeed();
     }
 
-    this.loading = true;
-    this.error = '';
-    this.cdr.markForCheck();
-
-    this.api.suggestOutfits({
-      occasion: this.occasion,
-      temperature: this.temperature,
-      count: 3,
-      seed: this.seed,
-    })
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }),
-      )
-      .subscribe({
-        next: (response: OutfitSuggestResponse) => {
-          this.response = response;
-          this.views = response.outfits.map((suggestion: OutfitSuggestion, index: number) => ({
-            suggestion,
-            name: this.defaultName(index),
-            savedOutfit: null,
-            busy: false,
-            worn: false,
-          }));
-        },
-        error: () => {
-          this.error = 'Не удалось подобрать образы';
-        },
-      });
+    this.request$.next({
+      params: {occasion: this.occasion, temperature: this.temperature, seed: this.seed},
+      immediate,
+    });
   }
 
   onNameInput(view: SuggestionView, value: string): void {
@@ -238,10 +279,10 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     }
 
     return this.api.createOutfit({
-      name: (view.name.trim() || this.defaultName(0)).slice(0, 80),
+      name: (view.name.trim() || this.defaultName(view.params, 0)).slice(0, 80),
       itemIds: view.suggestion.items.map((item: WardrobeItem) => item.id),
-      occasion: this.occasion,
-      temperature: this.temperature,
+      occasion: view.params.occasion,
+      temperature: view.params.temperature,
     }).pipe(
       switchMap((outfit: WardrobeOutfit) => {
         view.savedOutfit = outfit;
@@ -250,8 +291,9 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     );
   }
 
-  private defaultName(index: number): string {
-    const base: string = `${this.styleName(this.occasion)}, ${this.temperatureLabel}`;
+  private defaultName(params: SuggestParams, index: number): string {
+    const temperature: string = `${params.temperature > 0 ? '+' : ''}${params.temperature}°C`;
+    const base: string = `${this.styleName(params.occasion)}, ${temperature}`;
     return index ? `${base} · вариант ${index + 1}` : base;
   }
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
+import { debounceTime, finalize, Subject, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../components/base/base.component';
 import { ToastService } from '../../shared/services/toast.service';
 import {
@@ -58,6 +58,8 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
 
   private readonly search$: Subject<string> = new Subject<string>();
   private itemsRequestId: number = 0;
+  /** Строка поиска, с которой загружен текущий список (вместо distinctUntilChanged, который ломался после сброса). */
+  private loadedQuery: string = '';
 
   get totalItems(): number {
     return Object.values(this.counts).reduce((sum: number, value: number | undefined) => sum + (value || 0), 0);
@@ -81,20 +83,28 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
       });
 
     this.search$
-      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.unsubscribe$))
-      .subscribe(() => this.loadItems());
+      .pipe(debounceTime(300), takeUntil(this.unsubscribe$))
+      .subscribe((query: string) => {
+        if (query !== this.loadedQuery) {
+          this.loadItems();
+        }
+      });
 
     this.route.queryParams
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((params: Params) => {
         this.tab = params['tab'] === 'outfits' ? 'outfits' : 'items';
-        if (this.tab === 'outfits' && !this.outfitsLoaded) {
+        if (this.tab === 'outfits' && !this.outfitsLoaded && !this.outfitsLoading) {
           this.loadOutfits();
         }
         this.cdr.markForCheck();
       });
 
     this.loadItems();
+    // Образы грузим сразу, чтобы счётчик на вкладке был виден до её открытия.
+    if (!this.outfitsLoaded && !this.outfitsLoading) {
+      this.loadOutfits();
+    }
   }
 
   setTab(tab: WardrobeTab): void {
@@ -135,6 +145,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
 
   loadItems(): void {
     const requestId: number = ++this.itemsRequestId;
+    this.loadedQuery = this.searchQuery.trim();
     this.itemsLoading = true;
     this.itemsError = '';
     this.cdr.markForCheck();
@@ -192,6 +203,14 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
 
   addItem(): void {
     this.router.navigate(['/wardrobe/items/create']);
+  }
+
+  onCardKey(event: Event, item: WardrobeItem): void {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    event.preventDefault();
+    this.openItem(item);
   }
 
   openItem(item: WardrobeItem): void {
@@ -300,9 +319,16 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   }
 
   outfitSubtitle(outfit: WardrobeOutfit): string {
-    const parts: string[] = [this.styleName(outfit.occasion)];
+    const parts: string[] = [];
+    const style: string = this.styleName(outfit.occasion);
+    if (!outfit.name.includes(style)) {
+      parts.push(style);
+    }
     if (outfit.temperature !== null && outfit.temperature !== undefined) {
-      parts.push(`${outfit.temperature > 0 ? '+' : ''}${outfit.temperature}°C`);
+      const temperature: string = `${outfit.temperature > 0 ? '+' : ''}${outfit.temperature}°C`;
+      if (!outfit.name.includes(temperature)) {
+        parts.push(temperature);
+      }
     }
     parts.push(wornLabel(outfit.lastWornAt, outfit.wearCount));
     return parts.join(' · ');

@@ -16,8 +16,10 @@
                 [disabled]="temperature <= minTemperature">
           <mat-icon fontIcon="remove"></mat-icon>
         </button>
+        <button type="button" class="picker__step picker__step--sign" (click)="toggleSign()" aria-label="Сменить знак температуры"
+                title="Плюс / минус">±</button>
         <label class="picker__temp-input">
-          <input type="text" inputmode="numeric" [value]="temperatureText" aria-label="Температура, °C"
+          <input type="text" inputmode="text" enterkeyhint="done" [value]="temperatureText" aria-label="Температура, °C"
                  (input)="onTemperatureInput($any($event.target).value)"
                  (blur)="commitTemperature()" (keydown.enter)="commitTemperature()" />
           <span>°C</span>
@@ -38,11 +40,14 @@
         {{ weatherHint }}
       </p>
     </div>
+    <button type="button" class="picker__primary picker__submit" (click)="pick()" [disabled]="loading">
+      <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon> {{ loading ? 'Подбираем…' : 'Подобрать' }}
+    </button>
   </section>
 
   <section class="picker__results" aria-live="polite">
     <div class="picker__results-head">
-      <h2>Варианты</h2>
+      <h2>Варианты <span class="picker__for" *ngIf="shownParams">· {{ styleName(shownParams.occasion) }}, {{ shownParams.temperature > 0 ? '+' : '' }}{{ shownParams.temperature }}°C</span></h2>
       <button type="button" class="picker__ghost" (click)="more()" [disabled]="loading || !views.length">
         <mat-icon fontIcon="shuffle" aria-hidden="true"></mat-icon> Ещё варианты
       </button>
@@ -68,7 +73,7 @@
       </button>
     </div>
 
-    <div class="picker__list" *ngIf="views.length" [class.picker__list--refreshing]="loading">
+    <div class="picker__list" *ngIf="views.length" [class.picker__list--refreshing]="loading || isStale">
       <app-wardrobe-outfit-card *ngFor="let view of views; let i = index; trackBy: trackByIndex"
                                 [items]="view.suggestion.items" [score]="view.suggestion.score"
                                 [reasons]="view.suggestion.reasons" [colors]="dictionaries.colors">

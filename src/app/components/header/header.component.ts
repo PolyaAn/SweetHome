@@ -223,8 +223,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
       return;
     }
 
-    if (url.startsWith('/wardrobe/') && window.history.length <= 1) {
-      this.router.navigate(['/wardrobe']);
+    // Открыли страницу гардероба по прямой ссылке — истории внутри приложения нет, идём к списку.
+    const navigationId: number = (this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1;
+    if (url.startsWith('/wardrobe/') && navigationId <= 1) {
+      this.router.navigate(['/wardrobe'], {replaceUrl: true});
       return;
     }
 

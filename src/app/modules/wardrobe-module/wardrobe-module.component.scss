@@ -102,6 +102,18 @@
   min-width: 0;
 }
 
+.wardrobe-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.wardrobe-add {
+  @extend %wardrobe-primary-button;
+  width: 42px;
+  padding: 0;
+}
+
 .wardrobe-search {
   position: relative;
   display: flex;
