@@ -158,6 +158,8 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   stepTemperature(delta: number): void {
+    // Сначала фиксируем набранное (на iOS кнопка не забирает фокус у поля и blur не срабатывает).
+    this.commitTemperature(false);
     this.setTemperature(this.temperature + delta);
   }
 
@@ -179,6 +181,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   toggleSign(): void {
+    this.commitTemperature(false);
     this.setTemperature(-this.temperature);
   }
 
@@ -263,7 +266,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   addItem(): void {
-    this.router.navigate(['/wardrobe/items/create']);
+    this.router.navigate(['/wardrobe/items/create'], {queryParams: {from: 'picker'}});
   }
 
   styleName(style: WardrobeStyle): string {

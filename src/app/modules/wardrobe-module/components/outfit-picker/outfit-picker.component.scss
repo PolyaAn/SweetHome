@@ -88,7 +88,20 @@
   min-width: 0;
 }
 
+.picker__for::before {
+  content: '· ';
+}
+
 .picker__for {
+  @media only screen and (max-width: 420px) {
+    display: block;
+    margin-top: 2px;
+
+    &::before {
+      content: none;
+    }
+  }
+
   font-size: 14px;
   font-weight: 500;
   color: $alpha-sand-72;

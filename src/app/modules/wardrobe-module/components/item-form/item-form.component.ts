@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, debounceTime, finalize, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { catchError, finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { WardrobePendingChanges } from '../../guards/wardrobe-form-deactivate.guard';
@@ -90,8 +90,14 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   classification: WardrobeClassification | null = null;
   classifying: boolean = false;
 
-  /** true — запросить классификацию, false — отменить запрос в полёте (имя очищено). */
-  private readonly classify$: Subject<boolean> = new Subject<boolean>();
+  /**
+   * Единый поток автоопределения: каждое событие отменяет предыдущий запрос (switchMap) сразу, без задержки.
+   * 'typing' — после паузы 350 мс, 'force' — сразу и поверх ручных правок, 'cancel' — только отменить.
+   */
+  private readonly classify$: Subject<'typing' | 'force' | 'cancel'> = new Subject();
+  private destroyed: boolean = false;
+  private createdHere: boolean = false;
+  private returnTo: string | null = null;
   /** Автоопределение запускалось хотя бы раз (на странице редактирования подсказку без него не показываем). */
   classifyRequested: boolean = false;
   /** Форму открыли из списка гардероба (а не по прямой ссылке или из подбора). */
@@ -150,17 +156,30 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
 
     this.classify$
       .pipe(
-        debounceTime(350),
-        switchMap((run: boolean) => run ? this.requestClassification() : of(null)),
+        // Задержка внутри switchMap: «cancel» и новый ввод обрывают и ожидание, и уже ушедший запрос.
+        switchMap((mode) => mode === 'cancel'
+          ? of({mode, result: null as WardrobeClassification | null})
+          : (mode === 'force' ? of(0) : timer(350)).pipe(
+            switchMap(() => this.requestClassification()),
+            map((result: WardrobeClassification | null) => ({mode, result})),
+          )),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((result: WardrobeClassification | null) => {
+      .subscribe(({mode, result}) => {
+        if (mode === 'cancel') {
+          return;
+        }
         this.classifying = false;
         if (result) {
-          this.applyClassification(result, false);
+          this.applyClassification(result, mode === 'force');
+          if (mode === 'force' && !result.category) {
+            this.toast.warning('Не получилось определить вещь по названию');
+          }
         }
         this.cdr.markForCheck();
       });
+
+    this.returnTo = this.route.snapshot.queryParamMap.get('from') === 'picker' ? 'picker' : null;
 
     const previous: string | undefined = this.router.lastSuccessfulNavigation?.previousNavigation?.finalUrl?.toString();
     this.openedFromList = !!previous && previous.split('?')[0] === '/wardrobe';
@@ -174,6 +193,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   }
 
   override ngOnDestroy(): void {
+    this.destroyed = true;
     this.releasePreview();
     super.ngOnDestroy();
   }
@@ -206,10 +226,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   }
 
   onNotesInput(value: string): void {
+    // Заметки в автоопределении не участвуют (сервер классифицирует только по названию и фото).
     this.form.notes = value;
     this.markDirty();
     this.validateField('notes');
-    this.scheduleClassification();
   }
 
   onBrandInput(value: string): void {
@@ -275,18 +295,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     this.manual.clear();
     this.classifying = true;
     this.classifyRequested = true;
-    this.requestClassification()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((result: WardrobeClassification | null) => {
-        this.classifying = false;
-        if (result) {
-          this.applyClassification(result, true);
-          if (!result.category) {
-            this.toast.warning('Не получилось определить вещь по названию');
-          }
-        }
-        this.cdr.markForCheck();
-      });
+    this.classify$.next('force');
   }
 
   isAuto(field: AutoField): boolean {
@@ -313,6 +322,11 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
 
     try {
       const prepared: PreparedImage = await prepareWardrobeImage(file);
+      if (this.destroyed) {
+        // Форму закрыли, пока фото обрабатывалось.
+        URL.revokeObjectURL(prepared.previewUrl);
+        return;
+      }
       this.releasePreview();
       this.photo = prepared;
       this.photoAction = 'replace';
@@ -372,9 +386,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
           if (photoFailed) {
             // Остаёмся на странице с выбранным фото: вещь уже создана, повторное «Сохранить» дозагрузит фото.
             this.toast.warning('Вещь сохранена, но фото загрузить не удалось. Нажмите «Сохранить» ещё раз');
+            // URL не меняем: страница остаётся «Новая вещь», а повторное «Сохранить» обновит созданную вещь и загрузит фото.
             if (!this.isEdit) {
               this.itemId = item.id;
-              this.location.replaceState(`/wardrobe/items/${encodeURIComponent(item.id)}/edit`, '', this.location.getState());
+              this.createdHere = true;
             }
             this.item = item;
             this.manual = new Set<AutoField>(['category', 'colors', 'seasons', 'styles', 'warmth']);
@@ -382,7 +397,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
             return;
           }
 
-          const wasEdit: boolean = !!this.item;
+          const wasEdit: boolean = !!this.item && !this.createdHere;
           this.allowLeave = true;
           this.dirty = false;
 
@@ -392,6 +407,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
         error: (error: { error?: WardrobeApiErrorResponse; status?: number }) => {
           if (error.status === 404) {
             this.toast.error('Вещь не найдена — возможно, её уже удалили');
+            this.allowLeave = true;
             return;
           }
           if (!this.applyApiErrors(error.error)) {
@@ -500,6 +516,12 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
    * чтобы «Назад» не открывал сохранённую или удалённую вещь снова.
    */
   private leave(): void {
+    // Пришли из подбора («Добавить вещь») — возвращаемся туда же, с выбранным поводом и погодой.
+    if (this.returnTo === 'picker') {
+      this.location.back();
+      return;
+    }
+
     // Пришли из списка — просто возвращаемся назад (история уже содержит список, дубликат не нужен).
     // Благодаря canceledNavigationResolution: 'computed' запись перед формой всегда настоящая.
     const previous: string | undefined = this.router.lastSuccessfulNavigation?.previousNavigation?.finalUrl?.toString();
@@ -521,22 +543,21 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       this.classifying = false;
       this.resetAutoFields();
       // Отменяем запрос, который мог уже уйти: иначе его ответ заполнил бы поля для стёртого названия.
-      this.classify$.next(false);
+      this.classify$.next('cancel');
       return;
     }
     this.classifying = true;
     this.classifyRequested = true;
-    this.classify$.next(true);
+    this.classify$.next('typing');
   }
 
   private requestClassification(): Observable<WardrobeClassification | null> {
     const name: string = this.form.name.trim();
-    const notes: string = this.form.notes.trim();
     if (!name && !this.dominantHex) {
       return of(null);
     }
 
-    return this.api.classify(name.slice(0, 120), notes ? notes.slice(0, 1000) : null, this.dominantHex)
+    return this.api.classify(name.slice(0, 120), null, this.dominantHex)
       .pipe(
         tap(() => this.classifyFailed = false),
         catchError(() => {

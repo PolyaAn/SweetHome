@@ -47,7 +47,7 @@
 
   <section class="picker__results" aria-live="polite">
     <div class="picker__results-head">
-      <h2>Варианты <span class="picker__for" *ngIf="shownParams">· {{ styleName(shownParams.occasion) }}, {{ shownParams.temperature > 0 ? '+' : '' }}{{ shownParams.temperature }}°C</span></h2>
+      <h2>Варианты <span class="picker__for" *ngIf="shownParams">{{ styleName(shownParams.occasion) }}, {{ shownParams.temperature > 0 ? '+' : '' }}{{ shownParams.temperature }}°C</span></h2>
       <button type="button" class="picker__ghost picker__more" (click)="more()" [disabled]="!views.length">
         <mat-icon fontIcon="shuffle" aria-hidden="true"></mat-icon> Ещё варианты
       </button>

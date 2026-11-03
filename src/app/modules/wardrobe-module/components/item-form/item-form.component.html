@@ -5,7 +5,7 @@
 <section class="item-form-state item-form-state--error" *ngIf="!pageLoading && pageError">
   <p>{{ pageError }}</p>
   <div class="item-form-state__actions">
-    <button type="button" class="wf-ghost" routerLink="/wardrobe">К гардеробу</button>
+    <button type="button" class="wf-ghost" routerLink="/wardrobe" [replaceUrl]="true">К гардеробу</button>
     <button type="button" class="wf-primary" *ngIf="pageError !== 'Вещь не найдена'" (click)="retry()">Повторить</button>
   </div>
 </section>
