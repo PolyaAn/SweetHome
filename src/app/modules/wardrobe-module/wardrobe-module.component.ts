@@ -258,21 +258,20 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
       isFavorite: value,
     };
 
+    // Флаг «в полёте» снимаем явно в next/error (не в finalize): finalize срабатывает уже после
+    // повторной отправки и снял бы флаг у следующего запроса.
     this.favoriteInFlight.add(item.id);
     this.api.updateItem(item.id, payload)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        finalize(() => this.favoriteInFlight.delete(item.id)),
-      )
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: (updated: WardrobeItem) => {
           const desired: boolean | undefined = this.favoriteDesired.get(item.id);
           if (desired !== undefined && desired !== updated.isFavorite) {
-            this.favoriteInFlight.delete(item.id);
             this.sendFavorite(updated, desired);
             return;
           }
 
+          this.favoriteInFlight.delete(item.id);
           this.favoriteDesired.delete(item.id);
           if (this.onlyFavorites && !updated.isFavorite) {
             this.items = this.items.filter((x: WardrobeItem) => x.id !== updated.id);
@@ -282,6 +281,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
           this.replaceItem(updated);
         },
         error: () => {
+          this.favoriteInFlight.delete(item.id);
           this.favoriteDesired.delete(item.id);
           this.replaceItem({...item, isFavorite: !value});
           this.toast.error('Не удалось обновить вещь');

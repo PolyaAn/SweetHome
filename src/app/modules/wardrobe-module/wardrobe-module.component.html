@@ -124,10 +124,10 @@
       <app-wardrobe-outfit-card *ngFor="let outfit of outfits; trackBy: trackById"
                                 [items]="outfit.items" [title]="outfit.name" [subtitle]="outfitSubtitle(outfit)"
                                 [colors]="dictionaries.colors">
-        <button type="button" class="wardrobe-primary" [disabled]="busyOutfitId === outfit.id" (click)="wearOutfit(outfit)">
+        <button type="button" class="wardrobe-primary" [disabled]="!!busyOutfitId" (click)="wearOutfit(outfit)">
           <mat-icon fontIcon="check" aria-hidden="true"></mat-icon> Надеть сегодня
         </button>
-        <button type="button" class="wardrobe-ghost wardrobe-ghost--danger" [disabled]="busyOutfitId === outfit.id"
+        <button type="button" class="wardrobe-ghost wardrobe-ghost--danger" [disabled]="!!busyOutfitId"
                 (click)="deleteOutfit(outfit)" aria-label="Удалить образ">
           <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
         </button>

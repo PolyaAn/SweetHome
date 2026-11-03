@@ -75,7 +75,14 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     return `${this.temperature > 0 ? '+' : ''}${this.temperature}°C`;
   }
 
+  get isHome(): boolean {
+    return this.occasion === 'HOME';
+  }
+
   get weatherHint(): string {
+    if (this.isHome) {
+      return 'Для дома погода не важна — подбираем образ для комнаты';
+    }
     if (this.temperature < 15) {
       return 'Холодно — добавим верхнюю одежду';
     }
@@ -278,6 +285,8 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   addItem(): void {
+    this.commitTemperature(false);
+    this.state.picker = {occasion: this.occasion, temperature: this.temperature};
     this.router.navigate(['/wardrobe/items/create'], {queryParams: {from: 'picker'}});
   }
 

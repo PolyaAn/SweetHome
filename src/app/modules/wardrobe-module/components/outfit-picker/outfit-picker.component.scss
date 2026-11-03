@@ -33,6 +33,11 @@
   min-width: 0;
 }
 
+.picker__group--muted .picker__temperature,
+.picker__group--muted .picker__chips--presets {
+  opacity: 0.45;
+}
+
 .picker__label {
   font-size: 13px;
   font-weight: 700;

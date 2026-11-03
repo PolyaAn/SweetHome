@@ -9,7 +9,7 @@
       </div>
     </div>
 
-    <div class="picker__group">
+    <div class="picker__group" [class.picker__group--muted]="isHome">
       <span class="picker__label">Погода за окном</span>
       <div class="picker__temperature">
         <button type="button" class="picker__step" (click)="stepTemperature(-1)" aria-label="Холоднее"
@@ -36,7 +36,7 @@
         </button>
       </div>
       <p class="picker__hint">
-        <mat-icon [fontIcon]="temperature < 15 ? 'ac_unit' : (temperature > 22 ? 'wb_sunny' : 'filter_drama')" aria-hidden="true"></mat-icon>
+        <mat-icon [fontIcon]="isHome ? 'home' : (temperature < 15 ? 'ac_unit' : (temperature > 22 ? 'wb_sunny' : 'filter_drama'))" aria-hidden="true"></mat-icon>
         {{ weatherHint }}
       </p>
     </div>
@@ -59,7 +59,7 @@
 
     <div class="picker__state" *ngIf="!loading && error">
       <p>{{ error }}</p>
-      <button type="button" class="picker__primary" (click)="suggest()">Повторить</button>
+      <button type="button" class="picker__primary" (click)="pick()">Повторить</button>
     </div>
 
     <div class="picker__state" *ngIf="!loading && !error && response && !views.length">
