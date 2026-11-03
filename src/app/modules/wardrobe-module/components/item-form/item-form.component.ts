@@ -19,7 +19,7 @@ import {
 } from '../../models/wardrobe.model';
 import { WardrobeApiService } from '../../services/wardrobe-api.service';
 import { WardrobeImageService } from '../../services/wardrobe-image.service';
-import { prepareWardrobeImage, PreparedImage } from '../../utils/image-tools';
+import { dominantColorFromUrl, prepareWardrobeImage, PreparedImage } from '../../utils/image-tools';
 import { wornLabel } from '../../utils/wardrobe-format';
 
 type AutoField = 'category' | 'colors' | 'seasons' | 'styles' | 'warmth';
@@ -171,6 +171,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
         }
         this.classifying = false;
         if (result) {
+          // Ручные правки сбрасываем, только когда «Определить заново» действительно вернуло результат.
+          if (mode === 'force') {
+            this.manual.clear();
+          }
           this.applyClassification(result, mode === 'force');
           if (mode === 'force' && !result.category) {
             this.toast.warning('Не получилось определить вещь по названию');
@@ -292,9 +296,24 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
 
   /** Сбрасывает ручные правки и применяет автоопределение ко всем полям. */
   reclassify(): void {
-    this.manual.clear();
     this.classifying = true;
     this.classifyRequested = true;
+
+    // На редактировании учитываем и уже сохранённое фото: берём его доминирующий цвет.
+    if (!this.dominantHex && this.showStoredPhoto && this.item) {
+      this.images.getUrl(this.item)
+        .pipe(
+          switchMap((url: string | null) => url ? dominantColorFromUrl(url) : of(null)),
+          catchError(() => of(null)),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe((hex: string | null) => {
+          this.dominantHex = hex;
+          this.classify$.next('force');
+        });
+      return;
+    }
+
     this.classify$.next('force');
   }
 
@@ -385,7 +404,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
         next: ({item, photoFailed}: { item: WardrobeItem; photoFailed: boolean }) => {
           if (photoFailed) {
             // Остаёмся на странице с выбранным фото: вещь уже создана, повторное «Сохранить» дозагрузит фото.
-            this.toast.warning('Вещь сохранена, но фото загрузить не удалось. Нажмите «Сохранить» ещё раз');
+            this.toast.warning(`Вещь сохранена, но фото ${this.photoAction === 'remove' ? 'удалить' : 'загрузить'} не удалось. Нажмите «Сохранить» ещё раз`);
             // URL не меняем: страница остаётся «Новая вещь», а повторное «Сохранить» обновит созданную вещь и загрузит фото.
             if (!this.isEdit) {
               this.itemId = item.id;
@@ -518,7 +537,13 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   private leave(): void {
     // Пришли из подбора («Добавить вещь») — возвращаемся туда же, с выбранным поводом и погодой.
     if (this.returnTo === 'picker') {
-      this.location.back();
+      // Назад по истории — только если форма открыта изнутри приложения (иначе уйдём на чужую страницу).
+      const navigationId: number = (this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1;
+      if (navigationId > 1) {
+        this.location.back();
+      } else {
+        this.router.navigate(['/wardrobe/outfits/suggest'], {replaceUrl: true});
+      }
       return;
     }
 

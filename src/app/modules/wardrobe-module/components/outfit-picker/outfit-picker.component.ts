@@ -14,6 +14,7 @@ import {
   WardrobeStyle,
 } from '../../models/wardrobe.model';
 import { WardrobeApiService } from '../../services/wardrobe-api.service';
+import { WardrobeStateService } from '../../services/wardrobe-state.service';
 import { defaultTemperature } from '../../utils/wardrobe-format';
 
 interface SuggestParams {
@@ -44,6 +45,7 @@ const MAX_TEMPERATURE = 45;
 export class WardrobeOutfitPickerComponent extends BaseComponent implements OnInit {
   constructor(
     private api: WardrobeApiService,
+    private state: WardrobeStateService,
     private router: Router,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
@@ -89,6 +91,13 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   ngOnInit(): void {
+    // Повод и погода переживают уход на другие экраны гардероба (например, «Добавить вещь»).
+    if (this.state.picker) {
+      this.occasion = this.state.picker.occasion;
+      this.temperature = this.state.picker.temperature;
+      this.temperatureText = String(this.temperature);
+    }
+
     this.api.getDictionaries()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((dictionaries: WardrobeDictionaries) => {
@@ -144,6 +153,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     if (this.occasion === style) {
       return;
     }
+    this.commitTemperature(false);
     this.occasion = style;
     this.suggest(false);
   }
@@ -186,6 +196,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
   }
 
   more(): void {
+    this.commitTemperature(false);
     this.suggest(true, true);
   }
 
@@ -204,6 +215,7 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
       this.seed = this.randomSeed();
     }
 
+    this.state.picker = {occasion: this.occasion, temperature: this.temperature};
     this.request$.next({
       params: {occasion: this.occasion, temperature: this.temperature, seed: this.seed},
       immediate,

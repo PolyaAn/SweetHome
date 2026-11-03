@@ -58,6 +58,32 @@ export async function prepareWardrobeImage(file: File): Promise<PreparedImage> {
   };
 }
 
+/** Доминирующий цвет уже сохранённого фото (по object URL из кэша). */
+export function dominantColorFromUrl(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image: HTMLImageElement = new Image();
+    image.onload = () => {
+      const scale: number = Math.min(1, 400 / Math.max(image.naturalWidth, image.naturalHeight));
+      const width: number = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height: number = Math.max(1, Math.round(image.naturalHeight * scale));
+      const canvas: HTMLCanvasElement = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context: CanvasRenderingContext2D | null = canvas.getContext('2d');
+      if (!context) {
+        resolve(null);
+        return;
+      }
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+      resolve(extractDominantColor(context, width, height));
+    };
+    image.onerror = () => resolve(null);
+    image.src = url;
+  });
+}
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url: string = URL.createObjectURL(file);

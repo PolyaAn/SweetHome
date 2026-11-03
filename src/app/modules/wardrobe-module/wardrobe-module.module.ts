@@ -9,6 +9,7 @@ import { WardrobeOutfitPickerComponent } from './components/outfit-picker/outfit
 import { WardrobeFormDeactivateGuard } from './guards/wardrobe-form-deactivate.guard';
 import { WardrobeApiService } from './services/wardrobe-api.service';
 import { WardrobeImageService } from './services/wardrobe-image.service';
+import { WardrobeStateService } from './services/wardrobe-state.service';
 import { WardrobeModuleRoutingModule } from './wardrobe-module-routing.module';
 import { WardrobeModuleComponent } from './wardrobe-module.component';
 
@@ -26,7 +27,7 @@ import { WardrobeModuleComponent } from './wardrobe-module.component';
     MatIconModule,
     WardrobeModuleRoutingModule,
   ],
-  providers: [WardrobeApiService, WardrobeImageService, WardrobeFormDeactivateGuard],
+  providers: [WardrobeApiService, WardrobeImageService, WardrobeStateService, WardrobeFormDeactivateGuard],
 })
 export class WardrobeModuleModule {
 }

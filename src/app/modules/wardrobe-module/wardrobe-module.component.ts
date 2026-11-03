@@ -17,6 +17,7 @@ import {
 } from './models/wardrobe.model';
 import { WardrobeApiService } from './services/wardrobe-api.service';
 import { WardrobeImageService } from './services/wardrobe-image.service';
+import { WardrobeStateService } from './services/wardrobe-state.service';
 import { pluralize, wornLabel } from './utils/wardrobe-format';
 
 type WardrobeTab = 'items' | 'outfits';
@@ -31,6 +32,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   constructor(
     private api: WardrobeApiService,
     private images: WardrobeImageService,
+    private state: WardrobeStateService,
     private route: ActivatedRoute,
     private router: Router,
     private toast: ToastService,
@@ -60,6 +62,9 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   private itemsRequestId: number = 0;
   /** Строка поиска, с которой загружен текущий список (вместо distinctUntilChanged, который ломался после сброса). */
   private loadedQuery: string = '';
+  /** Избранное: желаемое значение и запрос в полёте по каждой вещи — запросы идут строго по очереди. */
+  private readonly favoriteDesired: Map<string, boolean> = new Map();
+  private readonly favoriteInFlight: Set<string> = new Set();
 
   get totalItems(): number {
     return Object.values(this.counts).reduce((sum: number, value: number | undefined) => sum + (value || 0), 0);
@@ -75,6 +80,11 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Фильтры восстанавливаем после возврата со страницы вещи.
+    this.searchQuery = this.state.list.searchQuery;
+    this.category = this.state.list.category;
+    this.onlyFavorites = this.state.list.onlyFavorites;
+
     this.api.getDictionaries()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((dictionaries: WardrobeDictionaries) => {
@@ -146,6 +156,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   loadItems(): void {
     const requestId: number = ++this.itemsRequestId;
     this.loadedQuery = this.searchQuery.trim();
+    this.state.list = {searchQuery: this.searchQuery, category: this.category, onlyFavorites: this.onlyFavorites};
     this.itemsLoading = true;
     this.itemsError = '';
     this.cdr.markForCheck();
@@ -224,6 +235,17 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   toggleFavorite(event: Event, item: WardrobeItem): void {
     event.stopPropagation();
     const next: boolean = !item.isFavorite;
+    this.favoriteDesired.set(item.id, next);
+    this.replaceItem({...item, isFavorite: next});
+
+    // Пока предыдущий запрос не вернулся, новый не шлём: иначе ответы могут прийти не по порядку
+    // и экран разойдётся с сервером. После ответа досылаем последнее желаемое значение.
+    if (!this.favoriteInFlight.has(item.id)) {
+      this.sendFavorite(item, next);
+    }
+  }
+
+  private sendFavorite(item: WardrobeItem, value: boolean): void {
     const payload: WardrobeItemUpsertRequest = {
       name: item.name,
       category: item.category,
@@ -233,14 +255,25 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
       warmth: item.warmth,
       brand: item.brand ?? null,
       notes: item.notes ?? null,
-      isFavorite: next,
+      isFavorite: value,
     };
 
-    this.replaceItem({...item, isFavorite: next});
+    this.favoriteInFlight.add(item.id);
     this.api.updateItem(item.id, payload)
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => this.favoriteInFlight.delete(item.id)),
+      )
       .subscribe({
         next: (updated: WardrobeItem) => {
+          const desired: boolean | undefined = this.favoriteDesired.get(item.id);
+          if (desired !== undefined && desired !== updated.isFavorite) {
+            this.favoriteInFlight.delete(item.id);
+            this.sendFavorite(updated, desired);
+            return;
+          }
+
+          this.favoriteDesired.delete(item.id);
           if (this.onlyFavorites && !updated.isFavorite) {
             this.items = this.items.filter((x: WardrobeItem) => x.id !== updated.id);
             this.cdr.markForCheck();
@@ -249,7 +282,8 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
           this.replaceItem(updated);
         },
         error: () => {
-          this.replaceItem(item);
+          this.favoriteDesired.delete(item.id);
+          this.replaceItem({...item, isFavorite: !value});
           this.toast.error('Не удалось обновить вещь');
         },
       });
