@@ -74,7 +74,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {scrollPositionRestoration: 'enabled'})],
+  imports: [RouterModule.forRoot(routes, {
+    scrollPositionRestoration: 'enabled',
+    // Отменённая навигация (например, «Выйти без сохранения?» → Отмена) восстанавливает историю браузера,
+    // а не затирает предыдущую запись — иначе следующий «Назад» уводит из приложения.
+    canceledNavigationResolution: 'computed',
+  })],
   exports: [RouterModule],
 })
 export class AppRoutingModule {

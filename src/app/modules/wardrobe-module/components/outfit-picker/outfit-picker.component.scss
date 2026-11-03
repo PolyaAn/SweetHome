@@ -78,6 +78,16 @@
   grid-column: 1 / -1;
 }
 
+.picker__more {
+  flex: none;
+  white-space: nowrap;
+  padding: 0 12px;
+}
+
+.picker__results-head h2 {
+  min-width: 0;
+}
+
 .picker__for {
   font-size: 14px;
   font-weight: 500;

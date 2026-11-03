@@ -90,7 +90,12 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   classification: WardrobeClassification | null = null;
   classifying: boolean = false;
 
-  private readonly classify$: Subject<void> = new Subject<void>();
+  /** true — запросить классификацию, false — отменить запрос в полёте (имя очищено). */
+  private readonly classify$: Subject<boolean> = new Subject<boolean>();
+  /** Автоопределение запускалось хотя бы раз (на странице редактирования подсказку без него не показываем). */
+  classifyRequested: boolean = false;
+  /** Форму открыли из списка гардероба (а не по прямой ссылке или из подбора). */
+  private openedFromList: boolean = false;
   private allowLeave: boolean = false;
 
   get isEdit(): boolean {
@@ -118,6 +123,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   }
 
   get classificationText(): string {
+    if (!this.classifyRequested) {
+      return '';
+    }
+
     if (this.classifyFailed) {
       return 'Автоопределение сейчас недоступно — заполните поля вручную';
     }
@@ -142,7 +151,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     this.classify$
       .pipe(
         debounceTime(350),
-        switchMap(() => this.requestClassification()),
+        switchMap((run: boolean) => run ? this.requestClassification() : of(null)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe((result: WardrobeClassification | null) => {
@@ -152,6 +161,9 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
         }
         this.cdr.markForCheck();
       });
+
+    const previous: string | undefined = this.router.lastSuccessfulNavigation?.previousNavigation?.finalUrl?.toString();
+    this.openedFromList = !!previous && previous.split('?')[0] === '/wardrobe';
 
     this.itemId = this.route.snapshot.paramMap.get('itemId');
     if (this.itemId) {
@@ -262,6 +274,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   reclassify(): void {
     this.manual.clear();
     this.classifying = true;
+    this.classifyRequested = true;
     this.requestClassification()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((result: WardrobeClassification | null) => {
@@ -361,7 +374,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
             this.toast.warning('Вещь сохранена, но фото загрузить не удалось. Нажмите «Сохранить» ещё раз');
             if (!this.isEdit) {
               this.itemId = item.id;
-              this.location.replaceState(`/wardrobe/items/${encodeURIComponent(item.id)}/edit`);
+              this.location.replaceState(`/wardrobe/items/${encodeURIComponent(item.id)}/edit`, '', this.location.getState());
             }
             this.item = item;
             this.manual = new Set<AutoField>(['category', 'colors', 'seasons', 'styles', 'warmth']);
@@ -389,7 +402,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   }
 
   deleteItem(): void {
-    if (!this.itemId || this.deleting || !window.confirm(`Удалить «${this.item?.name ?? 'вещь'}» из гардероба? Она пропадёт и из сохранённых образов.`)) {
+    if (!this.itemId || this.deleting || !window.confirm(`Удалить «${this.item?.name ?? 'вещь'}» из гардероба? Вещь пропадёт и из сохранённых образов.`)) {
       return;
     }
 
@@ -482,10 +495,15 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       });
   }
 
-  /** Возврат после сохранения/удаления: назад по истории, чтобы «Назад» не открывал форму снова. */
+  /**
+   * Возврат после сохранения/удаления: всегда к списку гардероба, заменяя запись формы в истории,
+   * чтобы «Назад» не открывал сохранённую или удалённую вещь снова.
+   */
   private leave(): void {
-    const navigationId: number = (this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1;
-    if (navigationId > 1) {
+    // Пришли из списка — просто возвращаемся назад (история уже содержит список, дубликат не нужен).
+    // Благодаря canceledNavigationResolution: 'computed' запись перед формой всегда настоящая.
+    const previous: string | undefined = this.router.lastSuccessfulNavigation?.previousNavigation?.finalUrl?.toString();
+    if (previous && previous.split('?')[0] === '/wardrobe' && this.openedFromList) {
       this.location.back();
       return;
     }
@@ -500,11 +518,15 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     if (this.form.name.trim().length < 2 && !this.dominantHex) {
       this.classification = null;
       this.classifyFailed = false;
+      this.classifying = false;
       this.resetAutoFields();
+      // Отменяем запрос, который мог уже уйти: иначе его ответ заполнил бы поля для стёртого названия.
+      this.classify$.next(false);
       return;
     }
     this.classifying = true;
-    this.classify$.next();
+    this.classifyRequested = true;
+    this.classify$.next(true);
   }
 
   private requestClassification(): Observable<WardrobeClassification | null> {
@@ -645,7 +667,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     setTimeout(() => {
       const element: HTMLElement | null = document.querySelector('.item-form [data-invalid="true"]');
       element?.scrollIntoView({behavior: 'smooth', block: 'center'});
-      if (element instanceof HTMLInputElement) {
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
         element.focus();
       }
     }, 0);

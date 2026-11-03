@@ -37,11 +37,11 @@
 
       <div class="wardrobe-chips" role="group" aria-label="Категории">
         <button type="button" class="wardrobe-chip" [class.wardrobe-chip--active]="!category" (click)="selectCategory(null)">
-          Все <span class="wardrobe-chip__count">{{ totalItems }}</span>
+          Все <span class="wardrobe-chip__count" *ngIf="!itemsError">{{ totalItems }}</span>
         </button>
         <button type="button" class="wardrobe-chip" *ngFor="let c of dictionaries.categories"
                 [class.wardrobe-chip--active]="category === c.code" (click)="selectCategory(c.code)">
-          {{ c.name }} <span class="wardrobe-chip__count">{{ categoryCount(c.code) }}</span>
+          {{ c.name }} <span class="wardrobe-chip__count" *ngIf="!itemsError">{{ categoryCount(c.code) }}</span>
         </button>
         <button type="button" class="wardrobe-chip" [class.wardrobe-chip--active]="onlyFavorites" (click)="toggleFavoritesFilter()"
                 [attr.aria-pressed]="onlyFavorites">

@@ -35,7 +35,7 @@
           <mat-icon fontIcon="hide_image" aria-hidden="true"></mat-icon> Убрать
         </button>
       </div>
-      <p class="item-form__hint" *ngIf="dominantHex">
+      <p class="item-form__hint" *ngIf="dominantHex && !manual.has('colors')">
         <span class="item-form__swatch" [style.background]="dominantHex"></span>
         Цвет с фото учтён при определении
       </p>
@@ -52,18 +52,19 @@
     </section>
 
     <section class="item-form__fields">
-      <label class="wf-field">
-        <span class="wf-label">Название</span>
-        <input #nameInput type="text" name="name" maxlength="150" autocomplete="off"
+      <div class="wf-field">
+        <label class="wf-label" for="wf-name">Название</label>
+        <input #nameInput id="wf-name" type="text" name="name" maxlength="150" autocomplete="off"
+               aria-describedby="wf-name-hint"
                placeholder="Например, тёплый серый свитер"
                [value]="form.name" (input)="onNameInput($any($event.target).value)"
                [attr.data-invalid]="!!errors.name" [attr.aria-invalid]="!!errors.name" />
         <span class="item-form__error" *ngIf="errors.name" role="alert">{{ errors.name }}</span>
-        <span class="item-form__classify" *ngIf="classificationText || classifying" aria-live="polite">
+        <span id="wf-name-hint" class="item-form__classify" *ngIf="classificationText || classifying" aria-live="polite">
           <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon>
           {{ classifying ? 'Определяем…' : classificationText }}
         </span>
-      </label>
+      </div>
 
       <div class="wf-field" [attr.data-invalid]="!!errors.category">
         <span class="wf-label">Категория <span class="wf-auto" *ngIf="isAuto('category')">авто</span></span>

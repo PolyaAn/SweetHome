@@ -40,7 +40,7 @@
         {{ weatherHint }}
       </p>
     </div>
-    <button type="button" class="picker__primary picker__submit" (click)="pick()" [disabled]="loading">
+    <button type="button" class="picker__primary picker__submit" (click)="pick()">
       <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon> {{ loading ? 'Подбираем…' : 'Подобрать' }}
     </button>
   </section>
@@ -48,7 +48,7 @@
   <section class="picker__results" aria-live="polite">
     <div class="picker__results-head">
       <h2>Варианты <span class="picker__for" *ngIf="shownParams">· {{ styleName(shownParams.occasion) }}, {{ shownParams.temperature > 0 ? '+' : '' }}{{ shownParams.temperature }}°C</span></h2>
-      <button type="button" class="picker__ghost" (click)="more()" [disabled]="loading || !views.length">
+      <button type="button" class="picker__ghost picker__more" (click)="more()" [disabled]="!views.length">
         <mat-icon fontIcon="shuffle" aria-hidden="true"></mat-icon> Ещё варианты
       </button>
     </div>

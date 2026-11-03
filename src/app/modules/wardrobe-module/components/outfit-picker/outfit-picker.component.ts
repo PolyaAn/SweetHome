@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, debounceTime, finalize, map, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import { catchError, finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -99,7 +99,8 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
     // Каждый новый запрос отменяет предыдущий (switchMap): на экране всегда результат последних параметров.
     this.request$
       .pipe(
-        switchMap(({params, immediate}) => (immediate ? of(params) : of(params).pipe(debounceTime(350))).pipe(
+        // timer, а не debounceTime: of() завершается сразу и debounceTime тут же отдал бы значение.
+        switchMap(({params, immediate}) => (immediate ? of(params) : timer(350).pipe(map(() => params))).pipe(
           tap(() => {
             this.loading = true;
             this.error = '';
