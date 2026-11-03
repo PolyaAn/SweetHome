@@ -1,0 +1,69 @@
+@import '../../styles/shared-styles';
+
+%wardrobe-surface {
+  @include ui-glass-surface(18px);
+}
+
+%wardrobe-chip {
+  @include ui-tag-button;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+    outline-offset: 2px;
+  }
+}
+
+%wardrobe-chip-active {
+  @include ui-tag-active;
+}
+
+%wardrobe-primary-button {
+  @include ui-primary-button(12px);
+  font: inherit;
+  font-weight: 600;
+  height: 42px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+%wardrobe-ghost-button {
+  @include ui-ghost-button(12px);
+  font: inherit;
+  height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+%wardrobe-input {
+  @include ui-input-field;
+  font: inherit;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 42px;
+}

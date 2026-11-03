@@ -54,6 +54,15 @@ export const MainWidgetsMock: MainWidget[] = [
     icon: 'health_and_safety',
     size: 3,
     hide: false,
+  },
+  {
+    alias: 'wardrobe',
+    id: '',
+    order: 8,
+    name: 'Гардероб',
+    icon: 'checkroom',
+    size: 2,
+    hide: false,
   }
 ];
 

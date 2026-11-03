@@ -1,0 +1,169 @@
+<section class="item-form-state" *ngIf="pageLoading">
+  <div class="item-form-skeleton"></div>
+</section>
+
+<section class="item-form-state item-form-state--error" *ngIf="!pageLoading && pageError">
+  <p>{{ pageError }}</p>
+  <div class="item-form-state__actions">
+    <button type="button" class="wf-ghost" routerLink="/wardrobe">К гардеробу</button>
+    <button type="button" class="wf-primary" *ngIf="pageError !== 'Вещь не найдена'" (click)="retry()">Повторить</button>
+  </div>
+</section>
+
+<form class="item-form" *ngIf="!pageLoading && !pageError" (ngSubmit)="submit()" novalidate>
+  <div class="item-form__layout">
+    <section class="item-form__photo-block">
+      <div class="item-form__photo" [class.item-form__photo--empty]="!hasPhoto">
+        <app-wardrobe-item-photo
+          [item]="showStoredPhoto ? item : null"
+          [previewUrl]="previewUrl"
+          [category]="form.category"
+          [accentHex]="dominantHex">
+        </app-wardrobe-item-photo>
+
+        <button type="button" class="item-form__photo-pick" *ngIf="!hasPhoto" (click)="pickPhoto()" [disabled]="photoProcessing">
+          <mat-icon fontIcon="add_a_photo" aria-hidden="true"></mat-icon>
+          <span>{{ photoProcessing ? 'Обрабатываем…' : 'Добавить фото' }}</span>
+        </button>
+      </div>
+
+      <div class="item-form__photo-actions" *ngIf="hasPhoto">
+        <button type="button" class="wf-ghost" (click)="pickPhoto()" [disabled]="photoProcessing">
+          <mat-icon fontIcon="photo_camera" aria-hidden="true"></mat-icon> {{ photoProcessing ? 'Обрабатываем…' : 'Заменить' }}
+        </button>
+        <button type="button" class="wf-ghost" (click)="removePhoto()" [disabled]="photoProcessing">
+          <mat-icon fontIcon="hide_image" aria-hidden="true"></mat-icon> Убрать
+        </button>
+      </div>
+      <p class="item-form__hint" *ngIf="dominantHex">
+        <span class="item-form__swatch" [style.background]="dominantHex"></span>
+        Цвет с фото учтён при определении
+      </p>
+      <p class="item-form__error" *ngIf="errors.file" role="alert">{{ errors.file }}</p>
+
+      <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+
+      <div class="item-form__stats" *ngIf="isEdit && item">
+        <span>{{ wornText }}</span>
+        <button type="button" class="wf-ghost" (click)="wearToday()" [disabled]="wearing">
+          <mat-icon fontIcon="check" aria-hidden="true"></mat-icon> Надел сегодня
+        </button>
+      </div>
+    </section>
+
+    <section class="item-form__fields">
+      <label class="wf-field">
+        <span class="wf-label">Название</span>
+        <input #nameInput type="text" name="name" maxlength="150" autocomplete="off"
+               placeholder="Например, тёплый серый свитер"
+               [value]="form.name" (input)="onNameInput($any($event.target).value)"
+               [attr.data-invalid]="!!errors.name" [attr.aria-invalid]="!!errors.name" />
+        <span class="item-form__error" *ngIf="errors.name" role="alert">{{ errors.name }}</span>
+        <span class="item-form__classify" *ngIf="classificationText || classifying" aria-live="polite">
+          <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon>
+          {{ classifying ? 'Определяем…' : classificationText }}
+        </span>
+      </label>
+
+      <div class="wf-field" [attr.data-invalid]="!!errors.category">
+        <span class="wf-label">Категория <span class="wf-auto" *ngIf="isAuto('category')">авто</span></span>
+        <div class="wf-chips" role="radiogroup" aria-label="Категория">
+          <button type="button" role="radio" class="wf-chip" *ngFor="let c of dictionaries.categories"
+                  [class.wf-chip--active]="form.category === c.code" [attr.aria-checked]="form.category === c.code"
+                  (click)="selectCategory(c.code)">{{ c.name }}</button>
+        </div>
+        <span class="item-form__error" *ngIf="errors.category" role="alert">{{ errors.category }}</span>
+      </div>
+
+      <div class="wf-field" [attr.data-invalid]="!!errors.colors">
+        <span class="wf-label">
+          Цвета <span class="wf-label__muted">до {{ maxColors }}</span>
+          <span class="wf-auto" *ngIf="isAuto('colors')">авто</span>
+        </span>
+        <div class="wf-colors" role="group" aria-label="Цвета">
+          <button type="button" class="wf-color" *ngFor="let color of dictionaries.colors"
+                  [class.wf-color--active]="form.colors.includes(color.code)"
+                  [attr.aria-pressed]="form.colors.includes(color.code)"
+                  [attr.aria-label]="colorTitle(color)" [title]="color.name"
+                  (click)="toggleColor(color.code)">
+            <span class="wf-color__swatch" [style.background]="color.hex" [class.wf-color__swatch--multi]="color.code === 'MULTI'"></span>
+            <span class="wf-color__name">{{ color.name }}</span>
+          </button>
+        </div>
+        <span class="item-form__error" *ngIf="errors.colors" role="alert">{{ errors.colors }}</span>
+      </div>
+
+      <div class="wf-field">
+        <span class="wf-label">Сезон <span class="wf-auto" *ngIf="isAuto('seasons')">авто</span></span>
+        <div class="wf-chips" role="group" aria-label="Сезон">
+          <button type="button" class="wf-chip" [class.wf-chip--active]="!form.seasons.length"
+                  [attr.aria-pressed]="!form.seasons.length" (click)="setAllSeasons()">Всесезонная</button>
+          <button type="button" class="wf-chip" *ngFor="let s of dictionaries.seasons"
+                  [class.wf-chip--active]="form.seasons.includes(s.code)" [attr.aria-pressed]="form.seasons.includes(s.code)"
+                  (click)="toggleSeason(s.code)">{{ s.name }}</button>
+        </div>
+      </div>
+
+      <div class="wf-field" [attr.data-invalid]="!!errors.styles">
+        <span class="wf-label">Стиль <span class="wf-auto" *ngIf="isAuto('styles')">авто</span></span>
+        <div class="wf-chips" role="group" aria-label="Стиль">
+          <button type="button" class="wf-chip" *ngFor="let s of dictionaries.styles"
+                  [class.wf-chip--active]="form.styles.includes(s.code)" [attr.aria-pressed]="form.styles.includes(s.code)"
+                  (click)="toggleStyle(s.code)">{{ s.name }}</button>
+        </div>
+        <span class="item-form__error" *ngIf="errors.styles" role="alert">{{ errors.styles }}</span>
+      </div>
+
+      <div class="wf-field">
+        <span class="wf-label">Теплота <span class="wf-auto" *ngIf="isAuto('warmth')">авто</span></span>
+        <div class="wf-warmth" role="radiogroup" aria-label="Теплота">
+          <button type="button" role="radio" class="wf-warmth__step" *ngFor="let w of dictionaries.warmthLevels"
+                  [class.wf-warmth__step--active]="form.warmth === w.level"
+                  [class.wf-warmth__step--filled]="form.warmth >= w.level"
+                  [attr.aria-checked]="form.warmth === w.level" [attr.aria-label]="w.name"
+                  (click)="setWarmth(w.level)">{{ w.level }}</button>
+        </div>
+        <span class="wf-hint">{{ warmthName }}</span>
+      </div>
+
+      <div class="item-form__row">
+        <label class="wf-field">
+          <span class="wf-label">Бренд <span class="wf-label__muted">необязательно</span></span>
+          <input type="text" name="brand" maxlength="100" autocomplete="off" [value]="form.brand"
+                 (input)="onBrandInput($any($event.target).value)" [attr.data-invalid]="!!errors.brand" />
+          <span class="item-form__error" *ngIf="errors.brand" role="alert">{{ errors.brand }}</span>
+        </label>
+
+        <div class="wf-field wf-field--toggle">
+          <span class="wf-label">Любимая вещь</span>
+          <button type="button" class="wf-switch" [class.wf-switch--on]="form.isFavorite" role="switch"
+                  [attr.aria-checked]="form.isFavorite" (click)="toggleFavorite()">
+            <mat-icon [fontIcon]="form.isFavorite ? 'favorite' : 'favorite_border'" aria-hidden="true"></mat-icon>
+            {{ form.isFavorite ? 'Да' : 'Нет' }}
+          </button>
+        </div>
+      </div>
+
+      <label class="wf-field">
+        <span class="wf-label">Заметки <span class="wf-label__muted">материал, посадка, с чем носить</span></span>
+        <textarea name="notes" rows="3" maxlength="1100" [value]="form.notes" (input)="onNotesInput($any($event.target).value)"
+                  [attr.data-invalid]="!!errors.notes"></textarea>
+        <span class="item-form__error" *ngIf="errors.notes" role="alert">{{ errors.notes }}</span>
+      </label>
+
+      <button type="button" class="wf-link" (click)="reclassify()" [disabled]="classifying || form.name.trim().length < 2">
+        <mat-icon fontIcon="refresh" aria-hidden="true"></mat-icon> Определить заново по названию и фото
+      </button>
+    </section>
+  </div>
+
+  <div class="item-form__actions">
+    <button type="button" class="wf-ghost wf-ghost--danger" *ngIf="isEdit" (click)="deleteItem()" [disabled]="deleting || saving">
+      <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
+    </button>
+    <span class="item-form__spacer"></span>
+    <button type="submit" class="wf-primary" [disabled]="saving || photoProcessing">
+      {{ saving ? 'Сохраняем…' : (isEdit ? 'Сохранить' : 'Добавить в гардероб') }}
+    </button>
+  </div>
+</form>

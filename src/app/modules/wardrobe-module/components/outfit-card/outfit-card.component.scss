@@ -1,0 +1,109 @@
+@import '../../wardrobe-shared';
+
+.outfit {
+  @extend %wardrobe-surface;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  color: $color-text-main;
+}
+
+.outfit__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: $alpha-sand-72;
+  }
+}
+
+.outfit__score {
+  flex: none;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: $color-text-light;
+  background: linear-gradient(150deg, $color-accent-main, $color-brown-2);
+  box-shadow: 0 6px 14px $alpha-brown-deep-24;
+}
+
+.outfit__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.outfit__item {
+  margin: 0;
+  min-width: 0;
+
+  figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.25;
+    color: $alpha-sand-74;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+}
+
+.outfit__photo {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $alpha-white-10;
+}
+
+.outfit__reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: $alpha-sand-74;
+
+  li {
+    position: relative;
+    padding-left: 16px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $color-accent-soft;
+    }
+  }
+}
+
+.outfit__actions:empty {
+  display: none;
+}
+
+.outfit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

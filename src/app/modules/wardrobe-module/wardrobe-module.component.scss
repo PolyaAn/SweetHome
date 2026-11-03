@@ -1,0 +1,362 @@
+@import './wardrobe-shared';
+
+.wardrobe {
+  padding: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: $color-text-main;
+  display: grid;
+  gap: 12px;
+}
+
+.wardrobe-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid $alpha-white-15;
+  background: $alpha-white-04;
+}
+
+.wardrobe-tab {
+  font: inherit;
+  font-weight: 600;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: $alpha-sand-72;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.wardrobe-tab--active {
+  color: $color-text-light;
+  background: linear-gradient(150deg, $alpha-accent-30, $alpha-accent-12);
+  box-shadow: inset 0 0 0 1px $alpha-accent-48;
+}
+
+.wardrobe-tab__count,
+.wardrobe-chip__count {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.wardrobe-cta {
+  @extend %wardrobe-surface;
+  font: inherit;
+  width: 100%;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  color: $color-text-main;
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 88% 0%, $alpha-accent-48, transparent 55%),
+    linear-gradient(155deg, $color-bg-deep-5, $color-bg-deep-3);
+
+  > mat-icon:first-child {
+    color: $color-accent-soft;
+    flex: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+    outline-offset: 2px;
+  }
+}
+
+.wardrobe-cta__text {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    font-size: 16px;
+  }
+
+  span {
+    font-size: 13px;
+    color: $alpha-sand-72;
+  }
+}
+
+.wardrobe-cta__arrow {
+  color: $alpha-sand-72;
+}
+
+.wardrobe-toolbar {
+  @extend %wardrobe-surface;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.wardrobe-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > mat-icon {
+    position: absolute;
+    left: 10px;
+    color: $alpha-sand-72;
+    pointer-events: none;
+  }
+
+  input {
+    @extend %wardrobe-input;
+    padding: 0 38px;
+
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+}
+
+.wardrobe-search__clear {
+  position: absolute;
+  right: 6px;
+  border: 0;
+  background: transparent;
+  color: $alpha-sand-72;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 4px;
+}
+
+.wardrobe-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -12px;
+  padding: 0 12px 2px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.wardrobe-chip {
+  @extend %wardrobe-chip;
+  flex: none;
+  white-space: nowrap;
+}
+
+.wardrobe-chip--active {
+  @extend %wardrobe-chip-active;
+}
+
+.wardrobe-chip__icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.wardrobe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  transition: opacity 0.2s ease;
+
+  @media only screen and (max-width: 420px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+.wardrobe-grid--refreshing {
+  opacity: 0.6;
+}
+
+.wardrobe-card {
+  @extend %wardrobe-surface;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: $alpha-accent-48;
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+    outline-offset: 2px;
+  }
+}
+
+.wardrobe-card__photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-bottom: 1px solid $alpha-white-08;
+}
+
+.wardrobe-card__fav {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid $alpha-white-20;
+  background: rgba(16, 20, 26, 0.55);
+  backdrop-filter: blur(6px);
+  color: $alpha-sand-74;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.wardrobe-card__fav--on {
+  color: $color-accent-soft;
+  border-color: $alpha-accent-48;
+}
+
+.wardrobe-card__body {
+  padding: 10px 12px 12px;
+  display: grid;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+}
+
+.wardrobe-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wardrobe-card__colors {
+  display: inline-flex;
+  gap: 4px;
+  flex: none;
+}
+
+.wardrobe-card__category {
+  font-size: 12px;
+  color: $alpha-sand-72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wardrobe-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px $alpha-white-36;
+}
+
+.wardrobe-dot--multi {
+  background: conic-gradient(#c62828, #f2d13d, #3d8b4a, #2f6fd6, #7b4ea3, #c62828) !important;
+}
+
+.wardrobe-skeleton {
+  @extend %wardrobe-surface;
+  aspect-ratio: 3 / 4.6;
+  opacity: 0.55;
+  animation: wardrobe-pulse 1.3s ease-in-out infinite;
+}
+
+.wardrobe-skeleton--wide {
+  aspect-ratio: auto;
+  height: 220px;
+}
+
+.wardrobe-state {
+  @extend %wardrobe-surface;
+  padding: 28px 20px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  p {
+    margin: 0;
+    max-width: 420px;
+    color: $alpha-sand-74;
+    line-height: 1.45;
+  }
+}
+
+.wardrobe-state__icon {
+  font-size: 44px;
+  width: 44px;
+  height: 44px;
+  color: $color-accent-soft;
+}
+
+.wardrobe-outfits {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+
+  @media only screen and (max-width: 420px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.wardrobe-primary {
+  @extend %wardrobe-primary-button;
+}
+
+.wardrobe-ghost {
+  @extend %wardrobe-ghost-button;
+}
+
+.wardrobe-ghost--danger {
+  color: $color-accent-peach;
+}
+
+@keyframes wardrobe-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+app-wardrobe-outfit-card .wardrobe-primary,
+app-wardrobe-outfit-card .wardrobe-ghost {
+  flex: 1 1 140px;
+  white-space: nowrap;
+}

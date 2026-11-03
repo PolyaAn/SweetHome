@@ -1,0 +1,132 @@
+<section class="wardrobe">
+  <nav class="wardrobe-tabs" role="tablist" aria-label="Разделы гардероба">
+    <button type="button" role="tab" class="wardrobe-tab" [class.wardrobe-tab--active]="tab === 'items'"
+            [attr.aria-selected]="tab === 'items'" (click)="setTab('items')">
+      Вещи <span class="wardrobe-tab__count" *ngIf="totalItems">{{ totalItems }}</span>
+    </button>
+    <button type="button" role="tab" class="wardrobe-tab" [class.wardrobe-tab--active]="tab === 'outfits'"
+            [attr.aria-selected]="tab === 'outfits'" (click)="setTab('outfits')">
+      Образы <span class="wardrobe-tab__count" *ngIf="outfits.length">{{ outfits.length }}</span>
+    </button>
+  </nav>
+
+  <button type="button" class="wardrobe-cta" (click)="openPicker()">
+    <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon>
+    <span class="wardrobe-cta__text">
+      <strong>Подобрать образ</strong>
+      <span>По погоде и поводу из ваших вещей</span>
+    </span>
+    <mat-icon class="wardrobe-cta__arrow" fontIcon="chevron_right" aria-hidden="true"></mat-icon>
+  </button>
+
+  <ng-container *ngIf="tab === 'items'">
+    <section class="wardrobe-toolbar">
+      <label class="wardrobe-search">
+        <mat-icon fontIcon="search" aria-hidden="true"></mat-icon>
+        <input type="search" [value]="searchQuery" (input)="onSearch($any($event.target).value)"
+               placeholder="Поиск по названию, бренду, заметкам" aria-label="Поиск вещей" />
+        <button type="button" *ngIf="searchQuery" class="wardrobe-search__clear" (click)="clearSearch()" aria-label="Очистить поиск">
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </label>
+
+      <div class="wardrobe-chips" role="group" aria-label="Категории">
+        <button type="button" class="wardrobe-chip" [class.wardrobe-chip--active]="!category" (click)="selectCategory(null)">
+          Все <span class="wardrobe-chip__count">{{ totalItems }}</span>
+        </button>
+        <button type="button" class="wardrobe-chip" *ngFor="let c of dictionaries.categories"
+                [class.wardrobe-chip--active]="category === c.code" (click)="selectCategory(c.code)">
+          {{ c.name }} <span class="wardrobe-chip__count">{{ categoryCount(c.code) }}</span>
+        </button>
+        <button type="button" class="wardrobe-chip" [class.wardrobe-chip--active]="onlyFavorites" (click)="toggleFavoritesFilter()"
+                [attr.aria-pressed]="onlyFavorites">
+          <mat-icon class="wardrobe-chip__icon" fontIcon="favorite" aria-hidden="true"></mat-icon> Любимые
+        </button>
+      </div>
+    </section>
+
+    <section class="wardrobe-grid" *ngIf="itemsLoading && !items.length">
+      <div class="wardrobe-skeleton" *ngFor="let i of [1, 2, 3, 4, 5, 6]"></div>
+    </section>
+
+    <section class="wardrobe-state" *ngIf="!itemsLoading && itemsError">
+      <p>{{ itemsError }}</p>
+      <button type="button" class="wardrobe-primary" (click)="loadItems()">Повторить</button>
+    </section>
+
+    <section class="wardrobe-state" *ngIf="!itemsLoading && !itemsError && !items.length && !hasFilters">
+      <mat-icon class="wardrobe-state__icon" fontIcon="checkroom" aria-hidden="true"></mat-icon>
+      <h2>Гардероб пока пуст</h2>
+      <p>Сфотографируйте вещь и дайте ей название — категорию, сезон и цвет мы определим сами.</p>
+      <button type="button" class="wardrobe-primary" (click)="addItem()">
+        <mat-icon fontIcon="add_a_photo" aria-hidden="true"></mat-icon> Добавить первую вещь
+      </button>
+    </section>
+
+    <section class="wardrobe-state" *ngIf="!itemsLoading && !itemsError && !items.length && hasFilters">
+      <p>Ничего не найдено</p>
+      <button type="button" class="wardrobe-ghost" (click)="resetFilters()">Сбросить фильтры</button>
+    </section>
+
+    <section class="wardrobe-grid" *ngIf="!itemsError && items.length" [class.wardrobe-grid--refreshing]="itemsLoading">
+      <article class="wardrobe-card" *ngFor="let item of items; trackBy: trackById"
+               tabindex="0" role="button" [attr.aria-label]="item.name"
+               (click)="openItem(item)" (keydown.enter)="openItem(item)">
+        <div class="wardrobe-card__photo">
+          <app-wardrobe-item-photo [item]="item" [accentHex]="colorOf(item.colors[0])?.hex ?? null"></app-wardrobe-item-photo>
+          <button type="button" class="wardrobe-card__fav" [class.wardrobe-card__fav--on]="item.isFavorite"
+                  [attr.aria-pressed]="item.isFavorite"
+                  [attr.aria-label]="item.isFavorite ? 'Убрать из любимых' : 'В любимые'"
+                  (click)="toggleFavorite($event, item)" (keydown.enter)="$event.stopPropagation()">
+            <mat-icon [fontIcon]="item.isFavorite ? 'favorite' : 'favorite_border'"></mat-icon>
+          </button>
+        </div>
+        <div class="wardrobe-card__body">
+          <h3>{{ item.name }}</h3>
+          <div class="wardrobe-card__meta">
+            <span class="wardrobe-card__colors">
+              <span class="wardrobe-dot" *ngFor="let code of item.colors"
+                    [style.background]="colorOf(code)?.hex" [class.wardrobe-dot--multi]="code === 'MULTI'"
+                    [attr.title]="colorOf(code)?.name"></span>
+            </span>
+            <span class="wardrobe-card__category">{{ categoryName(item.category) }}</span>
+          </div>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+
+  <ng-container *ngIf="tab === 'outfits'">
+    <section class="wardrobe-outfits" *ngIf="outfitsLoading && !outfits.length">
+      <div class="wardrobe-skeleton wardrobe-skeleton--wide" *ngFor="let i of [1, 2]"></div>
+    </section>
+
+    <section class="wardrobe-state" *ngIf="!outfitsLoading && outfitsError">
+      <p>{{ outfitsError }}</p>
+      <button type="button" class="wardrobe-primary" (click)="loadOutfits()">Повторить</button>
+    </section>
+
+    <section class="wardrobe-state" *ngIf="!outfitsLoading && !outfitsError && outfitsLoaded && !outfits.length">
+      <mat-icon class="wardrobe-state__icon" fontIcon="style" aria-hidden="true"></mat-icon>
+      <h2>Сохранённых образов нет</h2>
+      <p>Подберите образ и сохраните удачные сочетания — они появятся здесь.</p>
+      <button type="button" class="wardrobe-primary" (click)="openPicker()">
+        <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon> Подобрать образ
+      </button>
+    </section>
+
+    <section class="wardrobe-outfits" *ngIf="outfits.length">
+      <app-wardrobe-outfit-card *ngFor="let outfit of outfits; trackBy: trackById"
+                                [items]="outfit.items" [title]="outfit.name" [subtitle]="outfitSubtitle(outfit)"
+                                [colors]="dictionaries.colors">
+        <button type="button" class="wardrobe-primary" [disabled]="busyOutfitId === outfit.id" (click)="wearOutfit(outfit)">
+          <mat-icon fontIcon="check" aria-hidden="true"></mat-icon> Надеть сегодня
+        </button>
+        <button type="button" class="wardrobe-ghost wardrobe-ghost--danger" [disabled]="busyOutfitId === outfit.id"
+                (click)="deleteOutfit(outfit)" aria-label="Удалить образ">
+          <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
+        </button>
+      </app-wardrobe-outfit-card>
+    </section>
+  </ng-container>
+</section>

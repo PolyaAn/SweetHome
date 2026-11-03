@@ -1,0 +1,6 @@
+<div class="photo" [class.photo--loading]="loading" [style.--accent]="accentHex">
+  <img *ngIf="displayUrl; else placeholder" [src]="displayUrl" [alt]="item?.name || 'Фото вещи'" loading="lazy" />
+  <ng-template #placeholder>
+    <mat-icon class="photo__icon" [fontIcon]="icon" aria-hidden="true"></mat-icon>
+  </ng-template>
+</div>

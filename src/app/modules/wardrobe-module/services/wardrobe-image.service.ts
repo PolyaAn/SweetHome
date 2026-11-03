@@ -1,0 +1,77 @@
+import { Injectable, OnDestroy } from '@angular/core';
+import { catchError, finalize, map, Observable, of, shareReplay } from 'rxjs';
+import { WardrobeItem } from '../models/wardrobe.model';
+import { WardrobeApiService } from './wardrobe-api.service';
+
+/**
+ * Фото вещей защищены cookie-авторизацией, поэтому грузим их через HttpClient
+ * и отдаём в шаблон object URL. Кэш живёт, пока открыт модуль гардероба.
+ */
+@Injectable()
+export class WardrobeImageService implements OnDestroy {
+  private readonly urls: Map<string, string> = new Map();
+  private readonly pending: Map<string, Observable<string | null>> = new Map();
+
+  constructor(private api: WardrobeApiService) {
+  }
+
+  getUrl(item: Pick<WardrobeItem, 'id' | 'hasImage' | 'imageUpdatedAt'>): Observable<string | null> {
+    if (!item.hasImage) {
+      return of(null);
+    }
+
+    const key: string = this.key(item);
+    const cached: string | undefined = this.urls.get(key);
+    if (cached) {
+      return of(cached);
+    }
+
+    const inFlight: Observable<string | null> | undefined = this.pending.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const request$: Observable<string | null> = this.api.getImageBlob(item).pipe(
+      map((blob: Blob) => {
+        this.revokeOlderVersions(item.id);
+        const url: string = URL.createObjectURL(blob);
+        this.urls.set(key, url);
+        return url;
+      }),
+      catchError(() => of(null)),
+      finalize(() => this.pending.delete(key)),
+      shareReplay(1),
+    );
+
+    this.pending.set(key, request$);
+    return request$;
+  }
+
+  /** Подставляет только что выбранное фото, чтобы не скачивать его заново после загрузки. */
+  prime(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>, blob: Blob): void {
+    this.revokeOlderVersions(item.id);
+    this.urls.set(this.key(item), URL.createObjectURL(blob));
+  }
+
+  forget(itemId: string): void {
+    this.revokeOlderVersions(itemId);
+  }
+
+  ngOnDestroy(): void {
+    this.urls.forEach((url: string) => URL.revokeObjectURL(url));
+    this.urls.clear();
+  }
+
+  private key(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>): string {
+    return `${item.id}|${item.imageUpdatedAt || ''}`;
+  }
+
+  private revokeOlderVersions(itemId: string): void {
+    Array.from(this.urls.keys())
+      .filter((key: string) => key.startsWith(`${itemId}|`))
+      .forEach((key: string) => {
+        URL.revokeObjectURL(this.urls.get(key) as string);
+        this.urls.delete(key);
+      });
+  }
+}

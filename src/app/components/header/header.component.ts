@@ -53,6 +53,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   isHomeRoomsPage: boolean = false;
   isHomeDevicesPage: boolean = false;
   isHomeSensorsPage: boolean = false;
+  isWardrobeListPage: boolean = false;
   homeRoomId: string | null = null;
   homeRoomTitle: string = '';
   homeWidgetCount: number | null = null;
@@ -67,6 +68,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.isMovieListPage = this.router.url === '/movies';
     this.isFriendMoviesPage = /^\/movies\/friends\/[^/]+$/.test(this.router.url.split('?')[0]);
     this.setHomeRouteState();
+    this.setWardrobeRouteState();
     this.pageTitle = this.getCurrentPageTitle();
     this.watchMovieViewMode();
     this.watchFriendMoviesOwnerNickname();
@@ -103,6 +105,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
           this.isMovieListPage = this.router.url === '/movies';
           this.isFriendMoviesPage = /^\/movies\/friends\/[^/]+$/.test(this.router.url.split('?')[0]);
           this.setHomeRouteState();
+          this.setWardrobeRouteState();
           this.pageTitle = this.getCurrentPageTitle();
           this.cdr.markForCheck();
         },
@@ -215,8 +218,13 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   goBack(): void {
     const url = this.router.url.split('?')[0];
 
-    if (url === '/home') {
+    if (url === '/home' || url === '/wardrobe') {
       this.router.navigate(['/main']);
+      return;
+    }
+
+    if (url.startsWith('/wardrobe/') && window.history.length <= 1) {
+      this.router.navigate(['/wardrobe']);
       return;
     }
 
@@ -235,6 +243,14 @@ export class HeaderComponent extends BaseComponent implements OnInit {
 
   addMovie(): void {
     this.router.navigate(['/movies/create']);
+  }
+
+  addWardrobeItem(): void {
+    this.router.navigate(['/wardrobe/items/create']);
+  }
+
+  openOutfitPicker(): void {
+    this.router.navigate(['/wardrobe/outfits/suggest']);
   }
 
   openFriends(): void {
@@ -269,6 +285,10 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  private setWardrobeRouteState(): void {
+    this.isWardrobeListPage = this.router.url.split('?')[0] === '/wardrobe';
   }
 
   private setHomeRouteState(): void {

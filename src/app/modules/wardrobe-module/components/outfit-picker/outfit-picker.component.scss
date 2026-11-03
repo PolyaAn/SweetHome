@@ -1,0 +1,241 @@
+@import '../../wardrobe-shared';
+
+:host {
+  display: block;
+  padding: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: $color-text-main;
+}
+
+.picker {
+  display: grid;
+  gap: 16px;
+}
+
+.picker__controls {
+  @extend %wardrobe-surface;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+
+  @media only screen and (max-width: 767px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.picker__group {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
+
+.picker__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: $color-text-soft-2;
+}
+
+.picker__chips {
+  @include ui-tags-wrap(8px);
+}
+
+.picker__chip {
+  @extend %wardrobe-chip;
+}
+
+.picker__chip--small {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.picker__chip--active {
+  @extend %wardrobe-chip-active;
+}
+
+.picker__temperature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picker__step {
+  @extend %wardrobe-ghost-button;
+  width: 44px;
+  padding: 0;
+  flex: none;
+}
+
+.picker__temp-input {
+  position: relative;
+  flex: 1;
+  max-width: 140px;
+
+  input {
+    @extend %wardrobe-input;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    padding-right: 34px;
+  }
+
+  span {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $alpha-sand-72;
+    pointer-events: none;
+  }
+}
+
+.picker__hint {
+  margin: 0;
+  font-size: 13px;
+  color: $alpha-sand-74;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $color-accent-soft;
+  }
+}
+
+.picker__results {
+  display: grid;
+  gap: 12px;
+}
+
+.picker__results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+}
+
+.picker__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  transition: opacity 0.2s ease;
+
+  @media only screen and (max-width: 420px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.picker__list--refreshing {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.picker__skeleton {
+  @extend %wardrobe-surface;
+  height: 260px;
+  opacity: 0.5;
+  animation: picker-pulse 1.3s ease-in-out infinite;
+}
+
+.picker__state {
+  @extend %wardrobe-surface;
+  padding: 24px 18px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+
+  h3,
+  p {
+    margin: 0;
+  }
+}
+
+.picker__state-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: $color-accent-soft;
+}
+
+.picker__missing {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  color: $alpha-sand-74;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.picker__name {
+  flex: 1 1 100%;
+
+  input {
+    @extend %wardrobe-input;
+    height: 38px;
+
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
+}
+
+.picker__actions {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    flex: 1 1 150px;
+    white-space: nowrap;
+  }
+}
+
+.picker__primary {
+  @extend %wardrobe-primary-button;
+}
+
+.picker__ghost {
+  @extend %wardrobe-ghost-button;
+}
+
+.picker__link {
+  justify-self: center;
+  font: inherit;
+  border: 0;
+  background: transparent;
+  color: $color-gold-1;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes picker-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.65; }
+}

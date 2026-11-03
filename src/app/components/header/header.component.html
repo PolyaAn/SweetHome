@@ -47,6 +47,20 @@
               aria-label="Переключить вид списка"
               [fontIcon]="movieViewMode === 'list' ? 'grid_view' : 'view_agenda'">
     </mat-icon>
+    <mat-icon *ngIf="isWardrobeListPage"
+              (click)="openOutfitPicker()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Подобрать образ"
+              fontIcon="auto_awesome">
+    </mat-icon>
+    <mat-icon *ngIf="isWardrobeListPage"
+              (click)="addWardrobeItem()"
+              class="icon"
+              aria-hidden="false"
+              aria-label="Добавить вещь"
+              fontIcon="add">
+    </mat-icon>
     <mat-icon *ngIf="isMainPage"
               (click)="editMainPage()"
               class="icon"

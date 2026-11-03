@@ -1,0 +1,26 @@
+<article class="outfit">
+  <header class="outfit__head" *ngIf="title || score !== null">
+    <div class="outfit__titles">
+      <h3 *ngIf="title">{{ title }}</h3>
+      <p *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+    <span class="outfit__score" *ngIf="score !== null" [attr.aria-label]="'Оценка ' + score + ' из 100'">{{ score }}</span>
+  </header>
+
+  <div class="outfit__items" [style.--count]="items.length">
+    <figure class="outfit__item" *ngFor="let item of items; trackBy: trackById">
+      <div class="outfit__photo">
+        <app-wardrobe-item-photo [item]="item" [accentHex]="colorHex(item.colors[0])"></app-wardrobe-item-photo>
+      </div>
+      <figcaption>{{ item.name }}</figcaption>
+    </figure>
+  </div>
+
+  <ul class="outfit__reasons" *ngIf="reasons.length">
+    <li *ngFor="let reason of reasons">{{ reason }}</li>
+  </ul>
+
+  <div class="outfit__actions">
+    <ng-content></ng-content>
+  </div>
+</article>

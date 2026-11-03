@@ -1,0 +1,97 @@
+<section class="picker">
+  <section class="picker__controls">
+    <div class="picker__group">
+      <span class="picker__label">Повод</span>
+      <div class="picker__chips" role="radiogroup" aria-label="Повод">
+        <button type="button" role="radio" class="picker__chip" *ngFor="let style of dictionaries.styles"
+                [class.picker__chip--active]="occasion === style.code" [attr.aria-checked]="occasion === style.code"
+                (click)="selectOccasion(style.code)">{{ style.name }}</button>
+      </div>
+    </div>
+
+    <div class="picker__group">
+      <span class="picker__label">Погода за окном</span>
+      <div class="picker__temperature">
+        <button type="button" class="picker__step" (click)="stepTemperature(-1)" aria-label="Холоднее"
+                [disabled]="temperature <= minTemperature">
+          <mat-icon fontIcon="remove"></mat-icon>
+        </button>
+        <label class="picker__temp-input">
+          <input type="text" inputmode="numeric" [value]="temperatureText" aria-label="Температура, °C"
+                 (input)="onTemperatureInput($any($event.target).value)"
+                 (blur)="commitTemperature()" (keydown.enter)="commitTemperature()" />
+          <span>°C</span>
+        </label>
+        <button type="button" class="picker__step" (click)="stepTemperature(1)" aria-label="Теплее"
+                [disabled]="temperature >= maxTemperature">
+          <mat-icon fontIcon="add"></mat-icon>
+        </button>
+      </div>
+      <div class="picker__chips picker__chips--presets">
+        <button type="button" class="picker__chip picker__chip--small" *ngFor="let t of temperaturePresets"
+                [class.picker__chip--active]="temperature === t" (click)="setTemperature(t)">
+          {{ t > 0 ? '+' : '' }}{{ t }}°
+        </button>
+      </div>
+      <p class="picker__hint">
+        <mat-icon [fontIcon]="temperature < 15 ? 'ac_unit' : (temperature > 22 ? 'wb_sunny' : 'filter_drama')" aria-hidden="true"></mat-icon>
+        {{ weatherHint }}
+      </p>
+    </div>
+  </section>
+
+  <section class="picker__results" aria-live="polite">
+    <div class="picker__results-head">
+      <h2>Варианты</h2>
+      <button type="button" class="picker__ghost" (click)="more()" [disabled]="loading || !views.length">
+        <mat-icon fontIcon="shuffle" aria-hidden="true"></mat-icon> Ещё варианты
+      </button>
+    </div>
+
+    <div class="picker__list" *ngIf="loading && !views.length">
+      <div class="picker__skeleton" *ngFor="let i of [1, 2, 3]"></div>
+    </div>
+
+    <div class="picker__state" *ngIf="!loading && error">
+      <p>{{ error }}</p>
+      <button type="button" class="picker__primary" (click)="suggest()">Повторить</button>
+    </div>
+
+    <div class="picker__state" *ngIf="!loading && !error && response && !views.length">
+      <mat-icon class="picker__state-icon" fontIcon="checkroom" aria-hidden="true"></mat-icon>
+      <h3>Пока не из чего собрать образ</h3>
+      <ul class="picker__missing">
+        <li *ngFor="let hint of response.missing">{{ hint }}</li>
+      </ul>
+      <button type="button" class="picker__primary" (click)="addItem()">
+        <mat-icon fontIcon="add" aria-hidden="true"></mat-icon> Добавить вещь
+      </button>
+    </div>
+
+    <div class="picker__list" *ngIf="views.length" [class.picker__list--refreshing]="loading">
+      <app-wardrobe-outfit-card *ngFor="let view of views; let i = index; trackBy: trackByIndex"
+                                [items]="view.suggestion.items" [score]="view.suggestion.score"
+                                [reasons]="view.suggestion.reasons" [colors]="dictionaries.colors">
+        <label class="picker__name">
+          <span class="visually-hidden">Название образа</span>
+          <input type="text" maxlength="80" [value]="view.name" [disabled]="!!view.savedOutfit"
+                 (input)="onNameInput(view, $any($event.target).value)" aria-label="Название образа" />
+        </label>
+        <div class="picker__actions">
+          <button type="button" class="picker__primary" (click)="wear(view)" [disabled]="view.busy || view.worn">
+            <mat-icon [fontIcon]="view.worn ? 'check_circle' : 'check'" aria-hidden="true"></mat-icon>
+            {{ view.worn ? 'Надето' : 'Надеть сегодня' }}
+          </button>
+          <button type="button" class="picker__ghost" (click)="save(view)" [disabled]="view.busy || !!view.savedOutfit">
+            <mat-icon [fontIcon]="view.savedOutfit ? 'bookmark' : 'bookmark_border'" aria-hidden="true"></mat-icon>
+            {{ view.savedOutfit ? 'Сохранён' : 'Сохранить' }}
+          </button>
+        </div>
+      </app-wardrobe-outfit-card>
+    </div>
+
+    <button type="button" class="picker__link" *ngIf="views.length" (click)="openOutfits()">
+      Мои сохранённые образы <mat-icon fontIcon="chevron_right" aria-hidden="true"></mat-icon>
+    </button>
+  </section>
+</section>
