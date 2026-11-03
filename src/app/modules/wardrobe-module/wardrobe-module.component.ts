@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { catchError, debounceTime, exhaustMap, finalize, forkJoin, of, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { catchError, debounceTime, exhaustMap, filter, finalize, forkJoin, of, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { BaseComponent } from '../../components/base/base.component';
 import { ToastService } from '../../shared/services/toast.service';
 import {
@@ -22,7 +22,9 @@ import { pluralize, wornLabel } from './utils/wardrobe-format';
 
 type WardrobeTab = 'items' | 'outfits';
 
-const PENDING_POLL_LIMIT_MS = 2 * 60 * 1000;
+/** Первые 2 минуты спрашиваем каждые 3 с, потом каждые 15 с; всего не дольше 10 минут (очередь на сервере общая). */
+const PENDING_POLL_FAST_MS = 2 * 60 * 1000;
+const PENDING_POLL_LIMIT_MS = 10 * 60 * 1000;
 
 @Component({
   selector: 'app-wardrobe-module',
@@ -104,13 +106,14 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
         }
       });
 
-    // Пока у фото убирают фон, раз в 3 секунды спрашиваем только эти вещи (не дольше 2 минут).
+    // Пока у фото убирают фон, спрашиваем только эти вещи (сначала часто, потом реже, ограниченно по времени).
     this.pendingPoll$
       .pipe(
         switchMap(() => {
           const startedAt: number = Date.now();
           return timer(3000, 3000).pipe(
             takeWhile(() => this.pendingImageIds().length > 0 && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+            filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
             exhaustMap(() => forkJoin(this.pendingImageIds().map((id: string) => this.api.getItem(id).pipe(
               catchError(() => of(null)),
             )))),

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, EMPTY, exhaustMap, finalize, map, Observable, of, Subject, switchMap, takeUntil, takeWhile, tap, timer } from 'rxjs';
+import { catchError, EMPTY, exhaustMap, filter, finalize, map, Observable, of, Subject, switchMap, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { WardrobePendingChanges } from '../../guards/wardrobe-form-deactivate.guard';
@@ -39,7 +39,9 @@ interface ItemFormState {
 }
 
 const MAX_COLORS = 3;
-const PENDING_POLL_LIMIT_MS = 2 * 60 * 1000;
+/** Первые 2 минуты спрашиваем каждые 3 с, потом каждые 15 с; всего не дольше 10 минут (очередь на сервере общая). */
+const PENDING_POLL_FAST_MS = 2 * 60 * 1000;
+const PENDING_POLL_LIMIT_MS = 10 * 60 * 1000;
 
 @Component({
   selector: 'app-wardrobe-item-form',
@@ -209,6 +211,7 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
           const startedAt: number = Date.now();
           return timer(3000, 3000).pipe(
             takeWhile(() => this.item?.imageStatus === 'PENDING' && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+            filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
             exhaustMap(() => this.api.getItem(itemId).pipe(catchError(() => of(null)))),
           );
         }),
@@ -415,9 +418,11 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       )
       .subscribe({
         next: (updated: WardrobeItem) => this.applyImageState(updated),
-        error: (error: { status?: number }) => {
-          this.toast.error(error.status === 404 ? 'Вещь не найдена — возможно, её уже удалили' : 'Не удалось переключить фото');
-          if (error.status === 400 && this.itemId) {
+        error: (error: { status?: number; error?: WardrobeApiErrorResponse }) => {
+          const imageGone: boolean = error.error?.errorCode === 'WARDROBE_IMAGE_NOT_FOUND';
+          this.toast.error(imageGone ? 'Фото уже удалено'
+            : error.status === 404 ? 'Вещь не найдена — возможно, её уже удалили' : 'Не удалось переключить фото');
+          if (error.status === 400 || imageGone) {
             this.refreshImageState();
           }
         },
@@ -441,7 +446,14 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       )
       .subscribe({
         next: (updated: WardrobeItem) => this.applyImageState(updated),
-        error: () => this.toast.error('Сейчас не получается убрать фон — попробуйте позже'),
+        error: (error: { error?: WardrobeApiErrorResponse }) => {
+          if (error.error?.errorCode === 'WARDROBE_IMAGE_NOT_FOUND') {
+            this.toast.error('Фото уже удалено');
+            this.refreshImageState();
+            return;
+          }
+          this.toast.error('Сейчас не получается убрать фон — попробуйте позже');
+        },
       });
   }
 

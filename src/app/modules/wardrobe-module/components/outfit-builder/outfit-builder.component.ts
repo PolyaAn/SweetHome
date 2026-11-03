@@ -403,6 +403,12 @@ export class WardrobeOutfitBuilderComponent extends BaseComponent implements OnI
               note: outfit.note ?? '',
               itemIds: outfit.itemIds.filter((id: string) => existing.has(id)),
             };
+            const removed: number = outfit.itemIds.length - this.form.itemIds.length;
+            if (removed > 0) {
+              this.toast.warning(removed === 1
+                ? 'Одной вещи из образа уже нет в гардеробе — она убрана'
+                : `${removed} вещей из образа уже нет в гардеробе — они убраны`);
+            }
           } else if (draft) {
             const itemIds: string[] = draft.itemIds.filter((id: string) => existing.has(id));
             this.draftMissing = draft.itemIds.length - itemIds.length;
@@ -434,6 +440,9 @@ export class WardrobeOutfitBuilderComponent extends BaseComponent implements OnI
           this.wardrobe = response.items;
           const existing: Set<string> = new Set(this.wardrobe.map((item: WardrobeItem) => item.id));
           this.form.itemIds = this.form.itemIds.filter((id: string) => existing.has(id));
+          // Ошибка «вещи не найдены» устарела: недостающие вещи уже убраны из образа.
+          this.errors = {...this.errors, itemIds: undefined};
+          this.validate('itemIds');
           this.cdr.markForCheck();
         },
       });
