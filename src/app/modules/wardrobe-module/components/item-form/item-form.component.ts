@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, finalize, map, Observable, of, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { catchError, EMPTY, exhaustMap, finalize, map, Observable, of, Subject, switchMap, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { WardrobePendingChanges } from '../../guards/wardrobe-form-deactivate.guard';
@@ -12,6 +12,7 @@ import {
   WardrobeClassification,
   WardrobeColor,
   WardrobeDictionaries,
+  WardrobeImageVariant,
   WardrobeItem,
   WardrobeItemUpsertRequest,
   WardrobeSeason,
@@ -38,6 +39,7 @@ interface ItemFormState {
 }
 
 const MAX_COLORS = 3;
+const PENDING_POLL_LIMIT_MS = 2 * 60 * 1000;
 
 @Component({
   selector: 'app-wardrobe-item-form',
@@ -83,6 +85,11 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
   photoProcessing: boolean = false;
   dominantHex: string | null = null;
 
+  /** Переключение «Без фона / Оригинал» или повторная обработка в процессе. */
+  imageBusy: boolean = false;
+  /** Опрос статуса обработки фото: 'start' — запустить заново, 'stop' — остановить. */
+  private readonly imagePoll$: Subject<'start' | 'stop'> = new Subject();
+
   /** Поля, которые пользователь менял руками: автоклассификация их не трогает. */
   manual: Set<AutoField> = new Set();
   /** Поля, заполненные автоматически (показываем бейдж «авто»). */
@@ -118,6 +125,15 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
 
   get hasPhoto(): boolean {
     return !!this.previewUrl || this.showStoredPhoto;
+  }
+
+  get backgroundRemoval(): boolean {
+    return !!this.dictionaries.backgroundRemoval;
+  }
+
+  /** Состояние обработки сохранённого фото (только когда показываем именно его). */
+  get storedImageStatus(): string {
+    return this.showStoredPhoto ? this.item?.imageStatus ?? 'NONE' : '';
   }
 
   get warmthName(): string {
@@ -181,6 +197,27 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
           }
         }
         this.cdr.markForCheck();
+      });
+
+    this.imagePoll$
+      .pipe(
+        switchMap((command: 'start' | 'stop') => {
+          if (command === 'stop' || !this.itemId) {
+            return EMPTY;
+          }
+          const itemId: string = this.itemId;
+          const startedAt: number = Date.now();
+          return timer(3000, 3000).pipe(
+            takeWhile(() => this.item?.imageStatus === 'PENDING' && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+            exhaustMap(() => this.api.getItem(itemId).pipe(catchError(() => of(null)))),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((updated: WardrobeItem | null) => {
+        if (updated && updated.id === this.item?.id) {
+          this.applyImageState(updated);
+        }
       });
 
     this.returnTo = this.route.snapshot.queryParamMap.get('from') === 'picker' ? 'picker' : null;
@@ -299,9 +336,10 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
     this.classifying = true;
     this.classifyRequested = true;
 
-    // На редактировании учитываем и уже сохранённое фото: берём его доминирующий цвет.
+    // На редактировании учитываем и уже сохранённое фото: берём доминирующий цвет оригинала
+    // (на версии без фона светлый фон исказил бы цвет).
     if (!this.dominantHex && this.showStoredPhoto && this.item) {
-      this.images.getUrl(this.item)
+      this.images.getUrl(this.item, 'ORIGINAL')
         .pipe(
           switchMap((url: string | null) => url ? dominantColorFromUrl(url) : of(null)),
           catchError(() => of(null)),
@@ -358,6 +396,53 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
       this.photoProcessing = false;
       this.cdr.markForCheck();
     }
+  }
+
+  /** «Без фона / Оригинал»: применяется сразу, без кнопки «Сохранить». */
+  setImageVariant(variant: WardrobeImageVariant): void {
+    if (!this.item || this.imageBusy || this.item.imageVariant === variant) {
+      return;
+    }
+
+    this.imageBusy = true;
+    this.api.setImageVariant(this.item.id, variant)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.imageBusy = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (updated: WardrobeItem) => this.applyImageState(updated),
+        error: (error: { status?: number }) => {
+          this.toast.error(error.status === 404 ? 'Вещь не найдена — возможно, её уже удалили' : 'Не удалось переключить фото');
+          if (error.status === 400 && this.itemId) {
+            this.refreshImageState();
+          }
+        },
+      });
+  }
+
+  /** «Убрать фон» / «Повторить»: ставит сохранённое фото в очередь заново. */
+  reprocessImage(): void {
+    if (!this.item || this.imageBusy) {
+      return;
+    }
+
+    this.imageBusy = true;
+    this.api.reprocessImage(this.item.id)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.imageBusy = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (updated: WardrobeItem) => this.applyImageState(updated),
+        error: () => this.toast.error('Сейчас не получается убрать фон — попробуйте позже'),
+      });
   }
 
   removePhoto(): void {
@@ -523,11 +608,42 @@ export class WardrobeItemFormComponent extends BaseComponent implements OnInit, 
           this.manual = new Set<AutoField>(['category', 'colors', 'seasons', 'styles', 'warmth']);
           this.auto.clear();
           this.dirty = false;
+          this.imagePoll$.next(item.imageStatus === 'PENDING' ? 'start' : 'stop');
         },
         error: (error: { status?: number }) => {
           this.pageError = error.status === 404 ? 'Вещь не найдена' : 'Не удалось загрузить вещь';
         },
       });
+  }
+
+  /** Обновляет только состояние фото: поля формы пользователь мог уже поменять. */
+  private applyImageState(source: WardrobeItem): void {
+    if (!this.item) {
+      return;
+    }
+
+    const wasPending: boolean = this.item.imageStatus === 'PENDING';
+    this.item = {
+      ...this.item,
+      hasImage: source.hasImage,
+      imageUpdatedAt: source.imageUpdatedAt,
+      imageStatus: source.imageStatus,
+      imageVariant: source.imageVariant,
+    };
+    if (source.imageStatus === 'PENDING' && !wasPending) {
+      this.imagePoll$.next('start');
+    }
+    this.cdr.markForCheck();
+  }
+
+  private refreshImageState(): void {
+    const itemId: string | null = this.itemId;
+    if (!itemId) {
+      return;
+    }
+    this.api.getItem(itemId)
+      .pipe(catchError(() => of(null)), takeUntil(this.unsubscribe$))
+      .subscribe((updated: WardrobeItem | null) => updated && this.applyImageState(updated));
   }
 
   /**

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { WardrobeItemFormComponent } from './components/item-form/item-form.component';
 import { WardrobeItemPhotoComponent } from './components/item-photo/item-photo.component';
+import { WardrobeOutfitBuilderComponent } from './components/outfit-builder/outfit-builder.component';
 import { WardrobeOutfitCardComponent } from './components/outfit-card/outfit-card.component';
 import { WardrobeOutfitPickerComponent } from './components/outfit-picker/outfit-picker.component';
 import { WardrobeFormDeactivateGuard } from './guards/wardrobe-form-deactivate.guard';
@@ -20,6 +21,7 @@ import { WardrobeModuleComponent } from './wardrobe-module.component';
     WardrobeItemPhotoComponent,
     WardrobeOutfitCardComponent,
     WardrobeOutfitPickerComponent,
+    WardrobeOutfitBuilderComponent,
   ],
   imports: [
     CommonModule,

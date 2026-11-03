@@ -79,6 +79,9 @@
                (click)="openItem(item)" (keydown.enter)="onCardKey($event, item)" (keydown.space)="onCardKey($event, item)">
         <div class="wardrobe-card__photo">
           <app-wardrobe-item-photo [item]="item" [accentHex]="colorOf(item.colors[0])?.hex ?? null"></app-wardrobe-item-photo>
+          <span class="wardrobe-card__badge" *ngIf="item.imageStatus === 'PENDING'">
+            <span class="wardrobe-spinner" aria-hidden="true"></span> Убираем фон
+          </span>
           <button type="button" class="wardrobe-card__fav" [class.wardrobe-card__fav--on]="item.isFavorite"
                   [attr.aria-pressed]="item.isFavorite"
                   [attr.aria-label]="item.isFavorite ? 'Убрать из любимых' : 'В любимые'"
@@ -114,11 +117,22 @@
     <section class="wardrobe-state" *ngIf="!outfitsLoading && !outfitsError && outfitsLoaded && !outfits.length">
       <mat-icon class="wardrobe-state__icon" fontIcon="style" aria-hidden="true"></mat-icon>
       <h2>Сохранённых образов нет</h2>
-      <p>Подберите образ и сохраните удачные сочетания — они появятся здесь.</p>
-      <button type="button" class="wardrobe-primary" (click)="openPicker()">
-        <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon> Подобрать образ
-      </button>
+      <p>Подберите образ или соберите свой из вещей гардероба — сохранённые сочетания появятся здесь.</p>
+      <div class="wardrobe-state__actions">
+        <button type="button" class="wardrobe-primary" (click)="createOutfit()">
+          <mat-icon fontIcon="add" aria-hidden="true"></mat-icon> Собрать образ
+        </button>
+        <button type="button" class="wardrobe-ghost" (click)="openPicker()">
+          <mat-icon fontIcon="auto_awesome" aria-hidden="true"></mat-icon> Подобрать
+        </button>
+      </div>
     </section>
+
+    <div class="wardrobe-outfits-head" *ngIf="outfits.length">
+      <button type="button" class="wardrobe-ghost" (click)="createOutfit()">
+        <mat-icon fontIcon="add" aria-hidden="true"></mat-icon> Собрать образ
+      </button>
+    </div>
 
     <section class="wardrobe-outfits" *ngIf="outfits.length">
       <app-wardrobe-outfit-card *ngFor="let outfit of outfits; trackBy: trackById"
@@ -127,8 +141,12 @@
         <button type="button" class="wardrobe-primary" [disabled]="!!busyOutfitId" (click)="wearOutfit(outfit)">
           <mat-icon fontIcon="check" aria-hidden="true"></mat-icon> Надеть сегодня
         </button>
+        <button type="button" class="wardrobe-ghost" [disabled]="!!busyOutfitId" (click)="editOutfit(outfit)"
+                [attr.aria-label]="'Изменить образ «' + outfit.name + '»'">
+          <mat-icon fontIcon="edit" aria-hidden="true"></mat-icon> Изменить
+        </button>
         <button type="button" class="wardrobe-ghost wardrobe-ghost--danger" [disabled]="!!busyOutfitId"
-                (click)="deleteOutfit(outfit)" aria-label="Удалить образ">
+                (click)="deleteOutfit(outfit)" [attr.aria-label]="'Удалить образ «' + outfit.name + '»'">
           <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
         </button>
       </app-wardrobe-outfit-card>

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { debounceTime, finalize, Subject, takeUntil } from 'rxjs';
+import { catchError, debounceTime, exhaustMap, finalize, forkJoin, of, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { BaseComponent } from '../../components/base/base.component';
 import { ToastService } from '../../shared/services/toast.service';
 import {
@@ -21,6 +21,8 @@ import { WardrobeStateService } from './services/wardrobe-state.service';
 import { pluralize, wornLabel } from './utils/wardrobe-format';
 
 type WardrobeTab = 'items' | 'outfits';
+
+const PENDING_POLL_LIMIT_MS = 2 * 60 * 1000;
 
 @Component({
   selector: 'app-wardrobe-module',
@@ -59,6 +61,8 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
   busyOutfitId: string | null = null;
 
   private readonly search$: Subject<string> = new Subject<string>();
+  /** Перезапуск опроса вещей, у которых сервер ещё убирает фон. */
+  private readonly pendingPoll$: Subject<void> = new Subject<void>();
   private itemsRequestId: number = 0;
   /** Строка поиска, с которой загружен текущий список (вместо distinctUntilChanged, который ломался после сброса). */
   private loadedQuery: string = '';
@@ -98,6 +102,24 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
         if (query !== this.loadedQuery) {
           this.loadItems();
         }
+      });
+
+    // Пока у фото убирают фон, раз в 3 секунды спрашиваем только эти вещи (не дольше 2 минут).
+    this.pendingPoll$
+      .pipe(
+        switchMap(() => {
+          const startedAt: number = Date.now();
+          return timer(3000, 3000).pipe(
+            takeWhile(() => this.pendingImageIds().length > 0 && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+            exhaustMap(() => forkJoin(this.pendingImageIds().map((id: string) => this.api.getItem(id).pipe(
+              catchError(() => of(null)),
+            )))),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((updated: (WardrobeItem | null)[]) => {
+        updated.forEach((item: WardrobeItem | null) => item && this.applyImageState(item));
       });
 
     this.route.queryParams
@@ -175,6 +197,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
           this.items = response.items;
           this.counts = response.counts || {};
           this.itemsLoading = false;
+          this.restartPendingPoll();
           this.cdr.markForCheck();
         },
         error: () => {
@@ -205,6 +228,7 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
         next: (outfits: WardrobeOutfit[]) => {
           this.outfits = outfits;
           this.outfitsLoaded = true;
+          this.restartPendingPoll();
         },
         error: () => {
           this.outfitsError = 'Не удалось загрузить образы';
@@ -230,6 +254,14 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
 
   openPicker(): void {
     this.router.navigate(['/wardrobe/outfits/suggest']);
+  }
+
+  createOutfit(): void {
+    this.router.navigate(['/wardrobe/outfits/create']);
+  }
+
+  editOutfit(outfit: WardrobeOutfit): void {
+    this.router.navigate(['/wardrobe/outfits', outfit.id, 'edit']);
   }
 
   toggleFavorite(event: Event, item: WardrobeItem): void {
@@ -370,6 +402,36 @@ export class WardrobeModuleComponent extends BaseComponent implements OnInit {
 
   trackById(_: number, entity: { id: string }): string {
     return entity.id;
+  }
+
+  private pendingImageIds(): string[] {
+    const ids: Set<string> = new Set();
+    this.items.forEach((item: WardrobeItem) => item.imageStatus === 'PENDING' && ids.add(item.id));
+    this.outfits.forEach((outfit: WardrobeOutfit) => outfit.items
+      .forEach((item: WardrobeItem) => item.imageStatus === 'PENDING' && ids.add(item.id)));
+    return Array.from(ids);
+  }
+
+  private restartPendingPoll(): void {
+    if (this.pendingImageIds().length) {
+      this.pendingPoll$.next();
+    }
+  }
+
+  /** Обновляет только поля фото: избранное и прочее могли поменять, пока шёл опрос. */
+  private applyImageState(source: WardrobeItem): void {
+    const patch = (item: WardrobeItem): WardrobeItem => item.id !== source.id ? item : {
+      ...item,
+      hasImage: source.hasImage,
+      imageUpdatedAt: source.imageUpdatedAt,
+      imageStatus: source.imageStatus,
+      imageVariant: source.imageVariant,
+    };
+    this.items = this.items.map(patch);
+    this.outfits = this.outfits.map((outfit: WardrobeOutfit) => outfit.items.some((x: WardrobeItem) => x.id === source.id)
+      ? {...outfit, items: outfit.items.map(patch)}
+      : outfit);
+    this.cdr.markForCheck();
   }
 
   private replaceItem(item: WardrobeItem): void {

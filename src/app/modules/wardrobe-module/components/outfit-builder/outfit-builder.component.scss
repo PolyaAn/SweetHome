@@ -1,0 +1,406 @@
+@import '../../wardrobe-shared';
+
+:host {
+  display: block;
+  padding: 16px 16px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: $color-text-main;
+}
+
+.builder {
+  display: grid;
+  gap: 16px;
+}
+
+.builder__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+
+  @media only screen and (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.builder__panel {
+  @extend %wardrobe-surface;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.builder__outfit {
+  @media only screen and (min-width: 861px) {
+    position: sticky;
+    top: 12px;
+  }
+}
+
+.builder__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
+
+.builder__count {
+  font-size: 13px;
+  color: $alpha-sand-72;
+}
+
+.builder__count--full {
+  color: $color-accent-soft;
+}
+
+.builder__selected {
+  display: grid;
+  gap: 10px;
+}
+
+.builder__group {
+  display: grid;
+  gap: 6px;
+}
+
+.builder__group-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $alpha-sand-72;
+}
+
+.builder__chosen {
+  display: grid;
+  gap: 6px;
+}
+
+.builder__chosen-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  border-radius: 12px;
+  background: $alpha-white-06;
+}
+
+.builder__thumb {
+  width: 44px;
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.builder__chosen-name {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.builder__remove {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: $alpha-sand-72;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $color-accent-peach;
+    background: $alpha-white-06;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+  }
+}
+
+.builder__empty {
+  margin: 0;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed $alpha-white-20;
+  color: $alpha-sand-72;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  a {
+    color: $color-gold-1;
+  }
+}
+
+.builder__empty[data-invalid='true'],
+.builder__selected[data-invalid='true'] .builder__chosen-item {
+  border-color: $color-accent-peach;
+}
+
+.builder__error {
+  margin: 0;
+  font-size: 13px;
+  color: $color-accent-peach;
+}
+
+.builder__warnings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: $color-accent-cream;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.builder__row {
+  display: grid;
+  grid-template-columns: minmax(0, 200px);
+}
+
+.builder__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > mat-icon {
+    position: absolute;
+    left: 10px;
+    color: $alpha-sand-72;
+    pointer-events: none;
+  }
+
+  input {
+    @extend %wardrobe-input;
+    padding: 0 12px 0 38px;
+  }
+}
+
+.builder__chip-count {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.builder__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+
+.builder__card {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  border: 1px solid $alpha-white-20;
+  border-radius: 12px;
+  background: $alpha-white-06;
+  overflow: hidden;
+  cursor: pointer;
+  display: grid;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+    outline-offset: 2px;
+  }
+}
+
+.builder__card--selected {
+  border-color: $color-accent-soft;
+  box-shadow: 0 0 0 1px $color-accent-soft inset;
+}
+
+.builder__card-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+}
+
+.builder__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 20, 26, 0.6);
+  border: 1px solid $alpha-white-20;
+  color: $color-text-main;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.builder__card--selected .builder__check {
+  background: $color-accent-main;
+  border-color: $color-accent-soft;
+}
+
+.builder__card-name {
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.builder__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  @media only screen and (max-width: 767px) {
+    position: sticky;
+    bottom: 0;
+    margin: 0 -16px -24px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, rgba(10, 17, 24, 0.92) 30%);
+  }
+
+  .wf-primary {
+    min-width: 180px;
+
+    @media only screen and (max-width: 420px) {
+      min-width: 0;
+      flex: 1;
+    }
+  }
+}
+
+.builder__spacer {
+  flex: 1;
+
+  @media only screen and (max-width: 420px) {
+    display: none;
+  }
+}
+
+.builder-state {
+  @extend %wardrobe-surface;
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+}
+
+.builder-state__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.builder-skeleton {
+  width: 100%;
+  height: 360px;
+  border-radius: 14px;
+  background: $alpha-white-06;
+  animation: builder-pulse 1.3s ease-in-out infinite;
+}
+
+@keyframes builder-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+// Поля и кнопки — как в форме вещи.
+.wf-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+
+  input,
+  textarea {
+    @extend %wardrobe-input;
+  }
+
+  textarea {
+    height: auto;
+    min-height: 64px;
+    padding: 10px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+
+  input[data-invalid='true'],
+  textarea[data-invalid='true'] {
+    border-color: $color-accent-peach;
+  }
+}
+
+.wf-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: $color-text-soft-2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wf-label__muted {
+  font-weight: 500;
+  color: $alpha-sand-72;
+}
+
+.wf-chips {
+  @include ui-tags-wrap(8px);
+}
+
+.wf-chip {
+  @extend %wardrobe-chip;
+}
+
+.wf-chip--active {
+  @extend %wardrobe-chip-active;
+}
+
+.wf-primary {
+  @extend %wardrobe-primary-button;
+}
+
+.wf-ghost {
+  @extend %wardrobe-ghost-button;
+}
+
+.wf-ghost--danger {
+  color: $color-accent-peach;
+}

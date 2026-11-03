@@ -280,6 +280,28 @@ export class WardrobeOutfitPickerComponent extends BaseComponent implements OnIn
       });
   }
 
+  /** Доработать вариант в конструкторе: сохранённый — редактируем, новый — открываем как черновик. */
+  edit(view: SuggestionView): void {
+    if (view.busy) {
+      return;
+    }
+    this.commitTemperature(false);
+    this.state.picker = {occasion: this.occasion, temperature: this.temperature};
+
+    if (view.savedOutfit) {
+      this.router.navigate(['/wardrobe/outfits', view.savedOutfit.id, 'edit']);
+      return;
+    }
+
+    this.state.outfitDraft = {
+      name: (view.name.trim() || this.defaultName(view.params, 0)).slice(0, 80),
+      itemIds: view.suggestion.items.map((item: WardrobeItem) => item.id),
+      occasion: view.params.occasion,
+      temperature: view.params.temperature,
+    };
+    this.router.navigate(['/wardrobe/outfits/create'], {queryParams: {from: 'picker'}});
+  }
+
   openOutfits(): void {
     this.router.navigate(['/wardrobe'], {queryParams: {tab: 'outfits'}});
   }

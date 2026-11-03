@@ -35,6 +35,39 @@
           <mat-icon fontIcon="hide_image" aria-hidden="true"></mat-icon> Убрать
         </button>
       </div>
+      <ng-container [ngSwitch]="storedImageStatus">
+        <p class="item-form__bg" *ngSwitchCase="'PENDING'" aria-live="polite">
+          <span class="item-form__spinner" aria-hidden="true"></span> Убираем фон — это займёт несколько секунд
+        </p>
+        <div class="item-form__variants" *ngSwitchCase="'READY'" role="group" aria-label="Какое фото показывать">
+          <button type="button" class="item-form__variant" [class.item-form__variant--active]="item?.imageVariant === 'PROCESSED'"
+                  [attr.aria-pressed]="item?.imageVariant === 'PROCESSED'" [disabled]="imageBusy"
+                  (click)="setImageVariant('PROCESSED')">
+            <mat-icon fontIcon="auto_fix_high" aria-hidden="true"></mat-icon> Без фона
+          </button>
+          <button type="button" class="item-form__variant" [class.item-form__variant--active]="item?.imageVariant !== 'PROCESSED'"
+                  [attr.aria-pressed]="item?.imageVariant !== 'PROCESSED'" [disabled]="imageBusy"
+                  (click)="setImageVariant('ORIGINAL')">
+            <mat-icon fontIcon="image" aria-hidden="true"></mat-icon> Оригинал
+          </button>
+        </div>
+        <p class="item-form__bg item-form__bg--failed" *ngSwitchCase="'FAILED'" role="status">
+          <mat-icon fontIcon="error_outline" aria-hidden="true"></mat-icon>
+          <span>Не удалось убрать фон</span>
+          <button type="button" class="wf-link" *ngIf="backgroundRemoval" (click)="reprocessImage()" [disabled]="imageBusy">
+            <mat-icon fontIcon="refresh" aria-hidden="true"></mat-icon> Повторить
+          </button>
+        </p>
+        <ng-container *ngSwitchCase="'NONE'">
+          <button type="button" class="wf-link" *ngIf="backgroundRemoval" (click)="reprocessImage()" [disabled]="imageBusy">
+            <mat-icon fontIcon="auto_fix_high" aria-hidden="true"></mat-icon> Убрать фон
+          </button>
+        </ng-container>
+      </ng-container>
+      <p class="item-form__hint" *ngIf="previewUrl && backgroundRemoval">
+        <mat-icon fontIcon="auto_fix_high" aria-hidden="true"></mat-icon>
+        Фон уберём автоматически после сохранения, оригинал тоже останется
+      </p>
       <p class="item-form__hint" *ngIf="dominantHex && !manual.has('colors')">
         <span class="item-form__swatch" [style.background]="dominantHex"></span>
         Цвет с фото учтён при определении

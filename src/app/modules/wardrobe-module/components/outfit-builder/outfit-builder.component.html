@@ -1,0 +1,144 @@
+<section class="builder-state" *ngIf="pageLoading">
+  <div class="builder-skeleton"></div>
+</section>
+
+<section class="builder-state" *ngIf="!pageLoading && pageError">
+  <p>{{ pageError }}</p>
+  <div class="builder-state__actions">
+    <button type="button" class="wf-ghost" routerLink="/wardrobe" [queryParams]="{tab: 'outfits'}" [replaceUrl]="true">К образам</button>
+    <button type="button" class="wf-primary" *ngIf="pageError === 'Не удалось загрузить гардероб'" (click)="retry()">Повторить</button>
+  </div>
+</section>
+
+<form class="builder" *ngIf="!pageLoading && !pageError" (ngSubmit)="submit()" novalidate>
+  <div class="builder__layout">
+    <section class="builder__panel builder__outfit" aria-labelledby="builder-outfit-title">
+      <header class="builder__head">
+        <h2 id="builder-outfit-title">Образ</h2>
+        <span class="builder__count" [class.builder__count--full]="form.itemIds.length >= maxItems">{{ countLabel }}</span>
+      </header>
+
+      <div class="builder__selected" *ngIf="selectedGroups.length; else emptySelection" [attr.data-invalid]="!!errors.itemIds">
+        <div class="builder__group" *ngFor="let group of selectedGroups; trackBy: trackByCategory">
+          <span class="builder__group-name">{{ group.name }}</span>
+          <div class="builder__chosen">
+            <div class="builder__chosen-item" *ngFor="let item of group.items; trackBy: trackById">
+              <div class="builder__thumb">
+                <app-wardrobe-item-photo [item]="item" [accentHex]="colorHex(item.colors[0])"></app-wardrobe-item-photo>
+              </div>
+              <span class="builder__chosen-name">{{ item.name }}</span>
+              <button type="button" class="builder__remove" (click)="removeItem(item)" [attr.aria-label]="'Убрать из образа: ' + item.name">
+                <mat-icon fontIcon="close" aria-hidden="true"></mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ng-template #emptySelection>
+        <p class="builder__empty" [attr.data-invalid]="!!errors.itemIds">
+          <mat-icon fontIcon="checkroom" aria-hidden="true"></mat-icon>
+          Выберите вещи ниже — от 2 до {{ maxItems }}
+        </p>
+      </ng-template>
+      <span class="builder__error" *ngIf="errors.itemIds" role="alert">{{ errors.itemIds }}</span>
+
+      <ul class="builder__warnings" *ngIf="warnings.length" aria-live="polite">
+        <li *ngFor="let warning of warnings"><mat-icon fontIcon="info_outline" aria-hidden="true"></mat-icon> {{ warning }}</li>
+      </ul>
+
+      <div class="wf-field">
+        <label class="wf-label" for="builder-name">Название <span class="wf-label__muted">необязательно</span></label>
+        <input id="builder-name" type="text" name="name" maxlength="100" autocomplete="off"
+               [placeholder]="defaultName" [value]="form.name" (input)="onNameInput($any($event.target).value)"
+               [attr.data-invalid]="!!errors.name" [attr.aria-invalid]="!!errors.name" />
+        <span class="builder__error" *ngIf="errors.name" role="alert">{{ errors.name }}</span>
+      </div>
+
+      <div class="wf-field">
+        <span class="wf-label">Повод</span>
+        <div class="wf-chips" role="radiogroup" aria-label="Повод">
+          <button type="button" role="radio" class="wf-chip" *ngFor="let style of dictionaries.styles"
+                  [class.wf-chip--active]="form.occasion === style.code" [attr.aria-checked]="form.occasion === style.code"
+                  (click)="selectOccasion(style.code)">{{ style.name }}</button>
+        </div>
+        <span class="builder__error" *ngIf="errors.occasion" role="alert">{{ errors.occasion }}</span>
+      </div>
+
+      <div class="builder__row">
+        <div class="wf-field builder__temperature">
+          <label class="wf-label" for="builder-temperature">Погода, °C <span class="wf-label__muted">необязательно</span></label>
+          <input id="builder-temperature" type="text" inputmode="text" name="temperature" maxlength="5" autocomplete="off"
+                 placeholder="Например, -5" [value]="form.temperatureText"
+                 (input)="onTemperatureInput($any($event.target).value)"
+                 [attr.data-invalid]="!!errors.temperature" [attr.aria-invalid]="!!errors.temperature" />
+          <span class="builder__error" *ngIf="errors.temperature" role="alert">{{ errors.temperature }}</span>
+        </div>
+      </div>
+
+      <label class="wf-field">
+        <span class="wf-label">Заметка <span class="wf-label__muted">необязательно</span></span>
+        <textarea name="note" rows="2" maxlength="600" [value]="form.note" (input)="onNoteInput($any($event.target).value)"
+                  [attr.data-invalid]="!!errors.note"></textarea>
+        <span class="builder__error" *ngIf="errors.note" role="alert">{{ errors.note }}</span>
+      </label>
+    </section>
+
+    <section class="builder__panel builder__wardrobe" aria-labelledby="builder-wardrobe-title">
+      <header class="builder__head">
+        <h2 id="builder-wardrobe-title">Вещи гардероба</h2>
+      </header>
+
+      <ng-container *ngIf="wardrobe.length; else emptyWardrobe">
+        <label class="builder__search">
+          <mat-icon fontIcon="search" aria-hidden="true"></mat-icon>
+          <input type="search" [value]="pickQuery" (input)="onPickQuery($any($event.target).value)"
+                 placeholder="Поиск по названию или бренду" aria-label="Поиск вещей" />
+        </label>
+
+        <div class="wf-chips" role="group" aria-label="Категории">
+          <button type="button" class="wf-chip" [class.wf-chip--active]="!pickCategory" (click)="selectPickCategory(null)">Все</button>
+          <ng-container *ngFor="let c of dictionaries.categories">
+            <button type="button" class="wf-chip" *ngIf="categoryCount(c.code)"
+                    [class.wf-chip--active]="pickCategory === c.code" (click)="selectPickCategory(c.code)">
+              {{ c.name }} <span class="builder__chip-count">{{ categoryCount(c.code) }}</span>
+            </button>
+          </ng-container>
+        </div>
+
+        <div class="builder__grid" *ngIf="availableItems.length; else nothingFound">
+          <button type="button" class="builder__card" *ngFor="let item of availableItems; trackBy: trackById"
+                  [class.builder__card--selected]="isSelected(item)" [attr.aria-pressed]="isSelected(item)"
+                  [attr.aria-label]="(isSelected(item) ? 'Убрать из образа: ' : 'Добавить в образ: ') + item.name"
+                  (click)="toggleItem(item)">
+            <span class="builder__card-photo">
+              <app-wardrobe-item-photo [item]="item" [accentHex]="colorHex(item.colors[0])"></app-wardrobe-item-photo>
+              <span class="builder__check" aria-hidden="true">
+                <mat-icon [fontIcon]="isSelected(item) ? 'check' : 'add'"></mat-icon>
+              </span>
+            </span>
+            <span class="builder__card-name">{{ item.name }}</span>
+          </button>
+        </div>
+        <ng-template #nothingFound>
+          <p class="builder__empty">Ничего не найдено</p>
+        </ng-template>
+      </ng-container>
+      <ng-template #emptyWardrobe>
+        <p class="builder__empty">
+          В гардеробе пока нет вещей.
+          <a routerLink="/wardrobe/items/create">Добавить вещь</a>
+        </p>
+      </ng-template>
+    </section>
+  </div>
+
+  <div class="builder__actions">
+    <button type="button" class="wf-ghost wf-ghost--danger" *ngIf="isEdit" (click)="deleteOutfit()" [disabled]="deleting || saving">
+      <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
+    </button>
+    <span class="builder__spacer"></span>
+    <button type="submit" class="wf-primary" [disabled]="saving || deleting">
+      {{ saving ? 'Сохраняем…' : (isEdit ? 'Сохранить' : 'Сохранить образ') }}
+    </button>
+  </div>
+</form>

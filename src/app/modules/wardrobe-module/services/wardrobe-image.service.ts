@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { catchError, filter, finalize, map, Observable, of, shareReplay, Subscription } from 'rxjs';
-import { WardrobeItem } from '../models/wardrobe.model';
+import { WardrobeImageVariant, WardrobeItem } from '../models/wardrobe.model';
 import { WardrobeApiService } from './wardrobe-api.service';
 
 /**
@@ -29,12 +29,13 @@ export class WardrobeImageService implements OnDestroy {
       });
   }
 
-  getUrl(item: Pick<WardrobeItem, 'id' | 'hasImage' | 'imageUpdatedAt'>): Observable<string | null> {
+  /** Без variant — версия, выбранная для показа; явный variant нужен, например, чтобы взять цвет с оригинала. */
+  getUrl(item: Pick<WardrobeItem, 'id' | 'hasImage' | 'imageUpdatedAt'>, variant?: WardrobeImageVariant): Observable<string | null> {
     if (!item.hasImage) {
       return of(null);
     }
 
-    const key: string = this.key(item);
+    const key: string = this.key(item, variant);
     const cached: string | undefined = this.urls.get(key);
     if (cached) {
       return of(cached);
@@ -45,9 +46,9 @@ export class WardrobeImageService implements OnDestroy {
       return inFlight;
     }
 
-    const request$: Observable<string | null> = this.api.getImageBlob(item).pipe(
+    const request$: Observable<string | null> = this.api.getImageBlob(item, variant).pipe(
       map((blob: Blob) => {
-        this.revokeOlderVersions(item.id);
+        this.revokeOlderVersions(item.id, item.imageUpdatedAt);
         const url: string = URL.createObjectURL(blob);
         this.urls.set(key, url);
         return url;
@@ -81,13 +82,15 @@ export class WardrobeImageService implements OnDestroy {
     this.urls.clear();
   }
 
-  private key(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>): string {
-    return `${item.id}|${item.imageUpdatedAt || ''}`;
+  private key(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>, variant?: WardrobeImageVariant): string {
+    return `${item.id}|${item.imageUpdatedAt || ''}|${variant || ''}`;
   }
 
-  private revokeOlderVersions(itemId: string): void {
+  /** Освобождает фото вещи других версий (keepVersion — оставить все варианты этой версии). */
+  private revokeOlderVersions(itemId: string, keepVersion?: string | null): void {
     Array.from(this.urls.keys())
-      .filter((key: string) => key.startsWith(`${itemId}|`))
+      .filter((key: string) => key.startsWith(`${itemId}|`)
+        && (keepVersion === undefined || !key.startsWith(`${itemId}|${keepVersion || ''}|`)))
       .forEach((key: string) => {
         URL.revokeObjectURL(this.urls.get(key) as string);
         this.urls.delete(key);

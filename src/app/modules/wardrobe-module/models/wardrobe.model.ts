@@ -1,6 +1,9 @@
 export type WardrobeCategory = 'TOP' | 'BOTTOM' | 'DRESS' | 'OUTERWEAR' | 'SHOES' | 'ACCESSORY';
 export type WardrobeSeason = 'SPRING' | 'SUMMER' | 'AUTUMN' | 'WINTER';
 export type WardrobeStyle = 'CASUAL' | 'OFFICE' | 'FORMAL' | 'SPORT' | 'HOME';
+/** NONE — фон не обрабатывали, PENDING — убираем фон, READY — готова версия без фона, FAILED — не получилось. */
+export type WardrobeImageStatus = 'NONE' | 'PENDING' | 'READY' | 'FAILED';
+export type WardrobeImageVariant = 'ORIGINAL' | 'PROCESSED';
 
 export interface WardrobeDictionaryItem<T extends string = string> {
   code: T;
@@ -25,6 +28,8 @@ export interface WardrobeDictionaries {
   styles: WardrobeDictionaryItem<WardrobeStyle>[];
   colors: WardrobeColor[];
   warmthLevels: WardrobeWarmthLevel[];
+  /** Сервер убирает фон с фото автоматически. */
+  backgroundRemoval?: boolean;
 }
 
 export interface WardrobeItem {
@@ -40,6 +45,8 @@ export interface WardrobeItem {
   isFavorite: boolean;
   hasImage: boolean;
   imageUpdatedAt?: string | null;
+  imageStatus?: WardrobeImageStatus;
+  imageVariant?: WardrobeImageVariant;
   wearCount: number;
   lastWornAt?: string | null;
   createdAt: string;
@@ -124,6 +131,14 @@ export interface WardrobeOutfitCreateRequest {
   note?: string | null;
 }
 
+/** Черновик образа для конструктора (например, из подбора по кнопке «Изменить»). */
+export interface WardrobeOutfitDraft {
+  name: string;
+  itemIds: string[];
+  occasion: WardrobeStyle;
+  temperature: number | null;
+}
+
 export interface WardrobeApiErrorResponse {
   errorCode: string;
   message: string;
@@ -189,4 +204,5 @@ export const WARDROBE_FALLBACK_DICTIONARIES: WardrobeDictionaries = {
     { level: 4, name: 'Тёплая' },
     { level: 5, name: 'Очень тёплая' },
   ],
+  backgroundRemoval: false,
 };

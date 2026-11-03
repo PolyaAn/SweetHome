@@ -91,6 +91,10 @@
             <mat-icon [fontIcon]="view.savedOutfit ? 'bookmark' : 'bookmark_border'" aria-hidden="true"></mat-icon>
             {{ view.savedOutfit ? 'Сохранён' : 'Сохранить' }}
           </button>
+          <button type="button" class="picker__ghost" (click)="edit(view)" [disabled]="view.busy"
+                  aria-label="Изменить образ: добавить или убрать вещи">
+            <mat-icon fontIcon="edit" aria-hidden="true"></mat-icon> Изменить
+          </button>
         </div>
       </app-wardrobe-outfit-card>
     </div>

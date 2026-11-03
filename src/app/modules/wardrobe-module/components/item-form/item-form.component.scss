@@ -85,6 +85,82 @@
   gap: 8px;
 }
 
+.item-form__hint mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: $color-accent-soft;
+}
+
+.item-form__bg {
+  margin: 0;
+  font-size: 13px;
+  color: $color-text-soft-2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  > mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.item-form__bg--failed > mat-icon {
+  color: $color-accent-peach;
+}
+
+.item-form__spinner {
+  @extend %wardrobe-spinner;
+}
+
+.item-form__variants {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 12px;
+  border: 1px solid $alpha-white-20;
+  background: $alpha-white-06;
+}
+
+.item-form__variant {
+  font: inherit;
+  font-size: 14px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: $color-text-soft-2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent-soft;
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.item-form__variant--active {
+  background: $color-accent-main;
+  color: $color-text-main;
+}
+
 .item-form__hint,
 .wf-hint {
   margin: 0;

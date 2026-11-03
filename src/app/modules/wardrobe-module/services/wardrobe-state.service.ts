@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { WardrobeCategory, WardrobeStyle } from '../models/wardrobe.model';
+import { WardrobeCategory, WardrobeOutfitDraft, WardrobeStyle } from '../models/wardrobe.model';
 
 /**
  * Состояние экранов гардероба на время сессии: при возврате на список или подбор
@@ -14,4 +14,7 @@ export class WardrobeStateService {
   };
 
   picker: { occasion: WardrobeStyle; temperature: number } | null = null;
+
+  /** Образ из подбора, который пользователь решил доработать в конструкторе. */
+  outfitDraft: WardrobeOutfitDraft | null = null;
 }

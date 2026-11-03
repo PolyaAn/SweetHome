@@ -8,6 +8,7 @@ import {
   WARDROBE_FALLBACK_DICTIONARIES,
   WardrobeClassification,
   WardrobeDictionaries,
+  WardrobeImageVariant,
   WardrobeItem,
   WardrobeItemFilter,
   WardrobeItemListResponse,
@@ -33,6 +34,7 @@ export class WardrobeApiService {
           styles: response.styles?.length ? response.styles : WARDROBE_FALLBACK_DICTIONARIES.styles,
           colors: response.colors?.length ? response.colors : WARDROBE_FALLBACK_DICTIONARIES.colors,
           warmthLevels: response.warmthLevels?.length ? response.warmthLevels : WARDROBE_FALLBACK_DICTIONARIES.warmthLevels,
+          backgroundRemoval: !!response.backgroundRemoval,
         })),
         catchError(() => {
           this.dictionaries$ = undefined;
@@ -80,12 +82,28 @@ export class WardrobeApiService {
     return this.http.post<WardrobeItem>(`${this.baseUrl}/items/${encodeURIComponent(itemId)}/wear`, {}, {withCredentials: true});
   }
 
-  getImageBlob(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>): Observable<Blob> {
-    const version: string = item.imageUpdatedAt ? `?v=${encodeURIComponent(item.imageUpdatedAt)}` : '';
-    return this.http.get(`${this.baseUrl}/items/${encodeURIComponent(item.id)}/image${version}`, {
+  /** Без variant — версия, выбранная для показа (без фона, если она готова и выбрана). */
+  getImageBlob(item: Pick<WardrobeItem, 'id' | 'imageUpdatedAt'>, variant?: WardrobeImageVariant): Observable<Blob> {
+    let params: HttpParams = new HttpParams();
+    if (item.imageUpdatedAt) {
+      params = params.set('v', item.imageUpdatedAt);
+    }
+    if (variant) {
+      params = params.set('variant', variant.toLowerCase());
+    }
+    return this.http.get(`${this.baseUrl}/items/${encodeURIComponent(item.id)}/image`, {
+      params,
       responseType: 'blob',
       withCredentials: true,
     });
+  }
+
+  setImageVariant(itemId: string, variant: WardrobeImageVariant): Observable<WardrobeItem> {
+    return this.http.put<WardrobeItem>(`${this.baseUrl}/items/${encodeURIComponent(itemId)}/image/variant`, {variant}, {withCredentials: true});
+  }
+
+  reprocessImage(itemId: string): Observable<WardrobeItem> {
+    return this.http.post<WardrobeItem>(`${this.baseUrl}/items/${encodeURIComponent(itemId)}/image/reprocess`, {}, {withCredentials: true});
   }
 
   uploadImage(itemId: string, file: Blob, fileName: string = 'photo.jpg'): Observable<WardrobeItem> {
@@ -112,6 +130,10 @@ export class WardrobeApiService {
 
   createOutfit(payload: WardrobeOutfitCreateRequest): Observable<WardrobeOutfit> {
     return this.http.post<WardrobeOutfit>(`${this.baseUrl}/outfits`, payload, {withCredentials: true});
+  }
+
+  updateOutfit(outfitId: string, payload: WardrobeOutfitCreateRequest): Observable<WardrobeOutfit> {
+    return this.http.put<WardrobeOutfit>(`${this.baseUrl}/outfits/${encodeURIComponent(outfitId)}`, payload, {withCredentials: true});
   }
 
   deleteOutfit(outfitId: string): Observable<void> {
