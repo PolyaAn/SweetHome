@@ -98,7 +98,7 @@
           <ng-container *ngIf="receipt.status === 'READY' && receipt.topCategories.length > 1">
             · <ng-container *ngFor="let code of receipt.topCategories; let last = last">{{ categoryInfo(code).name }}{{ last ? '' : ', ' }}</ng-container>
           </ng-container>
-          <ng-container *ngIf="receipt.status === 'FAILED' && receipt.failureReason"> · {{ failureText[receipt.failureReason] }}</ng-container>
+          <ng-container *ngIf="receipt.status === 'FAILED'"> · {{ failureText(receipt.failureReason) }}</ng-container>
         </span>
       </span>
       <span class="finance-receipt__amount">

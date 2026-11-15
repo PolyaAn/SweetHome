@@ -17,7 +17,7 @@
     <div class="receipt-banner receipt-banner--warn" *ngIf="receipt.status === 'FAILED'" role="status">
       <mat-icon fontIcon="error_outline" aria-hidden="true"></mat-icon>
       <span class="receipt-banner__text">
-        {{ receipt.failureReason ? failureText[receipt.failureReason] : 'Чек не распознан' }}. Введите сумму вручную{{ canRecognizeAgain ? ' или попробуйте ещё раз' : '' }}.
+        {{ failureText(receipt.failureReason) }}. Введите сумму вручную{{ canRecognizeAgain ? ' или попробуйте ещё раз' : '' }}.
       </span>
       <button type="button" class="receipt-link" *ngIf="canRecognizeAgain" [disabled]="recognizing" (click)="recognizeAgain()">
         Повторить

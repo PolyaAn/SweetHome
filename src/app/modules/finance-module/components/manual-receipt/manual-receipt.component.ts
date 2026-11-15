@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs';
@@ -28,6 +28,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
     private location: Location,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
+    private host: ElementRef<HTMLElement>,
   ) {
     super();
   }
@@ -66,7 +67,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
   }
 
   save(): void {
-    if (this.saving) {
+    if (this.saving || this.saved) {
       return;
     }
 
@@ -84,6 +85,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
     this.errors = errors;
     if (Object.keys(errors).length) {
       this.cdr.markForCheck();
+      this.revealFirstError();
       return;
     }
 
@@ -118,9 +120,24 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
             }
           }
           this.errors = serverErrors;
+          this.cdr.markForCheck();
+          this.revealFirstError(false);
           this.toast.error(response?.error?.details?.[0]?.message || response?.error?.message || 'Не удалось сохранить');
         },
       });
+  }
+
+  /** Ошибка может быть выше экрана (кнопка внизу): прокручиваем к первому полю с ошибкой и ставим фокус. */
+  private revealFirstError(withToast: boolean = true): void {
+    if (withToast) {
+      this.toast.error('Проверьте выделенные поля');
+    }
+    setTimeout(() => {
+      const field: HTMLElement | null = this.host.nativeElement.querySelector('[aria-invalid="true"]');
+      field?.scrollIntoView({behavior: 'smooth', block: 'center'});
+      const input: HTMLElement | null = field?.matches('input, textarea') ? field : field?.querySelector('button') ?? null;
+      input?.focus({preventScroll: true});
+    });
   }
 
   /** Назад к списку по истории (без лишней записи в ней); если форму открыли по прямой ссылке — к месяцу расхода. */

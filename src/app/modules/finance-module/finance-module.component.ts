@@ -5,7 +5,6 @@ import { BaseComponent } from '../../components/base/base.component';
 import { ToastService } from '../../shared/services/toast.service';
 import {
   FINANCE_FALLBACK_DICTIONARIES,
-  FINANCE_FAILURE_TEXT,
   FinanceCategory,
   FinanceCategoryAmount,
   FinanceCategoryCode,
@@ -13,6 +12,7 @@ import {
   FinanceReceipt,
   FinanceReceiptList,
   FinanceSummary,
+  failureText,
 } from './models/finance.model';
 import { FinanceApiService } from './services/finance-api.service';
 import {
@@ -64,9 +64,11 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
 
   readonly formatMoney = formatMoney;
   readonly shortDate = shortDate;
-  readonly failureText = FINANCE_FAILURE_TEXT;
+  readonly failureText = failureText;
 
   private requestId: number = 0;
+  /** Последний загруженный чек: если после распознавания он уедет в другой месяц, скажем куда. */
+  private uploadedReceiptId: string | null = null;
   /** Компонент уничтожен: загрузка фото, начатая до ухода со страницы, не должна никуда переходить. */
   private destroyed: boolean = false;
   /** После выбора категории показываем отфильтрованный список: на телефоне он ниже экрана. */
@@ -147,6 +149,8 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
             takeWhile(() => month === this.month && (this.shownSummary?.pendingCount ?? 0) > 0
               && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
             filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
+            // Пока список перегружается, не спрашиваем: сравнение со старой сводкой зациклило бы перезагрузку.
+            filter(() => !this.loading),
             exhaustMap(() => this.api.getSummary(month).pipe(catchError(() => of(null)))),
           );
         }),
@@ -159,6 +163,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
           && (summary.pendingCount !== current.pendingCount || summary.failedCount !== current.failedCount
             || summary.receiptCount !== current.receiptCount)) {
           this.load();
+          this.reportUploadedReceipt();
         }
       });
 
@@ -218,7 +223,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
 
   changeMonth(delta: number): void {
     const month: string = shiftMonth(this.month, delta);
-    if (delta > 0 && month > currentMonth()) {
+    if ((delta > 0 && month > currentMonth()) || month < '2000-01') {
       return;
     }
     this.navigate({month: month === currentMonth() ? null : month, category: this.category});
@@ -274,6 +279,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         next: (receipt: FinanceReceipt) => {
           this.uploading = false;
           if (receipt.status === 'PENDING') {
+            this.uploadedReceiptId = receipt.id;
             this.toast.success('Чек загружен — распознаём сумму и категории');
             // Новый чек — в текущем месяце: показываем его там, где пользователь его увидит.
             if (this.month !== currentMonth() || this.category) {
@@ -349,6 +355,26 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
     return value.category;
   }
 
+  /** Распознанная дата чека может быть в другом месяце (чек от 28 октября, снятый 1 ноября) — сообщаем, куда он попал. */
+  private reportUploadedReceipt(): void {
+    const receiptId: string | null = this.uploadedReceiptId;
+    if (!receiptId) {
+      return;
+    }
+    this.api.getReceipt(receiptId)
+      .pipe(catchError(() => of(null)), takeUntil(this.unsubscribe$))
+      .subscribe((receipt: FinanceReceipt | null) => {
+        if (!receipt || receipt.status === 'PENDING' || this.uploadedReceiptId !== receiptId) {
+          return;
+        }
+        this.uploadedReceiptId = null;
+        const month: string = receipt.purchasedOn.slice(0, 7);
+        if (receipt.status === 'READY' && month !== this.month) {
+          this.toast.warning(`Чек от ${shortDate(receipt.purchasedOn)} попал в ${monthPrepositional(month)} — откройте этот месяц`, 5000);
+        }
+      });
+  }
+
   override ngOnDestroy(): void {
     this.destroyed = true;
     super.ngOnDestroy();
@@ -359,6 +385,20 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
   }
 
   private navigate(params: { month: string | null; category: FinanceCategoryCode | null }): void {
+    // «Текущий месяц» — это отсутствие параметра. После полуночи 1-го числа адрес не меняется, роутер навигацию
+    // пропускает и queryParams не эмитит — тогда применяем состояние сами.
+    const current: Params = this.route.snapshot.queryParams;
+    if ((current['month'] ?? null) === params.month && (current['category'] ?? null) === params.category) {
+      const month: string = params.month ?? currentMonth();
+      if (month !== this.month || params.category !== this.category) {
+        this.receipts = [];
+      }
+      this.month = month;
+      this.category = params.category;
+      this.load();
+      return;
+    }
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: params,

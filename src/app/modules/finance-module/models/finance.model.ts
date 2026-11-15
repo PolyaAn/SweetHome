@@ -4,7 +4,7 @@ export type FinanceCategoryCode =
 
 export type FinanceReceiptStatus = 'PENDING' | 'READY' | 'FAILED';
 export type FinanceReceiptSource = 'PHOTO' | 'MANUAL';
-export type FinanceFailureReason = 'NOT_A_RECEIPT' | 'UNREADABLE' | 'PROVIDER_ERROR' | 'DISABLED';
+export type FinanceFailureReason = 'NOT_A_RECEIPT' | 'UNREADABLE' | 'PROVIDER_ERROR' | 'DISABLED' | 'INTERNAL_ERROR';
 export type FinanceCategorySource = 'AI' | 'RULE' | 'USER';
 
 export interface FinanceCategory {
@@ -128,4 +128,10 @@ export const FINANCE_FAILURE_TEXT: Record<FinanceFailureReason, string> = {
   UNREADABLE: 'Не удалось прочитать сумму',
   PROVIDER_ERROR: 'Сервис распознавания не ответил',
   DISABLED: 'Распознавание выключено на сервере',
+  INTERNAL_ERROR: 'Ошибка сервера при распознавании',
 };
+
+/** Текст причины; неизвестная причина (новая версия сервера) — общий текст, а не пустота. */
+export function failureText(reason: FinanceFailureReason | string | null | undefined): string {
+  return (reason && FINANCE_FAILURE_TEXT[reason as FinanceFailureReason]) || 'Чек не распознан';
+}

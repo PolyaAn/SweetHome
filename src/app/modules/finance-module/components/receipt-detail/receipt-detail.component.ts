@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { catchError, exhaustMap, filter, finalize, of, Subscription, takeUntil, takeWhile, timer } from 'rxjs';
@@ -6,13 +6,13 @@ import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
   FINANCE_FALLBACK_DICTIONARIES,
-  FINANCE_FAILURE_TEXT,
   FinanceCategory,
   FinanceCategoryCode,
   FinanceDictionaries,
   FinanceReceipt,
   FinanceReceiptItem,
   FinanceReceiptUpdateRequest,
+  failureText,
 } from '../../models/finance.model';
 import { FinanceApiService } from '../../services/finance-api.service';
 import { FinancePendingChanges } from '../../guards/finance-form-deactivate.guard';
@@ -24,6 +24,8 @@ interface ItemDraft {
   id: string | null;
   name: string;
   amountText: string;
+  /** Сумма как пришла с сервера: количество и цену обнуляем, только если сумму действительно правили. */
+  originalAmountText: string;
   quantity: number | null;
   price: number | null;
   category: FinanceCategoryCode;
@@ -55,6 +57,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
     private location: Location,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
+    private host: ElementRef<HTMLElement>,
   ) {
     super();
   }
@@ -81,7 +84,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   photoError: boolean = false;
 
   readonly formatMoney = formatMoney;
-  readonly failureText = FINANCE_FAILURE_TEXT;
+  readonly failureText = failureText;
 
   private snapshot: string = '';
   private nextKey: number = 0;
@@ -163,7 +166,8 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
 
   /** «2 × 89,90 ₽» — только пока сумма позиции сходится с количеством и ценой (после правки суммы подсказка устарела). */
   itemHint(item: ItemDraft): string {
-    if (!this.priceMatches(item) || item.quantity === 1) {
+    if (item.quantity === null || item.price === null || item.quantity === 1
+      || (item.amountText !== item.originalAmountText && !this.priceMatches(item))) {
       return '';
     }
     return `${String(item.quantity).replace('.', ',')} × ${formatMoney(item.price, this.receipt?.currency)}`;
@@ -193,6 +197,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       id: null,
       name: '',
       amountText: '',
+      originalAmountText: '',
       quantity: null,
       price: null,
       category: this.draft.category,
@@ -229,6 +234,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
     const request: FinanceReceiptUpdateRequest | null = this.validate();
     if (!request) {
       this.cdr.markForCheck();
+      this.revealFirstError();
       return;
     }
 
@@ -255,6 +261,8 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
             return;
           }
           this.applyServerErrors(response?.error?.details);
+          this.cdr.markForCheck();
+          this.revealFirstError(false);
           this.toast.error(response?.error?.details?.[0]?.message || response?.error?.message || 'Не удалось сохранить чек');
         },
       });
@@ -404,6 +412,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
         id: item.id,
         name: item.name,
         amountText: moneyInput(item.amount),
+        originalAmountText: moneyInput(item.amount),
         quantity: item.quantity,
         price: item.price,
         category: item.category,
@@ -440,13 +449,14 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       if (amount === null || amount === 0 || Math.abs(amount) > 10_000_000) {
         errors[`${item.key}.amount`] = 'Сумма';
       }
-      const consistent: boolean = this.priceMatches(item);
+      // Скидка или весовой товар — сумма и так не равна количеству × цену; трогаем, только если сумму правили.
+      const keepPrice: boolean = item.amountText === item.originalAmountText || this.priceMatches(item);
       return {
         id: item.id,
         name: item.name.trim(),
         // Сумму поправили руками — цена из чека больше не про эту позицию.
-        quantity: consistent ? item.quantity : null,
-        price: consistent ? item.price : null,
+        quantity: keepPrice ? item.quantity : null,
+        price: keepPrice ? item.price : null,
         amount: amount ?? 0,
         category: item.category,
       };
@@ -480,6 +490,18 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       errors[item ? `${item.key}.${match![2]}` : detail.field] = detail.message ?? 'Ошибка';
     }
     this.errors = errors;
+  }
+
+  /** Кнопка «Сохранить» внизу, ошибка может быть высоко: прокручиваем к первому полю с ошибкой и ставим фокус. */
+  private revealFirstError(withToast: boolean = true): void {
+    if (withToast) {
+      this.toast.error('Проверьте выделенные поля');
+    }
+    setTimeout(() => {
+      const field: HTMLElement | null = this.host.nativeElement.querySelector('[aria-invalid="true"]');
+      field?.scrollIntoView({behavior: 'smooth', block: 'center'});
+      field?.focus({preventScroll: true});
+    });
   }
 
   private priceMatches(item: ItemDraft): boolean {
