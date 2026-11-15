@@ -16,7 +16,7 @@ import {
 } from '../../models/finance.model';
 import { FinanceApiService } from '../../services/finance-api.service';
 import { FinancePendingChanges } from '../../guards/finance-form-deactivate.guard';
-import { formatMoney, isValidPurchaseDate, maxPurchaseDate, moneyInput, parseMoney } from '../../utils/finance-format';
+import { formatMoney, isValidPurchaseDate, maxPurchaseDate, monthPrepositional, moneyInput, parseMoney } from '../../utils/finance-format';
 
 interface ItemDraft {
   /** Локальный ключ для trackBy (у новых позиций id ещё нет). */
@@ -33,6 +33,7 @@ interface ItemDraft {
 
 interface ReceiptDraft {
   purchasedOn: string;
+  currency: string;
   store: string;
   totalText: string;
   category: FinanceCategoryCode;
@@ -78,6 +79,18 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   /** Распознавание идёт дольше лимита опроса — показываем это, а не вечный спиннер. */
   pollTimedOut: boolean = false;
   readonly maxDate: string = maxPurchaseDate();
+
+  /** Валюты, которые знает распознавание; XXX — «не определена», такой чек не входит в рублёвые итоги. */
+  get currencies(): { code: string; name: string }[] {
+    const known: { code: string; name: string }[] = [
+      {code: 'RUB', name: '₽ рубли'}, {code: 'USD', name: '$ доллары'}, {code: 'EUR', name: '€ евро'},
+      {code: 'CNY', name: '¥ юани'}, {code: 'JPY', name: '¥ иены'}, {code: 'GBP', name: '£ фунты'},
+      {code: 'KZT', name: '₸ тенге'}, {code: 'TRY', name: '₺ лиры'}, {code: 'GEL', name: '₾ лари'},
+      {code: 'AMD', name: '֏ драмы'}, {code: 'BYN', name: 'Br бел. рубли'}, {code: 'XXX', name: 'Не определена'},
+    ];
+    const current: string | undefined = this.draft?.currency;
+    return current && !known.some((c) => c.code === current) ? [...known, {code: current, name: current}] : known;
+  }
 
   photoUrl: string | null = null;
   photoExpanded: boolean = false;
@@ -250,8 +263,12 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       )
       .subscribe({
         next: (receipt: FinanceReceipt) => {
+          const previousMonth: string | undefined = this.receipt?.purchasedOn.slice(0, 7);
           this.apply(receipt);
-          this.toast.success('Чек сохранён');
+          const month: string = receipt.purchasedOn.slice(0, 7);
+          this.toast.success(previousMonth && previousMonth !== month
+            ? `Чек сохранён и учтён в ${monthPrepositional(month)}`
+            : 'Чек сохранён');
           this.leave(receipt.purchasedOn);
         },
         error: (response: { status?: number; error?: { details?: { field?: string; message?: string }[]; message?: string } }) => {
@@ -403,6 +420,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   private toDraft(receipt: FinanceReceipt): ReceiptDraft {
     return {
       purchasedOn: receipt.purchasedOn,
+      currency: receipt.currency,
       store: receipt.store ?? '',
       totalText: receipt.status === 'READY' || receipt.total > 0 ? moneyInput(receipt.total) : '',
       category: receipt.category,
@@ -471,7 +489,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       purchasedOn: draft.purchasedOn,
       store: draft.store.trim() || null,
       total: total!,
-      currency: this.receipt?.currency ?? 'RUB',
+      currency: draft.currency,
       category: draft.category,
       note: draft.note.trim() || null,
       items,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { catchError, exhaustMap, filter, forkJoin, of, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { BaseComponent } from '../../components/base/base.component';
@@ -125,7 +125,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
       notes.push(`${failedCount} ${pluralize(failedCount, 'чек не распознан', 'чека не распознаны', 'чеков не распознаны')} — введите сумму вручную`);
     }
     if (otherCurrencyCount) {
-      notes.push(`${otherCurrencyCount} ${pluralize(otherCurrencyCount, 'чек', 'чека', 'чеков')} в другой валюте не входят в итог`);
+      notes.push(`${otherCurrencyCount} ${pluralize(otherCurrencyCount, 'чек в другой валюте не входит', 'чека в другой валюте не входят', 'чеков в другой валюте не входят')} в итог`);
     }
     return notes;
   }
@@ -146,7 +146,8 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
           const startedAt: number = Date.now();
           const month: string = this.month;
           return timer(3000, 3000).pipe(
-            takeWhile(() => month === this.month && (this.shownSummary?.pendingCount ?? 0) > 0
+            takeWhile(() => month === this.month
+              && ((this.shownSummary?.pendingCount ?? 0) > 0 || this.receipts.some((r: FinanceReceipt) => r.status === 'PENDING'))
               && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
             filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
             // Пока список перегружается, не спрашиваем: сравнение со старой сводкой зациклило бы перезагрузку.
@@ -159,13 +160,19 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
       .subscribe((summary: FinanceSummary | null) => {
         const current: FinanceSummary | null = this.shownSummary;
         // Сеть пропала — просто ждём следующего раза. Что-то распозналось — пересчитываем месяц целиком.
+        const staleList: boolean = !!summary && summary.pendingCount === 0
+          && this.receipts.some((r: FinanceReceipt) => r.status === 'PENDING');
         if (summary && current && summary.month === current.month
-          && (summary.pendingCount !== current.pendingCount || summary.failedCount !== current.failedCount
+          && (staleList || summary.pendingCount !== current.pendingCount || summary.failedCount !== current.failedCount
             || summary.receiptCount !== current.receiptCount)) {
           this.load();
           this.reportUploadedReceipt();
         }
       });
+
+    timer(60_000, 60_000)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => this.checkMonthRollover());
 
     this.route.queryParams
       .pipe(takeUntil(this.unsubscribe$))
@@ -206,7 +213,8 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
             this.scrollToList = false;
             this.receiptsSection?.nativeElement.scrollIntoView({behavior: 'smooth', block: 'start'});
           }
-          if (summary.pendingCount > 0) {
+          // Список и сводка — разные запросы: чек мог распознаться между ними, поэтому смотрим на оба.
+          if (summary.pendingCount > 0 || this.receipts.some((r: FinanceReceipt) => r.status === 'PENDING')) {
             this.pendingPoll$.next();
           }
         },
@@ -259,25 +267,24 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
     try {
       blob = await prepareReceiptImage(file);
     } catch (error) {
-      if (this.destroyed) {
-        return;
-      }
       this.uploading = false;
       this.toast.error(error instanceof Error ? error.message : 'Не удалось обработать фото');
       this.cdr.markForCheck();
       return;
     }
 
-    // Пока фото сжималось, пользователь мог уйти со страницы: takeUntil на уже завершённом unsubscribe$ не сработает.
-    if (this.destroyed) {
-      return;
-    }
-
+    // Загрузку не привязываем к жизни страницы: пользователь мог уйти, пока фото сжималось или отправлялось,
+    // а чек он уже «отдал». После ухода только сообщаем результат, никуда не переходя.
     this.api.uploadReceipt(blob, localIsoDate())
-      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: (receipt: FinanceReceipt) => {
           this.uploading = false;
+          if (this.destroyed) {
+            this.toast.success(receipt.status === 'PENDING'
+              ? 'Чек загружен — распознаём сумму и категории'
+              : 'Фото чека сохранено — введите сумму во вкладке «Финансы»');
+            return;
+          }
           if (receipt.status === 'PENDING') {
             this.uploadedReceiptId = receipt.id;
             this.toast.success('Чек загружен — распознаём сумму и категории');
@@ -296,13 +303,34 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         error: (response: { error?: { details?: { message?: string }[]; message?: string } }) => {
           this.uploading = false;
           this.toast.error(response?.error?.details?.[0]?.message || response?.error?.message || 'Не удалось загрузить чек');
-          this.cdr.markForCheck();
+          if (!this.destroyed) {
+            this.cdr.markForCheck();
+          }
         },
       });
   }
 
+  /** Месяц списка передаём форме: дата по умолчанию — в нём, и после сохранения расход будет виден. */
   addManual(): void {
-    this.router.navigate(['receipts', 'new'], {relativeTo: this.route});
+    this.router.navigate(['receipts', 'new'], {relativeTo: this.route, queryParams: {month: this.monthParam()}});
+  }
+
+  /**
+   * Страница могла простоять открытой через полночь 1-го числа: «текущий месяц» (без параметра в адресе)
+   * сдвигается, а OnPush-шаблон об этом не узнает. Проверяем при возврате на вкладку и раз в минуту.
+   */
+  @HostListener('document:visibilitychange')
+  @HostListener('window:focus')
+  checkMonthRollover(): void {
+    if (document.visibilityState === 'hidden' || this.destroyed) {
+      return;
+    }
+    const urlMonth: unknown = this.route.snapshot.queryParams['month'];
+    if (!urlMonth && this.month !== currentMonth()) {
+      this.navigate({month: null, category: this.category});
+    } else {
+      this.cdr.markForCheck();
+    }
   }
 
   openReceipt(receipt: FinanceReceipt): void {
@@ -370,7 +398,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         this.uploadedReceiptId = null;
         const month: string = receipt.purchasedOn.slice(0, 7);
         if (receipt.status === 'READY' && month !== this.month) {
-          this.toast.warning(`Чек от ${shortDate(receipt.purchasedOn)} попал в ${monthPrepositional(month)} — откройте этот месяц`, 5000);
+          this.toast.warning(`Чек от ${shortDate(receipt.purchasedOn)} учтён в ${monthPrepositional(month)} — откройте этот месяц`, 5000);
         }
       });
   }

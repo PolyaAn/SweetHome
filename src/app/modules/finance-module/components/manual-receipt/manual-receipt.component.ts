@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -13,7 +13,7 @@ import {
 } from '../../models/finance.model';
 import { FinanceApiService } from '../../services/finance-api.service';
 import { FinancePendingChanges } from '../../guards/finance-form-deactivate.guard';
-import { isValidPurchaseDate, localIsoDate, maxPurchaseDate, monthPrepositional, parseMoney } from '../../utils/finance-format';
+import { currentMonth, isValidMonth, isValidPurchaseDate, localIsoDate, maxPurchaseDate, monthPrepositional, parseMoney } from '../../utils/finance-format';
 
 @Component({
   selector: 'app-finance-manual-receipt',
@@ -25,6 +25,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
   constructor(
     private api: FinanceApiService,
     private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
@@ -44,9 +45,20 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
   readonly maxDate: string = maxPurchaseDate();
 
   private saved: boolean = false;
-  private readonly initialDate: string = this.purchasedOn;
+  private initialDate: string = this.purchasedOn;
+  /** Месяц, из списка которого открыли форму: туда вернёмся после сохранения. */
+  private returnMonth: string = currentMonth();
 
   ngOnInit(): void {
+    // Открыли из прошлого месяца — по умолчанию его последний день, иначе расход «потеряется» из виду.
+    const month: unknown = this.route.snapshot.queryParams['month'];
+    if (isValidMonth(month as string) && month !== currentMonth()) {
+      const [year, monthIndex] = (month as string).split('-').map(Number);
+      this.purchasedOn = localIsoDate(new Date(year, monthIndex, 0));
+      this.initialDate = this.purchasedOn;
+      this.returnMonth = month as string;
+    }
+
     this.api.getDictionaries()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((dictionaries: FinanceDictionaries) => {
@@ -109,7 +121,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
         next: (receipt: FinanceReceipt) => {
           this.saved = true;
           const month: string = receipt.purchasedOn.slice(0, 7);
-          this.toast.success(month === localIsoDate().slice(0, 7) ? 'Расход добавлен' : `Расход добавлен в ${monthPrepositional(month)}`);
+          this.toast.success(month === this.returnMonth ? 'Расход добавлен' : `Расход добавлен и учтён в ${monthPrepositional(month)}`);
           this.leave(month);
         },
         error: (response: { error?: { details?: { field?: string; message?: string }[]; message?: string } }) => {
