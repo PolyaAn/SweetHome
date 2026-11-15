@@ -15,18 +15,17 @@ import {
   failureText,
 } from './models/finance.model';
 import { FinanceApiService } from './services/finance-api.service';
+import { FinanceUploadService } from './services/finance-upload.service';
 import {
   currentMonth,
   formatMoney,
   isValidMonth,
-  localIsoDate,
   monthPrepositional,
   monthTitle,
   pluralize,
   shiftMonth,
   shortDate,
 } from './utils/finance-format';
-import { prepareReceiptImage } from './utils/receipt-image';
 
 /** Первые 2 минуты спрашиваем каждые 3 с, потом каждые 15 с; всего не дольше 10 минут (очередь на сервере общая). */
 const PENDING_POLL_FAST_MS = 2 * 60 * 1000;
@@ -44,6 +43,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
     private route: ActivatedRoute,
     private router: Router,
     private toast: ToastService,
+    private uploads: FinanceUploadService,
     private cdr: ChangeDetectorRef,
   ) {
     super();
@@ -170,6 +170,16 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         }
       });
 
+    this.uploads.uploading$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((uploading: boolean) => {
+        this.uploading = uploading;
+        this.cdr.markForCheck();
+      });
+    this.uploads.uploaded$
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((receipt: FinanceReceipt) => this.onUploaded(receipt));
+
     timer(60_000, 60_000)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => this.checkMonthRollover());
@@ -252,62 +262,28 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
     }
   }
 
-  async onFileSelected(event: Event): Promise<void> {
+  onFileSelected(event: Event): void {
     const input: HTMLInputElement = event.target as HTMLInputElement;
     const file: File | undefined = input.files?.[0];
     input.value = '';
-    if (!file || this.uploading) {
+    if (file && !this.uploading) {
+      void this.uploads.upload(file);
+    }
+  }
+
+  /** Чек загружен (возможно, пока пользователь был на другой странице модуля) — показываем его. */
+  private onUploaded(receipt: FinanceReceipt): void {
+    if (receipt.status !== 'PENDING') {
+      this.openReceipt(receipt);
       return;
     }
-
-    this.uploading = true;
-    this.cdr.markForCheck();
-
-    let blob: Blob;
-    try {
-      blob = await prepareReceiptImage(file);
-    } catch (error) {
-      this.uploading = false;
-      this.toast.error(error instanceof Error ? error.message : 'Не удалось обработать фото');
-      this.cdr.markForCheck();
-      return;
+    this.uploadedReceiptId = receipt.id;
+    // Новый чек — в текущем месяце: показываем его там, где пользователь его увидит.
+    if (this.month !== currentMonth() || this.category) {
+      this.navigate({month: null, category: null});
+    } else {
+      this.load();
     }
-
-    // Загрузку не привязываем к жизни страницы: пользователь мог уйти, пока фото сжималось или отправлялось,
-    // а чек он уже «отдал». После ухода только сообщаем результат, никуда не переходя.
-    this.api.uploadReceipt(blob, localIsoDate())
-      .subscribe({
-        next: (receipt: FinanceReceipt) => {
-          this.uploading = false;
-          if (this.destroyed) {
-            this.toast.success(receipt.status === 'PENDING'
-              ? 'Чек загружен — распознаём сумму и категории'
-              : 'Фото чека сохранено — введите сумму во вкладке «Финансы»');
-            return;
-          }
-          if (receipt.status === 'PENDING') {
-            this.uploadedReceiptId = receipt.id;
-            this.toast.success('Чек загружен — распознаём сумму и категории');
-            // Новый чек — в текущем месяце: показываем его там, где пользователь его увидит.
-            if (this.month !== currentMonth() || this.category) {
-              this.navigate({month: null, category: null});
-            } else {
-              this.load();
-            }
-          } else {
-            this.toast.warning('Фото сохранено. Распознавание недоступно — введите сумму вручную');
-            this.openReceipt(receipt);
-          }
-          this.cdr.markForCheck();
-        },
-        error: (response: { error?: { details?: { message?: string }[]; message?: string } }) => {
-          this.uploading = false;
-          this.toast.error(response?.error?.details?.[0]?.message || response?.error?.message || 'Не удалось загрузить чек');
-          if (!this.destroyed) {
-            this.cdr.markForCheck();
-          }
-        },
-      });
   }
 
   /** Месяц списка передаём форме: дата по умолчанию — в нём, и после сохранения расход будет виден. */

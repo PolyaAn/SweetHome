@@ -41,6 +41,13 @@ interface ReceiptDraft {
   items: ItemDraft[];
 }
 
+const KNOWN_CURRENCIES: { code: string; name: string }[] = [
+  {code: 'RUB', name: '₽ рубли'}, {code: 'USD', name: '$ доллары'}, {code: 'EUR', name: '€ евро'},
+  {code: 'CNY', name: '¥ юани'}, {code: 'JPY', name: '¥ иены'}, {code: 'GBP', name: '£ фунты'},
+  {code: 'KZT', name: '₸ тенге'}, {code: 'TRY', name: '₺ лиры'}, {code: 'GEL', name: '₾ лари'},
+  {code: 'AMD', name: '֏ драмы'}, {code: 'BYN', name: 'Br бел. рубли'}, {code: 'XXX', name: 'Не определена'},
+];
+
 const PENDING_POLL_FAST_MS = 2 * 60 * 1000;
 const PENDING_POLL_LIMIT_MS = 10 * 60 * 1000;
 
@@ -81,16 +88,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   readonly maxDate: string = maxPurchaseDate();
 
   /** Валюты, которые знает распознавание; XXX — «не определена», такой чек не входит в рублёвые итоги. */
-  get currencies(): { code: string; name: string }[] {
-    const known: { code: string; name: string }[] = [
-      {code: 'RUB', name: '₽ рубли'}, {code: 'USD', name: '$ доллары'}, {code: 'EUR', name: '€ евро'},
-      {code: 'CNY', name: '¥ юани'}, {code: 'JPY', name: '¥ иены'}, {code: 'GBP', name: '£ фунты'},
-      {code: 'KZT', name: '₸ тенге'}, {code: 'TRY', name: '₺ лиры'}, {code: 'GEL', name: '₾ лари'},
-      {code: 'AMD', name: '֏ драмы'}, {code: 'BYN', name: 'Br бел. рубли'}, {code: 'XXX', name: 'Не определена'},
-    ];
-    const current: string | undefined = this.draft?.currency;
-    return current && !known.some((c) => c.code === current) ? [...known, {code: current, name: current}] : known;
-  }
+  currencies: { code: string; name: string }[] = KNOWN_CURRENCIES;
 
   photoUrl: string | null = null;
   photoExpanded: boolean = false;
@@ -183,7 +181,7 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       || (item.amountText !== item.originalAmountText && !this.priceMatches(item))) {
       return '';
     }
-    return `${String(item.quantity).replace('.', ',')} × ${formatMoney(item.price, this.receipt?.currency)}`;
+    return `${String(item.quantity).replace('.', ',')} × ${formatMoney(item.price, this.draft?.currency)}`;
   }
 
   itemError(item: ItemDraft, field: 'name' | 'amount'): string {
@@ -344,6 +342,10 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       });
   }
 
+  trackByCode(_: number, currency: { code: string }): string {
+    return currency.code;
+  }
+
   trackByKey(_: number, item: ItemDraft): string {
     return item.key;
   }
@@ -354,6 +356,9 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
     this.receipt = receipt;
     if (!keepDraft) {
       this.draft = this.toDraft(receipt);
+      this.currencies = KNOWN_CURRENCIES.some((c) => c.code === receipt.currency)
+        ? KNOWN_CURRENCIES
+        : [...KNOWN_CURRENCIES, {code: receipt.currency, name: receipt.currency}];
       this.snapshot = this.serialize();
       this.errors = {};
     }

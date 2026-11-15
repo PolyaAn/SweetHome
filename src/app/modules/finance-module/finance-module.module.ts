@@ -8,6 +8,7 @@ import { FinanceFormDeactivateGuard } from './guards/finance-form-deactivate.gua
 import { FinanceModuleRoutingModule } from './finance-module-routing.module';
 import { FinanceModuleComponent } from './finance-module.component';
 import { FinanceApiService } from './services/finance-api.service';
+import { FinanceUploadService } from './services/finance-upload.service';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,7 @@ import { FinanceApiService } from './services/finance-api.service';
     MatIconModule,
     FinanceModuleRoutingModule,
   ],
-  providers: [FinanceApiService, FinanceFormDeactivateGuard],
+  providers: [FinanceApiService, FinanceUploadService, FinanceFormDeactivateGuard],
 })
 export class FinanceModuleModule {
 }

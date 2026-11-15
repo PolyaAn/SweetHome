@@ -55,7 +55,7 @@
           <label class="receipt-field">
             <span>Валюта</span>
             <select name="currency" [(ngModel)]="draft.currency">
-              <option *ngFor="let c of currencies" [ngValue]="c.code">{{ c.name }}</option>
+              <option *ngFor="let c of currencies; trackBy: trackByCode" [ngValue]="c.code">{{ c.name }}</option>
             </select>
           </label>
           <div class="receipt-field receipt-field--hint" *ngIf="draft.currency !== 'RUB'">
@@ -84,7 +84,7 @@
           </div>
 
           <div class="receipt-note" *ngIf="mismatch">
-            Сумма позиций {{ formatMoney(itemsTotal, receipt.currency) }}, итог чека {{ formatMoney(total, receipt.currency) }}.
+            Сумма позиций {{ formatMoney(itemsTotal, draft.currency) }}, итог чека {{ formatMoney(total, draft.currency) }}.
             В расходах итог распределится по категориям пропорционально.
             <button type="button" class="receipt-link" (click)="useItemsTotal()" *ngIf="itemsTotal > 0">Сделать итог равным сумме позиций</button>
           </div>

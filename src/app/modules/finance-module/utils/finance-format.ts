@@ -45,8 +45,11 @@ export function monthTitle(month: string): string {
   return year === new Date().getFullYear() ? name : `${name} ${year}`;
 }
 
+/** «ноябре», для другого года — «ноябре 2025»: опечатка в годе не должна выглядеть как текущий месяц. */
 export function monthPrepositional(month: string): string {
-  return MONTHS_PREPOSITIONAL[Number(month.slice(5, 7)) - 1];
+  const name: string = MONTHS_PREPOSITIONAL[Number(month.slice(5, 7)) - 1];
+  const year: number = Number(month.slice(0, 4));
+  return year === new Date().getFullYear() ? name : `${name} ${year}`;
 }
 
 /** «14 ноя», для другого года — «14 ноя 2025». */
