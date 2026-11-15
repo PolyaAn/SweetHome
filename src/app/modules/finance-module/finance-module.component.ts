@@ -179,6 +179,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
     this.uploads.uploaded$
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((receipt: FinanceReceipt) => this.onUploaded(receipt));
+    const undelivered: FinanceReceipt | null = this.uploads.takeUndelivered();
 
     timer(60_000, 60_000)
       .pipe(takeUntil(this.unsubscribe$))
@@ -197,6 +198,11 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         this.category = category;
         this.load();
       });
+
+    // Загрузка закончилась, пока списка не было на экране: показываем результат так же, как если бы он был открыт.
+    if (undelivered) {
+      this.onUploaded(undelivered);
+    }
   }
 
   load(): void {
