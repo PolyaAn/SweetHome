@@ -41,6 +41,8 @@ export interface FinanceReceipt {
   category: FinanceCategoryCode;
   note: string | null;
   hasImage: boolean;
+  /** Модель, которая прочитала чек (или последней пыталась). */
+  recognitionModel: string | null;
   itemCount: number;
   itemsTotal: number;
   categoryAmount: number | null;

@@ -34,6 +34,10 @@
       </div>
     </div>
 
+    <p class="receipt-model" *ngIf="receipt.recognitionModel && receipt.source === 'PHOTO'">
+      {{ receipt.status === 'FAILED' ? 'Пыталась прочитать' : 'Распознано' }}: {{ modelLabel(receipt.recognitionModel) }}
+    </p>
+
     <form class="receipt-form" (ngSubmit)="save()" novalidate>
       <fieldset [disabled]="formDisabled">
         <div class="receipt-grid">
