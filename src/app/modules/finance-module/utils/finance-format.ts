@@ -13,12 +13,23 @@ export function currentMonth(date: Date = new Date()): string {
   return localIsoDate(date).slice(0, 7);
 }
 
+/** Месяц из адреса: формат yyyy-MM, не раньше 2000 года и не позже текущего (будущих расходов нет). */
 export function isValidMonth(value: string | null | undefined): value is string {
   if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) {
     return false;
   }
-  const year: number = Number(value.slice(0, 4));
-  return year >= 2000 && year <= 2100;
+  return Number(value.slice(0, 4)) >= 2000 && value <= currentMonth();
+}
+
+/** Последняя допустимая дата покупки: завтра по часам устройства (на сервере — завтра по UTC). */
+export function maxPurchaseDate(): string {
+  const date: Date = new Date();
+  date.setDate(date.getDate() + 1);
+  return localIsoDate(date);
+}
+
+export function isValidPurchaseDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && value >= '2000-01-01' && value <= maxPurchaseDate();
 }
 
 export function shiftMonth(month: string, delta: number): string {
@@ -75,7 +86,11 @@ export function parseMoney(text: string | null | undefined): number | null {
   if (text === null || text === undefined) {
     return null;
   }
-  const normalized: string = String(text).replace(/[\s ₽]/g, '').replace(',', '.');
+  // Минус может прийти как «−» (U+2212) или тире — при вставке из заметок или с клавиатуры iOS.
+  const normalized: string = String(text)
+    .replace(/[\s\u00a0\u202f₽]/g, '')
+    .replace(/^[\u2212\u2012\u2013\u2014]/, '-')
+    .replace(',', '.');
   if (!/^-?\d+(\.\d{0,2})?$/.test(normalized)) {
     return null;
   }

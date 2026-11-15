@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
@@ -12,7 +13,7 @@ import {
 } from '../../models/finance.model';
 import { FinanceApiService } from '../../services/finance-api.service';
 import { FinancePendingChanges } from '../../guards/finance-form-deactivate.guard';
-import { localIsoDate, parseMoney } from '../../utils/finance-format';
+import { isValidPurchaseDate, localIsoDate, maxPurchaseDate, monthPrepositional, parseMoney } from '../../utils/finance-format';
 
 @Component({
   selector: 'app-finance-manual-receipt',
@@ -24,6 +25,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
   constructor(
     private api: FinanceApiService,
     private router: Router,
+    private location: Location,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
   ) {
@@ -38,6 +40,7 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
   note: string = '';
   errors: Record<string, string> = {};
   saving: boolean = false;
+  readonly maxDate: string = maxPurchaseDate();
 
   private saved: boolean = false;
   private readonly initialDate: string = this.purchasedOn;
@@ -75,8 +78,8 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
     if (!this.category) {
       errors['category'] = 'Выберите категорию';
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(this.purchasedOn)) {
-      errors['purchasedOn'] = 'Укажите дату';
+    if (!isValidPurchaseDate(this.purchasedOn)) {
+      errors['purchasedOn'] = 'Укажите дату не позже сегодняшней';
     }
     this.errors = errors;
     if (Object.keys(errors).length) {
@@ -103,8 +106,9 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
       .subscribe({
         next: (receipt: FinanceReceipt) => {
           this.saved = true;
-          this.toast.success('Расход добавлен');
-          this.leave(receipt.purchasedOn);
+          const month: string = receipt.purchasedOn.slice(0, 7);
+          this.toast.success(month === localIsoDate().slice(0, 7) ? 'Расход добавлен' : `Расход добавлен в ${monthPrepositional(month)}`);
+          this.leave(month);
         },
         error: (response: { error?: { details?: { field?: string; message?: string }[]; message?: string } }) => {
           const serverErrors: Record<string, string> = {};
@@ -119,8 +123,13 @@ export class FinanceManualReceiptComponent extends BaseComponent implements OnIn
       });
   }
 
-  private leave(purchasedOn: string): void {
-    // Показываем месяц, в который попал расход: дату могли выбрать в прошлом месяце.
-    this.router.navigate(['/finance'], {queryParams: {month: purchasedOn.slice(0, 7)}, replaceUrl: true});
+  /** Назад к списку по истории (без лишней записи в ней); если форму открыли по прямой ссылке — к месяцу расхода. */
+  private leave(month: string): void {
+    const navigationId: number = (this.location.getState() as { navigationId?: number } | null)?.navigationId ?? 1;
+    if (navigationId > 1) {
+      this.location.back();
+      return;
+    }
+    this.router.navigate(['/finance'], {queryParams: {month}, replaceUrl: true});
   }
 }

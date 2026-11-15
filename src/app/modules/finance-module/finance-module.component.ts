@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { catchError, exhaustMap, filter, forkJoin, of, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { BaseComponent } from '../../components/base/base.component';
@@ -38,7 +38,7 @@ const PENDING_POLL_LIMIT_MS = 10 * 60 * 1000;
   styleUrl: './finance-module.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FinanceModuleComponent extends BaseComponent implements OnInit {
+export class FinanceModuleComponent extends BaseComponent implements OnInit, OnDestroy {
   constructor(
     private api: FinanceApiService,
     private route: ActivatedRoute,
@@ -67,6 +67,8 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
   readonly failureText = FINANCE_FAILURE_TEXT;
 
   private requestId: number = 0;
+  /** Компонент уничтожен: загрузка фото, начатая до ухода со страницы, не должна никуда переходить. */
+  private destroyed: boolean = false;
   /** После выбора категории показываем отфильтрованный список: на телефоне он ниже экрана. */
   private scrollToList: boolean = false;
   private readonly pendingPoll$: Subject<void> = new Subject<void>();
@@ -79,8 +81,13 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
     return this.month >= currentMonth();
   }
 
+  /** Сводка именно выбранного месяца: при переключении старая не показывается под новым заголовком. */
+  get shownSummary(): FinanceSummary | null {
+    return this.summary && this.summary.month === this.month && !this.error ? this.summary : null;
+  }
+
   get categories(): FinanceCategoryAmount[] {
-    return this.summary?.categories ?? [];
+    return this.shownSummary?.categories ?? [];
   }
 
   get selectedCategory(): FinanceCategory | null {
@@ -89,12 +96,13 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
 
   /** «на 12% меньше, чем в октябре» — только если в прошлом месяце были траты. */
   get comparison(): string {
-    if (!this.summary || !this.summary.previousTotal) {
+    const summary: FinanceSummary | null = this.shownSummary;
+    if (!summary || !summary.previousTotal) {
       return '';
     }
     const previous: string = monthPrepositional(shiftMonth(this.month, -1));
-    const diff: number = this.summary.total - this.summary.previousTotal;
-    const percent: number = Math.round(Math.abs(diff) / this.summary.previousTotal * 100);
+    const diff: number = summary.total - summary.previousTotal;
+    const percent: number = Math.round(Math.abs(diff) / summary.previousTotal * 100);
     if (percent === 0) {
       return `Столько же, сколько в ${previous}`;
     }
@@ -102,11 +110,12 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
   }
 
   get statusNotes(): string[] {
-    if (!this.summary) {
+    const summary: FinanceSummary | null = this.shownSummary;
+    if (!summary) {
       return [];
     }
     const notes: string[] = [];
-    const {pendingCount, failedCount, otherCurrencyCount} = this.summary;
+    const {pendingCount, failedCount, otherCurrencyCount} = summary;
     if (pendingCount) {
       notes.push(`${pendingCount} ${pluralize(pendingCount, 'чек распознаётся', 'чека распознаются', 'чеков распознаются')}`);
     }
@@ -127,25 +136,28 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
         this.cdr.markForCheck();
       });
 
-    // Пока чеки распознаются, спрашиваем только их (сначала часто, потом реже, ограниченно по времени).
+    // Пока чеки месяца распознаются, спрашиваем только сводку (сначала часто, потом реже, ограниченно по времени).
+    // Сводка, а не список: при фильтре по категории нераспознанных чеков в списке нет.
     this.pendingPoll$
       .pipe(
         switchMap(() => {
           const startedAt: number = Date.now();
+          const month: string = this.month;
           return timer(3000, 3000).pipe(
-            takeWhile(() => this.pendingIds().length > 0 && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+            takeWhile(() => month === this.month && (this.shownSummary?.pendingCount ?? 0) > 0
+              && Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
             filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
-            exhaustMap(() => forkJoin(this.pendingIds().map((id: string) => this.api.getReceipt(id).pipe(
-              catchError(() => of(null)),
-            )))),
+            exhaustMap(() => this.api.getSummary(month).pipe(catchError(() => of(null)))),
           );
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((updated: (FinanceReceipt | null)[]) => {
-        // Какой-то чек распознался (или удалён) — пересчитываем месяц целиком: меняются итог и категории.
-        const changed: boolean = updated.some((receipt: FinanceReceipt | null) => !receipt || receipt.status !== 'PENDING');
-        if (changed) {
+      .subscribe((summary: FinanceSummary | null) => {
+        const current: FinanceSummary | null = this.shownSummary;
+        // Сеть пропала — просто ждём следующего раза. Что-то распозналось — пересчитываем месяц целиком.
+        if (summary && current && summary.month === current.month
+          && (summary.pendingCount !== current.pendingCount || summary.failedCount !== current.failedCount
+            || summary.receiptCount !== current.receiptCount)) {
           this.load();
         }
       });
@@ -155,6 +167,10 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
       .subscribe((params: Params) => {
         const month: string = isValidMonth(params['month']) ? params['month'] : currentMonth();
         const category: FinanceCategoryCode | null = this.isKnownCategory(params['category']) ? params['category'] : null;
+        if (month !== this.month || category !== this.category) {
+          // Чеки другого месяца или категории не показываем под новым заголовком, пока грузится новый список.
+          this.receipts = [];
+        }
         this.month = month;
         this.category = category;
         this.load();
@@ -185,7 +201,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
             this.scrollToList = false;
             this.receiptsSection?.nativeElement.scrollIntoView({behavior: 'smooth', block: 'start'});
           }
-          if (this.pendingIds().length) {
+          if (summary.pendingCount > 0) {
             this.pendingPoll$.next();
           }
         },
@@ -238,9 +254,17 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
     try {
       blob = await prepareReceiptImage(file);
     } catch (error) {
+      if (this.destroyed) {
+        return;
+      }
       this.uploading = false;
       this.toast.error(error instanceof Error ? error.message : 'Не удалось обработать фото');
       this.cdr.markForCheck();
+      return;
+    }
+
+    // Пока фото сжималось, пользователь мог уйти со страницы: takeUntil на уже завершённом unsubscribe$ не сработает.
+    if (this.destroyed) {
       return;
     }
 
@@ -291,7 +315,7 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
   }
 
   share(amount: number): number {
-    const total: number = this.summary?.total ?? 0;
+    const total: number = this.shownSummary?.total ?? 0;
     return total > 0 ? amount / total * 100 : 0;
   }
 
@@ -325,8 +349,9 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit {
     return value.category;
   }
 
-  private pendingIds(): string[] {
-    return this.receipts.filter((r: FinanceReceipt) => r.status === 'PENDING').map((r: FinanceReceipt) => r.id);
+  override ngOnDestroy(): void {
+    this.destroyed = true;
+    super.ngOnDestroy();
   }
 
   private monthParam(): string | null {

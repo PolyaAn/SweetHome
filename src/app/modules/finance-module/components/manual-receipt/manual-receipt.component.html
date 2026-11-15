@@ -22,7 +22,8 @@
   <div class="manual-grid">
     <label class="manual-field">
       <span>Дата</span>
-      <input type="date" name="purchasedOn" [(ngModel)]="purchasedOn" [attr.aria-invalid]="!!errors['purchasedOn']" />
+      <input type="date" name="purchasedOn" [(ngModel)]="purchasedOn" [max]="maxDate" min="2000-01-01"
+             [attr.aria-invalid]="!!errors['purchasedOn']" />
       <small class="manual-error" *ngIf="errors['purchasedOn']">{{ errors['purchasedOn'] }}</small>
     </label>
     <label class="manual-field">

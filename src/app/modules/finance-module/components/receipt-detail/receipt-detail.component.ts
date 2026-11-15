@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { filter, finalize, Subscription, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { catchError, exhaustMap, filter, finalize, of, Subscription, takeUntil, takeWhile, timer } from 'rxjs';
 import { BaseComponent } from '../../../../components/base/base.component';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -16,7 +16,7 @@ import {
 } from '../../models/finance.model';
 import { FinanceApiService } from '../../services/finance-api.service';
 import { FinancePendingChanges } from '../../guards/finance-form-deactivate.guard';
-import { formatMoney, moneyInput, parseMoney } from '../../utils/finance-format';
+import { formatMoney, isValidPurchaseDate, maxPurchaseDate, moneyInput, parseMoney } from '../../utils/finance-format';
 
 interface ItemDraft {
   /** Локальный ключ для trackBy (у новых позиций id ещё нет). */
@@ -71,6 +71,10 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   saving: boolean = false;
   deleting: boolean = false;
   recognizing: boolean = false;
+
+  /** Распознавание идёт дольше лимита опроса — показываем это, а не вечный спиннер. */
+  pollTimedOut: boolean = false;
+  readonly maxDate: string = maxPurchaseDate();
 
   photoUrl: string | null = null;
   photoExpanded: boolean = false;
@@ -157,11 +161,21 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       ?? FINANCE_FALLBACK_DICTIONARIES.categories.find((c: FinanceCategory) => c.code === code)!;
   }
 
+  /** «2 × 89,90 ₽» — только пока сумма позиции сходится с количеством и ценой (после правки суммы подсказка устарела). */
   itemHint(item: ItemDraft): string {
-    if (item.quantity === null || item.price === null || item.quantity === 1) {
+    if (!this.priceMatches(item) || item.quantity === 1) {
       return '';
     }
     return `${String(item.quantity).replace('.', ',')} × ${formatMoney(item.price, this.receipt?.currency)}`;
+  }
+
+  itemError(item: ItemDraft, field: 'name' | 'amount'): string {
+    return this.errors[`${item.key}.${field}`] ?? '';
+  }
+
+  /** Enter в полях позиции не должен сохранять чек и уводить со страницы. */
+  preventSubmit(event: Event): void {
+    event.preventDefault();
   }
 
   unlockEditing(): void {
@@ -191,6 +205,8 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       return;
     }
     this.draft.items = this.draft.items.filter((x: ItemDraft) => x !== item);
+    delete this.errors[`${item.key}.name`];
+    delete this.errors[`${item.key}.amount`];
     this.cdr.markForCheck();
   }
 
@@ -327,23 +343,37 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
 
   private startPolling(): void {
     this.poll?.unsubscribe();
+    this.pollTimedOut = false;
     const startedAt: number = Date.now();
     this.poll = timer(3000, 3000)
       .pipe(
-        takeWhile(() => Date.now() - startedAt < PENDING_POLL_LIMIT_MS),
+        takeWhile(() => {
+          if (Date.now() - startedAt < PENDING_POLL_LIMIT_MS) {
+            return true;
+          }
+          this.pollTimedOut = true;
+          this.cdr.markForCheck();
+          return false;
+        }),
         filter((tick: number) => Date.now() - startedAt < PENDING_POLL_FAST_MS || tick % 5 === 0),
-        switchMap(() => this.api.getReceipt(this.receiptId)),
+        // exhaustMap: медленный ответ не отменяется следующим тиком. Ошибка одного запроса (сеть, 502) — не конец опроса.
+        exhaustMap(() => this.api.getReceipt(this.receiptId).pipe(
+          catchError((response: { status?: number }) => of(response?.status === 404 ? 'deleted' as const : null)),
+        )),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe({
-        next: (receipt: FinanceReceipt) => {
-          if (receipt.status !== 'PENDING' && !this.editUnlocked) {
-            this.apply(receipt);
-          }
-        },
-        error: () => {
-          // Чек удалили в другой вкладке или пропала сеть — перестаём спрашивать, форма остаётся.
-        },
+      .subscribe((result: FinanceReceipt | 'deleted' | null) => {
+        if (result === 'deleted') {
+          this.poll?.unsubscribe();
+          this.loadError = 'Чек не найден — возможно, его уже удалили';
+          this.receipt = null;
+          this.draft = null;
+          this.cdr.markForCheck();
+          return;
+        }
+        if (result && result.status !== 'PENDING' && !this.editUnlocked) {
+          this.apply(result);
+        }
       });
   }
 
@@ -389,8 +419,8 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
     if (total === null || total < 0.01 || total > 10_000_000) {
       errors['total'] = 'Укажите сумму чека';
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.purchasedOn)) {
-      errors['purchasedOn'] = 'Укажите дату';
+    if (!isValidPurchaseDate(draft.purchasedOn)) {
+      errors['purchasedOn'] = 'Укажите дату не позже сегодняшней';
     }
     if (draft.store.trim().length > 120) {
       errors['store'] = 'Не длиннее 120 символов';
@@ -399,21 +429,24 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       errors['note'] = 'Не длиннее 500 символов';
     }
 
-    const items = draft.items.map((item: ItemDraft, index: number) => {
+    // Ошибки позиций — по локальному ключу, а не по индексу: после удаления позиции подсветка не съезжает.
+    const items = draft.items.map((item: ItemDraft) => {
       const amount: number | null = parseMoney(item.amountText);
       if (!item.name.trim()) {
-        errors[`items[${index}].name`] = 'Название';
+        errors[`${item.key}.name`] = 'Название';
       } else if (item.name.trim().length > 200) {
-        errors[`items[${index}].name`] = 'Не длиннее 200 символов';
+        errors[`${item.key}.name`] = 'Не длиннее 200 символов';
       }
       if (amount === null || amount === 0 || Math.abs(amount) > 10_000_000) {
-        errors[`items[${index}].amount`] = 'Сумма';
+        errors[`${item.key}.amount`] = 'Сумма';
       }
+      const consistent: boolean = this.priceMatches(item);
       return {
         id: item.id,
         name: item.name.trim(),
-        quantity: item.quantity,
-        price: item.price,
+        // Сумму поправили руками — цена из чека больше не про эту позицию.
+        quantity: consistent ? item.quantity : null,
+        price: consistent ? item.price : null,
         amount: amount ?? 0,
         category: item.category,
       };
@@ -435,14 +468,24 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
     };
   }
 
+  /** Ошибки сервера: поля позиций приходят как items[i].field — переводим индекс в ключ позиции. */
   private applyServerErrors(details: { field?: string; message?: string }[] | undefined): void {
     const errors: Record<string, string> = {};
     for (const detail of details ?? []) {
-      if (detail.field) {
-        errors[detail.field] = detail.message ?? 'Ошибка';
+      if (!detail.field) {
+        continue;
       }
+      const match: RegExpMatchArray | null = detail.field.match(/^items\[(\d+)\]\.(\w+)$/);
+      const item: ItemDraft | undefined = match ? this.draft?.items[Number(match[1])] : undefined;
+      errors[item ? `${item.key}.${match![2]}` : detail.field] = detail.message ?? 'Ошибка';
     }
     this.errors = errors;
+  }
+
+  private priceMatches(item: ItemDraft): boolean {
+    const amount: number | null = parseMoney(item.amountText);
+    return item.quantity !== null && item.price !== null && amount !== null
+      && Math.abs(Math.round(item.quantity * item.price * 100) - Math.round(amount * 100)) <= 1;
   }
 
   private isDirty(): boolean {

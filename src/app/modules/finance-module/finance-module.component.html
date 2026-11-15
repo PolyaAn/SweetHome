@@ -10,9 +10,9 @@
     </button>
   </header>
 
-  <section class="finance-hero" [class.finance-hero--refreshing]="loading && summary">
+  <section class="finance-hero" [class.finance-hero--refreshing]="loading && shownSummary">
     <div class="finance-hero__label">Потрачено</div>
-    <div class="finance-hero__total" *ngIf="summary; else totalSkeleton">{{ formatMoney(summary.total) }}</div>
+    <div class="finance-hero__total" *ngIf="shownSummary; else totalSkeleton">{{ formatMoney(shownSummary.total) }}</div>
     <ng-template #totalSkeleton>
       <div class="finance-hero__total finance-hero__total--skeleton" aria-hidden="true"></div>
     </ng-template>

@@ -8,8 +8,9 @@
 
   <ng-container *ngIf="receipt && draft">
     <div class="receipt-banner" *ngIf="pending && !editUnlocked" role="status">
-      <span class="receipt-spinner" aria-hidden="true"></span>
-      <span class="receipt-banner__text">Распознаём чек — обычно это занимает до минуты</span>
+      <span class="receipt-spinner" aria-hidden="true" *ngIf="!pollTimedOut"></span>
+      <span class="receipt-banner__text" *ngIf="!pollTimedOut">Распознаём чек — обычно это занимает до минуты</span>
+      <span class="receipt-banner__text" *ngIf="pollTimedOut">Распознавание затянулось — загляните позже или заполните чек сами</span>
       <button type="button" class="receipt-link" (click)="unlockEditing()">Заполнить вручную</button>
     </div>
 
@@ -44,7 +45,8 @@
           </label>
           <label class="receipt-field">
             <span>Дата</span>
-            <input type="date" name="purchasedOn" [(ngModel)]="draft.purchasedOn" [attr.aria-invalid]="!!errors['purchasedOn']" />
+            <input type="date" name="purchasedOn" [(ngModel)]="draft.purchasedOn" [max]="maxDate" min="2000-01-01"
+                   [attr.aria-invalid]="!!errors['purchasedOn']" />
             <small class="receipt-error" *ngIf="errors['purchasedOn']">{{ errors['purchasedOn'] }}</small>
           </label>
         </div>
@@ -74,9 +76,10 @@
             <button type="button" class="receipt-link" (click)="useItemsTotal()" *ngIf="itemsTotal > 0">Сделать итог равным сумме позиций</button>
           </div>
 
-          <div class="receipt-item" *ngFor="let item of draft.items; let i = index; trackBy: trackByKey">
+          <div class="receipt-item" *ngFor="let item of draft.items; trackBy: trackByKey">
             <input class="receipt-item__name" type="text" [name]="'name' + item.key" [(ngModel)]="item.name" maxlength="200"
-                   placeholder="Название" aria-label="Название позиции" [attr.aria-invalid]="!!errors['items[' + i + '].name']" />
+                   placeholder="Название" aria-label="Название позиции" [attr.aria-invalid]="!!itemError(item, 'name')"
+                   (keydown.enter)="preventSubmit($event)" />
             <div class="receipt-item__row">
               <select class="receipt-item__category" [name]="'category' + item.key" [(ngModel)]="item.category"
                       aria-label="Категория позиции">
@@ -84,7 +87,7 @@
               </select>
               <input class="receipt-item__amount" type="text" inputmode="decimal" [name]="'amount' + item.key"
                      [(ngModel)]="item.amountText" placeholder="0" aria-label="Сумма позиции"
-                     [attr.aria-invalid]="!!errors['items[' + i + '].amount']" />
+                     [attr.aria-invalid]="!!itemError(item, 'amount')" (keydown.enter)="preventSubmit($event)" />
               <button type="button" class="receipt-item__remove" (click)="removeItem(item)" aria-label="Удалить позицию">
                 <mat-icon fontIcon="close" aria-hidden="true"></mat-icon>
               </button>
