@@ -1,0 +1,263 @@
+@import '../../finance-shared';
+
+.receipt {
+  padding: 16px;
+  max-width: 760px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  color: $color-text-main;
+  display: grid;
+  gap: 14px;
+}
+
+.receipt-skeleton {
+  @extend %finance-surface;
+  height: 220px;
+  opacity: 0.5;
+}
+
+.receipt-banner {
+  @extend %finance-surface;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.receipt-banner--warn mat-icon {
+  color: $color-accent-peach;
+}
+
+.receipt-banner__text {
+  flex: 1 1 200px;
+}
+
+.receipt-link {
+  font: inherit;
+  font-size: 14px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: $color-accent-cream;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.receipt-spinner {
+  @extend %finance-spinner;
+}
+
+.receipt-photo {
+  @extend %finance-surface;
+  overflow: hidden;
+  max-height: 180px;
+  transition: max-height 0.2s ease;
+}
+
+.receipt-photo--expanded {
+  max-height: none;
+}
+
+.receipt-photo__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.receipt-photo--expanded .receipt-photo__button {
+  cursor: zoom-out;
+}
+
+.receipt-photo__placeholder {
+  padding: 24px;
+  text-align: center;
+  color: $alpha-sand-72;
+  font-size: 14px;
+}
+
+.receipt-form {
+  display: grid;
+  gap: 14px;
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    display: grid;
+    gap: 14px;
+  }
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.receipt-field {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: $alpha-sand-72;
+
+  input,
+  select,
+  textarea {
+    @extend %finance-input;
+  }
+
+  textarea {
+    height: auto;
+    padding: 10px;
+    resize: vertical;
+  }
+}
+
+.receipt-field--total input {
+  font-size: 20px;
+  font-weight: 700;
+  color: $color-text-light;
+}
+
+select option {
+  color: $color-black;
+}
+
+[aria-invalid='true'] {
+  border-color: $mat-color-warn-light !important;
+}
+
+.receipt-error {
+  color: $mat-color-warn-light;
+  font-size: 12px;
+}
+
+.receipt-items {
+  @extend %finance-surface;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.receipt-items__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  span {
+    color: $alpha-sand-72;
+    font-size: 13px;
+  }
+}
+
+.receipt-note {
+  font-size: 13px;
+  line-height: 1.4;
+  color: $color-text-accent;
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.receipt-item {
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid $alpha-white-08;
+
+  &:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  input,
+  select {
+    @extend %finance-input;
+  }
+}
+
+.receipt-item__row {
+  display: grid;
+  grid-template-columns: 1fr 110px 36px;
+  gap: 6px;
+}
+
+.receipt-item__amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-item__remove {
+  border: 0;
+  border-radius: 10px;
+  background: $alpha-white-04;
+  color: $alpha-sand-72;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.receipt-item__hint {
+  font-size: 12px;
+  color: $alpha-sand-72;
+}
+
+.receipt-add {
+  justify-self: start;
+}
+
+.receipt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.receipt-primary {
+  @extend %finance-primary-button;
+  flex: 1 1 160px;
+}
+
+.receipt-ghost {
+  @extend %finance-ghost-button;
+}
+
+.receipt-ghost--danger {
+  color: $mat-color-warn-light;
+  border-color: $mat-alpha-warn-40;
+}
+
+.receipt-state {
+  text-align: center;
+  padding: 32px 12px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  color: $alpha-sand-72;
+
+  p {
+    margin: 0;
+  }
+}

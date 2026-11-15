@@ -182,6 +182,11 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
 
     if (widget.alias === 'wardrobe') {
       this.router.navigate(['/wardrobe']);
+      return;
+    }
+
+    if (widget.alias === 'finance') {
+      this.router.navigate(['/finance']);
     }
   }
 }

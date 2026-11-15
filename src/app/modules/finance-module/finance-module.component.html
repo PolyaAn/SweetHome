@@ -1,0 +1,112 @@
+<section class="finance">
+  <header class="finance-month">
+    <button type="button" class="finance-month__arrow" (click)="changeMonth(-1)" aria-label="Предыдущий месяц">
+      <mat-icon fontIcon="chevron_left"></mat-icon>
+    </button>
+    <h2 class="finance-month__title">{{ monthTitle }}</h2>
+    <button type="button" class="finance-month__arrow" (click)="changeMonth(1)" [disabled]="isCurrentMonth"
+            aria-label="Следующий месяц">
+      <mat-icon fontIcon="chevron_right"></mat-icon>
+    </button>
+  </header>
+
+  <section class="finance-hero" [class.finance-hero--refreshing]="loading && summary">
+    <div class="finance-hero__label">Потрачено</div>
+    <div class="finance-hero__total" *ngIf="summary; else totalSkeleton">{{ formatMoney(summary.total) }}</div>
+    <ng-template #totalSkeleton>
+      <div class="finance-hero__total finance-hero__total--skeleton" aria-hidden="true"></div>
+    </ng-template>
+    <div class="finance-hero__compare" *ngIf="comparison">{{ comparison }}</div>
+
+    <div class="finance-bar" *ngIf="categories.length" role="img"
+         [attr.aria-label]="'Распределение по категориям'">
+      <span class="finance-bar__segment" *ngFor="let c of categories; trackBy: trackByCategory"
+            [style.flex-grow]="c.amount" [style.background]="categoryInfo(c.category).color"
+            [class.finance-bar__segment--dim]="category && category !== c.category"></span>
+    </div>
+
+    <ul class="finance-hero__notes" *ngIf="statusNotes.length">
+      <li *ngFor="let note of statusNotes">{{ note }}</li>
+    </ul>
+  </section>
+
+  <div class="finance-actions">
+    <button type="button" class="finance-primary finance-actions__photo" (click)="pickPhoto()" [disabled]="uploading">
+      <span class="finance-spinner" *ngIf="uploading" aria-hidden="true"></span>
+      <mat-icon *ngIf="!uploading" fontIcon="photo_camera" aria-hidden="true"></mat-icon>
+      {{ uploading ? 'Загружаем…' : 'Добавить чек' }}
+    </button>
+    <button type="button" class="finance-ghost" (click)="addManual()">
+      <mat-icon fontIcon="edit" aria-hidden="true"></mat-icon> Вручную
+    </button>
+    <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+  </div>
+
+  <section class="finance-state" *ngIf="!loading && error">
+    <p>{{ error }}</p>
+    <button type="button" class="finance-primary" (click)="load()">Повторить</button>
+  </section>
+
+  <section class="finance-categories" *ngIf="!error && categories.length">
+    <button type="button" class="finance-category" *ngFor="let c of categories; trackBy: trackByCategory"
+            [class.finance-category--active]="category === c.category"
+            [attr.aria-pressed]="category === c.category"
+            (click)="toggleCategory(c.category)">
+      <span class="finance-category__icon" [style.background]="categoryInfo(c.category).color">
+        <mat-icon [fontIcon]="categoryInfo(c.category).icon" aria-hidden="true"></mat-icon>
+      </span>
+      <span class="finance-category__name">{{ categoryInfo(c.category).name }}</span>
+      <span class="finance-category__share">{{ shareLabel(c.amount) }}</span>
+      <span class="finance-category__amount">{{ formatMoney(c.amount) }}</span>
+      <span class="finance-category__track" aria-hidden="true">
+        <span [style.width.%]="share(c.amount)" [style.background]="categoryInfo(c.category).color"></span>
+      </span>
+    </button>
+  </section>
+
+  <section class="finance-receipts" #receiptsSection *ngIf="!error">
+    <div class="finance-receipts__head">
+      <h3>{{ selectedCategory ? selectedCategory.name : 'Чеки' }}</h3>
+      <button type="button" class="finance-link" *ngIf="selectedCategory" (click)="clearCategory()">
+        Все чеки <mat-icon fontIcon="close" aria-hidden="true"></mat-icon>
+      </button>
+    </div>
+
+    <div class="finance-receipt finance-receipt--skeleton" *ngIf="loading && !receipts.length" aria-hidden="true"></div>
+
+    <div class="finance-state finance-state--empty" *ngIf="!loading && !receipts.length && !category">
+      <mat-icon class="finance-state__icon" fontIcon="receipt_long" aria-hidden="true"></mat-icon>
+      <p>Расходов пока нет. Сфотографируйте чек — сумму и категории мы определим сами.</p>
+    </div>
+    <div class="finance-state finance-state--empty" *ngIf="!loading && !receipts.length && category">
+      <p>В этой категории расходов нет</p>
+    </div>
+
+    <article class="finance-receipt" *ngFor="let receipt of receipts; trackBy: trackById"
+             tabindex="0" role="button" [attr.aria-label]="receiptTitle(receipt) + ', ' + shortDate(receipt.purchasedOn) + '. Открыть'"
+             [class.finance-receipt--muted]="receipt.status !== 'READY'"
+             (click)="openReceipt(receipt)" (keydown.enter)="onReceiptKey($event, receipt)" (keydown.space)="onReceiptKey($event, receipt)">
+      <span class="finance-receipt__icon" [style.background]="receipt.status === 'READY' ? categoryInfo(receipt.topCategories[0] || receipt.category).color : null">
+        <span class="finance-spinner" *ngIf="receipt.status === 'PENDING'" aria-hidden="true"></span>
+        <mat-icon *ngIf="receipt.status === 'FAILED'" fontIcon="error_outline" aria-hidden="true"></mat-icon>
+        <mat-icon *ngIf="receipt.status === 'READY'" [fontIcon]="categoryInfo(receipt.topCategories[0] || receipt.category).icon" aria-hidden="true"></mat-icon>
+      </span>
+      <span class="finance-receipt__body">
+        <span class="finance-receipt__title">{{ receiptTitle(receipt) }}</span>
+        <span class="finance-receipt__meta">
+          {{ shortDate(receipt.purchasedOn) }}
+          <ng-container *ngIf="receipt.status === 'READY' && receipt.topCategories.length > 1">
+            · <ng-container *ngFor="let code of receipt.topCategories; let last = last">{{ categoryInfo(code).name }}{{ last ? '' : ', ' }}</ng-container>
+          </ng-container>
+          <ng-container *ngIf="receipt.status === 'FAILED' && receipt.failureReason"> · {{ failureText[receipt.failureReason] }}</ng-container>
+        </span>
+      </span>
+      <span class="finance-receipt__amount">
+        {{ receiptAmount(receipt) }}
+        <span class="finance-receipt__of" *ngIf="category && receipt.status === 'READY' && receipt.categoryAmount !== receipt.total">
+          из {{ formatMoney(receipt.total, receipt.currency) }}
+        </span>
+      </span>
+    </article>
+  </section>
+</section>

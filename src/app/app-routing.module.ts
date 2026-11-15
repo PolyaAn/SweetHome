@@ -67,6 +67,11 @@ const routes: Routes = [
       import('./modules/wardrobe-module/wardrobe-module.module').then((m) => m.WardrobeModuleModule),
   },
   {
+    path: 'finance',
+    loadChildren: () =>
+      import('./modules/finance-module/finance-module.module').then((m) => m.FinanceModuleModule),
+  },
+  {
     path: '**',
     redirectTo: 'main',
     pathMatch: 'full',

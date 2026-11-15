@@ -63,6 +63,15 @@ export const MainWidgetsMock: MainWidget[] = [
     icon: 'checkroom',
     size: 2,
     hide: false,
+  },
+  {
+    alias: 'finance',
+    id: '',
+    order: 9,
+    name: 'Финансы',
+    icon: 'account_balance_wallet',
+    size: 2,
+    hide: false,
   }
 ];
 

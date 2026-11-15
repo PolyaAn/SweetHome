@@ -1,0 +1,44 @@
+<form class="manual" (ngSubmit)="save()" novalidate>
+  <label class="manual-field manual-field--total">
+    <span>Сумма, ₽</span>
+    <input type="text" inputmode="decimal" name="total" [(ngModel)]="totalText" placeholder="0"
+           autocomplete="off" autofocus [attr.aria-invalid]="!!errors['total']" />
+    <small class="manual-error" *ngIf="errors['total']">{{ errors['total'] }}</small>
+  </label>
+
+  <fieldset class="manual-categories" [attr.aria-invalid]="!!errors['category']">
+    <legend>Категория</legend>
+    <button type="button" class="manual-category" *ngFor="let c of dictionaries.categories"
+            [class.manual-category--active]="category === c.code" [attr.aria-pressed]="category === c.code"
+            (click)="selectCategory(c)">
+      <span class="manual-category__icon" [style.background]="c.color">
+        <mat-icon [fontIcon]="c.icon" aria-hidden="true"></mat-icon>
+      </span>
+      <span class="manual-category__name">{{ c.name }}</span>
+    </button>
+    <small class="manual-error" *ngIf="errors['category']">{{ errors['category'] }}</small>
+  </fieldset>
+
+  <div class="manual-grid">
+    <label class="manual-field">
+      <span>Дата</span>
+      <input type="date" name="purchasedOn" [(ngModel)]="purchasedOn" [attr.aria-invalid]="!!errors['purchasedOn']" />
+      <small class="manual-error" *ngIf="errors['purchasedOn']">{{ errors['purchasedOn'] }}</small>
+    </label>
+    <label class="manual-field">
+      <span>Где</span>
+      <input type="text" name="store" [(ngModel)]="store" maxlength="120" placeholder="Необязательно" autocomplete="off" />
+      <small class="manual-error" *ngIf="errors['store']">{{ errors['store'] }}</small>
+    </label>
+  </div>
+
+  <label class="manual-field">
+    <span>Заметка</span>
+    <textarea name="note" [(ngModel)]="note" rows="2" maxlength="500" placeholder="Необязательно"></textarea>
+    <small class="manual-error" *ngIf="errors['note']">{{ errors['note'] }}</small>
+  </label>
+
+  <button type="submit" class="manual-save" [disabled]="saving">
+    <span class="manual-spinner" *ngIf="saving" aria-hidden="true"></span> Сохранить
+  </button>
+</form>

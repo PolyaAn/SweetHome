@@ -1,0 +1,121 @@
+<section class="receipt">
+  <section class="receipt-state" *ngIf="loadError">
+    <p>{{ loadError }}</p>
+    <button type="button" class="receipt-primary" (click)="load()">Повторить</button>
+  </section>
+
+  <div class="receipt-skeleton" *ngIf="!loadError && !receipt" aria-hidden="true"></div>
+
+  <ng-container *ngIf="receipt && draft">
+    <div class="receipt-banner" *ngIf="pending && !editUnlocked" role="status">
+      <span class="receipt-spinner" aria-hidden="true"></span>
+      <span class="receipt-banner__text">Распознаём чек — обычно это занимает до минуты</span>
+      <button type="button" class="receipt-link" (click)="unlockEditing()">Заполнить вручную</button>
+    </div>
+
+    <div class="receipt-banner receipt-banner--warn" *ngIf="receipt.status === 'FAILED'" role="status">
+      <mat-icon fontIcon="error_outline" aria-hidden="true"></mat-icon>
+      <span class="receipt-banner__text">
+        {{ receipt.failureReason ? failureText[receipt.failureReason] : 'Чек не распознан' }}. Введите сумму вручную{{ canRecognizeAgain ? ' или попробуйте ещё раз' : '' }}.
+      </span>
+      <button type="button" class="receipt-link" *ngIf="canRecognizeAgain" [disabled]="recognizing" (click)="recognizeAgain()">
+        Повторить
+      </button>
+    </div>
+
+    <div class="receipt-photo" *ngIf="receipt.hasImage" [class.receipt-photo--expanded]="photoExpanded">
+      <button type="button" class="receipt-photo__button" *ngIf="photoUrl" (click)="togglePhoto()"
+              [attr.aria-label]="photoExpanded ? 'Свернуть фото чека' : 'Развернуть фото чека'">
+        <img [src]="photoUrl" alt="Фото чека" />
+      </button>
+      <div class="receipt-photo__placeholder" *ngIf="!photoUrl">
+        {{ photoError ? 'Фото не загрузилось' : 'Загружаем фото…' }}
+      </div>
+    </div>
+
+    <form class="receipt-form" (ngSubmit)="save()" novalidate>
+      <fieldset [disabled]="formDisabled">
+        <div class="receipt-grid">
+          <label class="receipt-field receipt-field--total">
+            <span>Сумма, {{ receipt.currency === 'RUB' ? '₽' : receipt.currency }}</span>
+            <input type="text" inputmode="decimal" name="total" [(ngModel)]="draft.totalText" placeholder="0"
+                   autocomplete="off" [attr.aria-invalid]="!!errors['total']" />
+            <small class="receipt-error" *ngIf="errors['total']">{{ errors['total'] }}</small>
+          </label>
+          <label class="receipt-field">
+            <span>Дата</span>
+            <input type="date" name="purchasedOn" [(ngModel)]="draft.purchasedOn" [attr.aria-invalid]="!!errors['purchasedOn']" />
+            <small class="receipt-error" *ngIf="errors['purchasedOn']">{{ errors['purchasedOn'] }}</small>
+          </label>
+        </div>
+
+        <label class="receipt-field">
+          <span>Магазин</span>
+          <input type="text" name="store" [(ngModel)]="draft.store" maxlength="120" placeholder="Где покупали" autocomplete="off" />
+          <small class="receipt-error" *ngIf="errors['store']">{{ errors['store'] }}</small>
+        </label>
+
+        <label class="receipt-field" *ngIf="!draft.items.length">
+          <span>Категория</span>
+          <select name="category" [(ngModel)]="draft.category">
+            <option *ngFor="let c of dictionaries.categories" [ngValue]="c.code">{{ c.name }}</option>
+          </select>
+        </label>
+
+        <section class="receipt-items" *ngIf="draft.items.length">
+          <div class="receipt-items__head">
+            <h3>Позиции</h3>
+            <span>{{ draft.items.length }}</span>
+          </div>
+
+          <div class="receipt-note" *ngIf="mismatch">
+            Сумма позиций {{ formatMoney(itemsTotal, receipt.currency) }}, итог чека {{ formatMoney(total, receipt.currency) }}.
+            В расходах итог распределится по категориям пропорционально.
+            <button type="button" class="receipt-link" (click)="useItemsTotal()" *ngIf="itemsTotal > 0">Сделать итог равным сумме позиций</button>
+          </div>
+
+          <div class="receipt-item" *ngFor="let item of draft.items; let i = index; trackBy: trackByKey">
+            <input class="receipt-item__name" type="text" [name]="'name' + item.key" [(ngModel)]="item.name" maxlength="200"
+                   placeholder="Название" aria-label="Название позиции" [attr.aria-invalid]="!!errors['items[' + i + '].name']" />
+            <div class="receipt-item__row">
+              <select class="receipt-item__category" [name]="'category' + item.key" [(ngModel)]="item.category"
+                      aria-label="Категория позиции">
+                <option *ngFor="let c of dictionaries.categories" [ngValue]="c.code">{{ c.name }}</option>
+              </select>
+              <input class="receipt-item__amount" type="text" inputmode="decimal" [name]="'amount' + item.key"
+                     [(ngModel)]="item.amountText" placeholder="0" aria-label="Сумма позиции"
+                     [attr.aria-invalid]="!!errors['items[' + i + '].amount']" />
+              <button type="button" class="receipt-item__remove" (click)="removeItem(item)" aria-label="Удалить позицию">
+                <mat-icon fontIcon="close" aria-hidden="true"></mat-icon>
+              </button>
+            </div>
+            <span class="receipt-item__hint" *ngIf="itemHint(item)">{{ itemHint(item) }}</span>
+          </div>
+        </section>
+
+        <button type="button" class="receipt-ghost receipt-add" (click)="addItem()">
+          <mat-icon fontIcon="add" aria-hidden="true"></mat-icon> Добавить позицию
+        </button>
+
+        <label class="receipt-field">
+          <span>Заметка</span>
+          <textarea name="note" [(ngModel)]="draft.note" rows="2" maxlength="500" placeholder="Необязательно"></textarea>
+          <small class="receipt-error" *ngIf="errors['note']">{{ errors['note'] }}</small>
+        </label>
+      </fieldset>
+
+      <div class="receipt-actions">
+        <button type="submit" class="receipt-primary" [disabled]="formDisabled">
+          <span class="receipt-spinner" *ngIf="saving" aria-hidden="true"></span> Сохранить
+        </button>
+        <button type="button" class="receipt-ghost" *ngIf="canRecognizeAgain && receipt.status === 'READY'"
+                [disabled]="recognizing || saving || deleting" (click)="recognizeAgain()">
+          <mat-icon fontIcon="refresh" aria-hidden="true"></mat-icon> Распознать заново
+        </button>
+        <button type="button" class="receipt-ghost receipt-ghost--danger" [disabled]="deleting || saving" (click)="remove()">
+          <mat-icon fontIcon="delete_outline" aria-hidden="true"></mat-icon> Удалить
+        </button>
+      </div>
+    </form>
+  </ng-container>
+</section>
