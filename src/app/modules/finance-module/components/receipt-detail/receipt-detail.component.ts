@@ -342,9 +342,10 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
       });
   }
 
-  /** «gpt://<каталог>/qwen3.6-35b-a3b» → «qwen3.6-35b-a3b»: каталог Yandex пользователю не нужен. */
+  /** «gpt://<каталог>/qwen3-235b/latest» → «qwen3-235b/latest»: схема и каталог Yandex пользователю не нужны. */
   modelLabel(model: string): string {
-    return model.includes('://') ? model.slice(model.lastIndexOf('/') + 1) : model;
+    const match: RegExpMatchArray | null = model.match(/^[a-z]+:\/\/[^/]+\/(.+)$/i);
+    return match ? match[1] : model;
   }
 
   trackByCode(_: number, currency: { code: string }): string {
