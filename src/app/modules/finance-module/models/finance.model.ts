@@ -3,7 +3,7 @@ export type FinanceCategoryCode =
   | 'ELECTRONICS' | 'ENTERTAINMENT' | 'SERVICES' | 'UTILITIES' | 'TRAVEL' | 'GIFTS' | 'EDUCATION' | 'OTHER';
 
 export type FinanceReceiptStatus = 'PENDING' | 'READY' | 'FAILED';
-export type FinanceReceiptSource = 'PHOTO' | 'MANUAL';
+export type FinanceReceiptSource = 'PHOTO' | 'MANUAL' | 'BANK_SCREENSHOT';
 export type FinanceFailureReason = 'NOT_A_RECEIPT' | 'UNREADABLE' | 'PROVIDER_ERROR' | 'DISABLED' | 'INTERNAL_ERROR';
 export type FinanceCategorySource = 'AI' | 'RULE' | 'USER';
 
