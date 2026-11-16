@@ -34,7 +34,7 @@
     <button type="button" class="finance-primary finance-actions__photo" (click)="pickPhoto()" [disabled]="uploading">
       <span class="finance-spinner" *ngIf="uploading" aria-hidden="true"></span>
       <mat-icon *ngIf="!uploading" fontIcon="photo_camera" aria-hidden="true"></mat-icon>
-      {{ uploading ? 'Загружаем…' : 'Добавить чек' }}
+      {{ uploading ? 'Загружаем…' : 'Чек или скриншот' }}
     </button>
     <button type="button" class="finance-ghost" (click)="addManual()">
       <mat-icon fontIcon="edit" aria-hidden="true"></mat-icon> Вручную
@@ -76,7 +76,7 @@
 
     <div class="finance-state finance-state--empty" *ngIf="!loading && !receipts.length && !category">
       <mat-icon class="finance-state__icon" fontIcon="receipt_long" aria-hidden="true"></mat-icon>
-      <p>Расходов пока нет. Сфотографируйте чек — сумму и категории мы определим сами.</p>
+      <p>Расходов пока нет. Загрузите фото чека или скриншот истории покупок из банка.</p>
     </div>
     <div class="finance-state finance-state--empty" *ngIf="!loading && !receipts.length && category">
       <p>В этой категории расходов нет</p>

@@ -166,7 +166,6 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
           && (staleList || summary.pendingCount !== current.pendingCount || summary.failedCount !== current.failedCount
             || summary.receiptCount !== current.receiptCount)) {
           this.load();
-          this.reportUploadedReceipt();
         }
       });
 
@@ -232,6 +231,9 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
           // Список и сводка — разные запросы: чек мог распознаться между ними, поэтому смотрим на оба.
           if (summary.pendingCount > 0 || this.receipts.some((r: FinanceReceipt) => r.status === 'PENDING')) {
             this.pendingPoll$.next();
+          }
+          if (!this.receipts.some((r: FinanceReceipt) => r.id === this.uploadedReceiptId && r.status === 'PENDING')) {
+            this.reportUploadedReceipt();
           }
         },
         error: () => {
@@ -379,7 +381,11 @@ export class FinanceModuleComponent extends BaseComponent implements OnInit, OnD
         }
         this.uploadedReceiptId = null;
         const month: string = receipt.purchasedOn.slice(0, 7);
-        if (receipt.status === 'READY' && month !== this.month) {
+        if (receipt.status === 'READY' && receipt.source === 'BANK_SCREENSHOT') {
+          this.toast.success(month === this.month
+            ? 'Покупки со скриншота добавлены по датам операций'
+            : `Покупки со скриншота добавлены по датам операций. Первая — в ${monthPrepositional(month)}`);
+        } else if (receipt.status === 'READY' && month !== this.month) {
           this.toast.warning(`Чек от ${shortDate(receipt.purchasedOn)} учтён в ${monthPrepositional(month)} — откройте этот месяц`, 5000);
         }
       });

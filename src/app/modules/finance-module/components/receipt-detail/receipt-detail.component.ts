@@ -125,7 +125,8 @@ export class FinanceReceiptDetailComponent extends BaseComponent implements OnIn
   }
 
   get canRecognizeAgain(): boolean {
-    return !!this.receipt?.hasImage && this.dictionaries.recognition && !this.pending;
+    return !!this.receipt?.hasImage && this.receipt.source !== 'BANK_SCREENSHOT'
+      && this.dictionaries.recognition && !this.pending;
   }
 
   ngOnInit(): void {

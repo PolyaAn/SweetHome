@@ -55,7 +55,7 @@ export class FinanceUploadService {
     this.api.uploadReceipt(blob, localIsoDate()).pipe(timeout(UPLOAD_TIMEOUT_MS)).subscribe({
       next: (receipt: FinanceReceipt) => {
         if (receipt.status === 'PENDING') {
-          this.toast.success('Чек загружен — распознаём сумму и категории');
+          this.toast.success('Изображение загружено — распознаём расходы');
         } else {
           this.toast.warning('Фото сохранено. Распознавание недоступно — введите сумму вручную');
         }
