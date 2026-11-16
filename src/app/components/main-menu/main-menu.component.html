@@ -52,14 +52,12 @@
     Добавить виджет
   </div>
   <div *ngIf="editMode" class="button-block">
-    <div *ngIf="editMode" class="close"
-         (click)="saveChanges()">
+    <button type="button" class="close" [disabled]="savingWidgets" (click)="cancelChanges()">
       Отменить изменения
-    </div>
-    <div *ngIf="editMode" class="save-widget"
-         (click)="saveChanges()">
-      Сохранить изменения
-    </div>
+    </button>
+    <button type="button" class="save-widget" [disabled]="savingWidgets" (click)="saveChanges()">
+      {{ savingWidgets ? 'Сохраняем…' : 'Сохранить изменения' }}
+    </button>
   </div>
 </div>
 

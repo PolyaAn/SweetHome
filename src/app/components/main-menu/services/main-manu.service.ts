@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MainWidget, UserInfo } from "../models/main-menu.model";
-import { MainWidgetsMock, UserInfoMock } from "../mocks/main-menu.mock";
+import { UserInfoMock } from "../mocks/main-menu.mock";
 import { BehaviorSubject, Observable, of, tap } from "rxjs";
 import { SharedService } from "../../../shared/services/shared.service";
 import { HttpClient } from "@angular/common/http";
@@ -32,27 +32,19 @@ export class MainManuService {
     );
   }
 
-  // getWidgets(): Observable<MainWidget[]> {
-  //   return of(MainWidgetsMock).pipe(
-  //     tap((widgets: MainWidget[]) => {
-  //       this.defaultMainWidgets$.next(this.ss.getValue(widgets));
-  //       this.mainWidgets$.next(this.ss.getValue(widgets));
-  //     })
-  //   );
-  // }
+  setWidgets(): Observable<void> {
+    const widgets = this.mainWidgets$.value.map(({ id, alias, order, name, icon, size, hide }) =>
+      ({ id, alias, order, name, icon, size, hide }));
 
-  setWidgets(): Observable<MainWidget[]> {
-    return of(this.mainWidgets$.value).pipe(
-      tap((widgets: MainWidget[]) => {
-        this.defaultMainWidgets$.next(this.ss.getValue(widgets));
-        this.mainWidgets$.next(this.ss.getValue(widgets));
-      })
+    return this.http.put<void>(`${environment.apiHost}/api/Widgets`, widgets, {
+      withCredentials: true,
+    }).pipe(
+      tap(() => this.defaultMainWidgets$.next(widgets))
     );
-    // return of(widgets).pipe(
-    //   map((widgets) => {
-    //     this.defaultMainWidgets$.next(this.ss.getValue(widgets));
-    //     this.mainWidgets$.next(this.ss.getValue(widgets));
-    //   }));
+  }
+
+  discardWidgetChanges(): void {
+    this.mainWidgets$.next(this.ss.getValue(this.defaultMainWidgets$.value));
   }
 
   getUserInfo(): Observable<UserInfo> {

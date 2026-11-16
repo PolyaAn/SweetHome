@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, On
 import { MainManuService } from "./services/main-manu.service";
 import { MainWidget, MoveEnum } from "./models/main-menu.model";
 import { BaseComponent } from "../base/base.component";
-import { takeUntil } from "rxjs";
+import { finalize, takeUntil } from "rxjs";
 import { AsyncPipe, JsonPipe, NgClass, NgForOf, NgIf } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
 import { SharedService } from "../../shared/services/shared.service";
+import { ToastService } from "../../shared/services/toast.service";
 import { NewWidgetModalComponent } from "../../shared/components/modals/new-widget-modal/new-widget-modal.component";
 import { MainInfoComponent } from "./components/main-info/main-info.component";
 import { Router } from "@angular/router";
@@ -32,11 +33,13 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private ss: SharedService,
     private router: Router,
+    private toast: ToastService,
   ) {
     super();
   }
 
   editMode: boolean = false;
+  savingWidgets: boolean = false;
   hiddenWidgets: boolean = false;
   isPhoneView: boolean = false;
   mobileTab: 'menu' | 'info' = 'menu';
@@ -103,57 +106,86 @@ export class MainMenuComponent extends BaseComponent implements OnInit {
   }
 
   move(position: MoveEnum, widget: MainWidget): void {
-    const mainWidgets: MainWidget[] = this.ss.getValue(
-      this.mms.mainWidgets$.value
-        .filter((w: MainWidget) => !w.hide)
-        .sort((a: MainWidget, b: MainWidget) => a.order - b.order)
-    );
-    const widgetIndex: number = mainWidgets.findIndex((w) => w.alias === widget.alias);
-    const swapIndex: number = position === MoveEnum.LEFT ? widgetIndex - 1 : widgetIndex + 1;
-    mainWidgets[widgetIndex].order = mainWidgets[swapIndex].order;
-    mainWidgets[swapIndex].order = widget.order;
-    console.log(mainWidgets);
-    this.mms.mainWidgets$.next(mainWidgets);
+    if (this.savingWidgets) {
+      return;
+    }
+
+    const widgets = this.mms.mainWidgets$.value;
+    const visibleWidgets = widgets.filter(w => !w.hide).sort((a, b) => a.order - b.order);
+    const index = visibleWidgets.findIndex(w => w.id === widget.id);
+    const current = visibleWidgets[index];
+    const target = visibleWidgets[index + (position === MoveEnum.LEFT ? -1 : 1)];
+    if (!current || !target) {
+      return;
+    }
+
+    this.mms.mainWidgets$.next(widgets.map(w => {
+      if (w.id === current.id) {
+        return { ...w, order: target.order };
+      }
+      if (w.id === target.id) {
+        return { ...w, order: current.order };
+      }
+      return w;
+    }));
   }
 
   hide(widget: MainWidget): void {
-    const mainWidgets: MainWidget[] = this.ss.getValue(this.mms.mainWidgets$.value)
-      .map((w: MainWidget) => {
-        if (w.alias === widget.alias) {
-          w.hide = !w.hide;
-        }
-        return w;
-      });
+    if (this.savingWidgets) {
+      return;
+    }
+
+    const mainWidgets = this.mms.mainWidgets$.value.map(w =>
+      w.id === widget.id ? { ...w, hide: !w.hide } : w);
 
     this.mms.mainWidgets$.next(mainWidgets);
   }
 
   changeSize(widget: MainWidget): void {
-    const widgets: MainWidget[] = this.mms.mainWidgets$.value;
-    widgets.map((w: MainWidget) => {
-      if (w.alias === widget.alias) {
-        w.size = w.size === 3 ? 1 : w.size + 1;
-      }
-      return w;
-    });
+    if (this.savingWidgets) {
+      return;
+    }
+
+    const widgets = this.mms.mainWidgets$.value.map(w =>
+      w.id === widget.id ? { ...w, size: w.size === 3 ? 1 : w.size + 1 } : w);
     this.mms.mainWidgets$.next(widgets);
   }
 
   openAddWidgetModal(): void {
+    if (this.savingWidgets) {
+      return;
+    }
+
     this.ss.openDialog<NewWidgetModalComponent, {}>(NewWidgetModalComponent, {});
   }
 
   saveChanges(): void {
+    if (this.savingWidgets) {
+      return;
+    }
+
+    this.savingWidgets = true;
     this.mms.setWidgets()
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        finalize(() => {
+          this.savingWidgets = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
-        next: () => {
-          this.mms.editMainPage$.next(false);
-        },
-        error: () => {
-          this.mms.editMainPage$.next(false);
-        },
+        next: () => this.mms.editMainPage(false),
+        error: () => this.toast.error('Не удалось сохранить изменения виджетов. Попробуйте ещё раз.'),
       });
+  }
+
+  cancelChanges(): void {
+    if (this.savingWidgets) {
+      return;
+    }
+
+    this.mms.discardWidgetChanges();
+    this.mms.editMainPage(false);
   }
 
   setMobileTab(tab: 'menu' | 'info'): void {
