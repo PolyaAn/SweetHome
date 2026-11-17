@@ -1,0 +1,52 @@
+<section class="library" aria-label="Личная библиотека">
+  <div class="library-heading">
+    <div><p class="eyebrow"><mat-icon aria-hidden="true">local_library</mat-icon> МЕСТО ДЛЯ ХОРОШИХ ИСТОРИЙ</p><h2>Моя библиотека</h2><p class="subtitle">Читайте в своём ритме. Сохраняйте то, что откликается.</p></div>
+    <button class="primary add-book" type="button" (click)="edit()"><mat-icon aria-hidden="true">add</mat-icon>Добавить книгу</button>
+  </div>
+
+  <div class="stats" *ngIf="loaded" aria-label="Статистика всей библиотеки">
+    <div class="stat"><mat-icon aria-hidden="true">library_books</mat-icon><span class="stat-value">{{ stats.total }}</span><span>Всего книг</span></div>
+    <div class="stat"><mat-icon aria-hidden="true">auto_stories</mat-icon><span class="stat-value">{{ stats.reading }}</span><span>Сейчас читаю</span></div>
+    <div class="stat"><mat-icon aria-hidden="true">task_alt</mat-icon><span class="stat-value">{{ stats.completed }}</span><span>Прочитано</span></div>
+    <div class="stat"><mat-icon aria-hidden="true">menu_book</mat-icon><span class="stat-value">{{ stats.pagesRead.toLocaleString('ru-RU') }}</span><span>Страниц прочитано</span></div>
+  </div>
+
+  <div class="toolbar">
+    <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input type="search" aria-label="Поиск по названию и автору" placeholder="Название книги или автор" [ngModel]="query" (ngModelChange)="search($event)" /></label>
+    <label class="sort"><span>Сначала</span><select aria-label="Сортировка книг" [(ngModel)]="sortBy" (ngModelChange)="filter()"><option value="UPDATED_AT">Недавно обновлённые</option><option value="TITLE">По названию</option><option value="AUTHOR">По автору</option><option value="RATING">С высокой оценкой</option></select></label>
+  </div>
+
+  <div class="shelves" role="group" aria-label="Фильтр по статусу чтения">
+    <button type="button" [class.active]="!status" [attr.aria-pressed]="!status" (click)="selectStatus('')">Все книги <span *ngIf="loaded">{{ stats.total }}</span></button>
+    <button type="button" *ngFor="let shelf of statuses" [class.active]="status === shelf.code" [attr.aria-pressed]="status === shelf.code" (click)="selectStatus(shelf.code)"><mat-icon aria-hidden="true">{{ shelf.icon }}</mat-icon>{{ shelf.name }}<span *ngIf="loaded">{{ statusCount(shelf.code) }}</span></button>
+  </div>
+
+  <div class="notice" role="alert" *ngIf="error"><mat-icon aria-hidden="true">wifi_off</mat-icon><p>{{ error }}</p><button class="secondary" type="button" (click)="reload()">Повторить</button></div>
+
+  <div class="book-grid" *ngIf="loading" aria-label="Загрузка книг" aria-busy="true"><div class="skeleton" *ngFor="let item of [1,2,3,4,5,6]"><div></div><span></span><span></span></div></div>
+
+  <ng-container *ngIf="!loading && !error">
+    <div class="empty" *ngIf="!books.length">
+      <div class="empty-icon"><mat-icon aria-hidden="true">{{ query || status ? 'search_off' : 'auto_stories' }}</mat-icon></div>
+      <h3>{{ query || status ? 'Здесь пока нет книг' : 'У каждой истории есть первая страница' }}</h3>
+      <p>{{ query || status ? 'Попробуйте другой запрос или выберите другую полку.' : 'Добавьте книгу, которую читаете сейчас, или сохраните ту, до которой давно хочется добраться.' }}</p>
+      <button type="button" class="primary" *ngIf="!query && !status" (click)="edit()"><mat-icon aria-hidden="true">add</mat-icon>Добавить первую книгу</button>
+      <button type="button" class="secondary" *ngIf="query || status" (click)="reset()">Сбросить фильтры</button>
+    </div>
+
+    <p class="result-count" *ngIf="books.length" aria-live="polite">Найдено: {{ total }} · Страница {{ page }}</p>
+    <div class="book-grid" *ngIf="books.length">
+      <article class="book-card" *ngFor="let book of books; trackBy: trackBook">
+        <div class="book-top"><span class="status" [class.reading]="book.status === 'READING'" [class.completed]="book.status === 'COMPLETED'">{{ statusName(book.status) }}</span><span class="rating" *ngIf="book.rating !== null" [attr.aria-label]="'Оценка ' + book.rating + ' из 5'"><mat-icon aria-hidden="true">star</mat-icon>{{ book.rating }}<small>/ 5</small></span></div>
+        <div class="book-identity"><div class="book-spine" aria-hidden="true"><mat-icon>menu_book</mat-icon></div><div><h3>{{ book.title }}</h3><p class="author">{{ book.author }}</p><span class="genre" *ngIf="book.genre">{{ book.genre }}</span></div></div>
+        <div class="reading-progress"><div><span>{{ book.pagesRead }}<ng-container *ngIf="book.totalPages !== null"> из {{ book.totalPages }}</ng-container> стр.</span><strong *ngIf="book.totalPages !== null">{{ progress(book) }}%</strong></div><progress *ngIf="book.totalPages !== null" [value]="book.pagesRead" [max]="book.totalPages" [attr.aria-label]="'Прогресс чтения книги ' + book.title"></progress><div class="unknown-progress" *ngIf="book.totalPages === null">Объём книги пока не указан</div></div>
+        <p class="book-notes" *ngIf="book.notes">{{ book.notes }}</p>
+        <div class="card-actions" *ngIf="confirmingId !== book.id"><button class="edit-button" type="button" (click)="edit(book)" [attr.aria-label]="'Редактировать книгу ' + book.title"><mat-icon aria-hidden="true">edit_note</mat-icon>Редактировать</button><button class="delete-button" type="button" (click)="confirmingId = book.id" [disabled]="!!deletingId" [attr.aria-label]="'Удалить книгу ' + book.title"><mat-icon aria-hidden="true">delete_outline</mat-icon></button></div>
+        <div class="delete-confirm" *ngIf="confirmingId === book.id" role="group" [attr.aria-label]="'Удалить книгу ' + book.title + '?'">
+          <span>Удалить книгу?</span><button class="secondary" type="button" [disabled]="!!deletingId" (click)="confirmingId = null">Нет</button><button class="danger" type="button" [disabled]="!!deletingId" (click)="remove(book)">{{ deletingId === book.id ? 'Удаление…' : 'Удалить' }}</button>
+        </div>
+      </article>
+    </div>
+    <nav class="pagination" *ngIf="page > 1 || hasNext" aria-label="Страницы библиотеки"><button class="secondary" type="button" [disabled]="page <= 1" (click)="changePage(-1)"><mat-icon aria-hidden="true">chevron_left</mat-icon>Назад</button><span>{{ page }}</span><button class="secondary" type="button" [disabled]="!hasNext" (click)="changePage(1)">Далее<mat-icon aria-hidden="true">chevron_right</mat-icon></button></nav>
+  </ng-container>
+</section>

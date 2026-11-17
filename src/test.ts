@@ -14,3 +14,4 @@ getTestBed().initTestEnvironment(
 );
 
 import './app/modules/home-module/utils/home-widget-controls.spec';
+import './app/modules/books-module/books.component.spec';

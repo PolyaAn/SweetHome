@@ -3,8 +3,15 @@ import { RouterModule, Routes } from '@angular/router';
 import { MainMenuComponent } from "./components/main-menu/main-menu.component";
 import { LoginComponent } from "./modules/auth/login/login.component";
 import { RegisterComponent } from "./modules/auth/register/register.component";
+import type { BooksComponent } from './modules/books-module/books.component';
 
 const routes: Routes = [
+  {
+    path: 'books',
+    loadComponent: () => import('./modules/books-module/books.component').then(m => m.BooksComponent),
+    data: { title: 'Книги' },
+    canDeactivate: [(component: BooksComponent) => component.canDeactivate()],
+  },
   {
     path: 'main',
     component: MainMenuComponent,

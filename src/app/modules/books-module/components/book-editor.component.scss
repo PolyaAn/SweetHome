@@ -1,0 +1,30 @@
+@import '../../../styles/shared-styles';
+
+:host { display: block; color: $color-text-main; background: $color-bg-deep-1; }
+form { padding: 24px 12px 12px; }
+.editor-heading { display: flex; justify-content: space-between; align-items: center; padding: 0 12px 12px; gap: 12px; }
+.eyebrow { font-size: 10px; letter-spacing: .15em; color: $color-accent-soft; font-weight: 800; }
+h2[mat-dialog-title] { padding: 4px 0 0; margin: 0; color: inherit; font: 700 23px 'Manrope', sans-serif; }
+h2[mat-dialog-title]::before { display: none; }
+mat-dialog-content { max-height: 66vh; color: inherit !important; padding: 12px !important; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 16px; min-width: 0; }
+label { display: flex; flex-wrap: wrap; gap: 7px; font-size: 12px; font-weight: 600; min-width: 0; }
+label span { color: $color-accent-soft; }
+input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid $alpha-white-15; border-radius: 10px; padding: 11px 12px; background: $alpha-black-20; color: inherit; font: 13px 'Manrope', sans-serif; }
+input::placeholder, textarea::placeholder { color: $alpha-sand-70; font-size: 12px; }
+select option { background: $color-bg-deep-1; color: $color-text-main; }
+textarea { resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+button { min-height: 42px; padding: 10px 16px; border-radius: 10px; border: 1px solid $alpha-white-15; cursor: pointer; font: 700 13px 'Manrope', sans-serif; }
+.primary { background: $color-accent-soft; color: $color-bg-deep-1; border-color: transparent; }
+.secondary, .icon-button { background: transparent; color: $color-text-main; }
+.icon-button { padding: 8px; line-height: 0; }
+.field-hint { margin: -6px 0 0; color: $alpha-sand-72; font-size: 12px; }
+.field-error, .save-error { color: $color-accent-peach; font-size: 12px; margin: -6px 0 0; }
+.save-error { padding: 12px; border: 1px solid $alpha-accent-30; border-radius: 10px; margin: 12px 0 0; }
+.discard-confirm { display: flex; flex-wrap: wrap; gap: 8px; }
+.discard-confirm p { width: 100%; margin: 0 0 4px; }
+.login-link { display: inline-block; color: $color-accent-cream; margin: 12px 0 0; font-size: 13px; }
+:focus-visible { outline: 2px solid $color-accent-soft; outline-offset: 3px; }
+button:disabled { opacity: .5; cursor: wait; }
+@media (max-width: 420px) { .form-row { grid-template-columns: 1fr; } h2[mat-dialog-title] { font-size: 20px; } }

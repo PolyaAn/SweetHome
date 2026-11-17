@@ -218,7 +218,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   goBack(): void {
     const url = this.router.url.split('?')[0];
 
-    if (url === '/home' || url === '/wardrobe' || url === '/finance') {
+    if (url === '/home' || url === '/wardrobe' || url === '/finance' || url === '/books') {
       this.router.navigate(['/main']);
       return;
     }
