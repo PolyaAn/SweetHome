@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { MainWidget, UserInfo } from "../models/main-menu.model";
-import { UserInfoMock } from "../mocks/main-menu.mock";
-import { BehaviorSubject, Observable, of, tap } from "rxjs";
+import { MainWidget } from "../models/main-menu.model";
+import { BehaviorSubject, Observable, tap } from "rxjs";
 import { SharedService } from "../../../shared/services/shared.service";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
@@ -45,10 +44,6 @@ export class MainManuService {
 
   discardWidgetChanges(): void {
     this.mainWidgets$.next(this.ss.getValue(this.defaultMainWidgets$.value));
-  }
-
-  getUserInfo(): Observable<UserInfo> {
-    return of(UserInfoMock);
   }
 
   editMainPage(edit: boolean): void {

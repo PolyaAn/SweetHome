@@ -1,0 +1,54 @@
+<div class="profile">
+  <ng-container *ngIf="profile() as account; else profileStatus">
+    <section class="card" aria-labelledby="nickname-heading">
+      <h2 id="nickname-heading">Личные данные</h2>
+      <p class="email" *ngIf="account.email">{{ account.email }}</p>
+      <form [formGroup]="nicknameForm" (ngSubmit)="saveNickname()">
+        <fieldset [disabled]="!!saving()">
+          <label for="profile-nickname">Ник</label>
+          <input id="profile-nickname" formControlName="name" maxlength="256" autocomplete="nickname"
+                 aria-describedby="nickname-hint"/>
+          <p class="hint" id="nickname-hint">Латинские буквы, цифры и символы -._&#64;+.</p>
+          <button type="submit" [disabled]="!canSaveNickname">
+            {{ saving() === 'nickname' ? 'Сохранение…' : 'Сохранить ник' }}
+          </button>
+        </fieldset>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="password-heading">
+      <h2 id="password-heading">Смена пароля</h2>
+      <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+        <fieldset [disabled]="!!saving()">
+          <label for="current-password">Текущий пароль</label>
+          <input id="current-password" type="password" formControlName="currentPassword" autocomplete="current-password"/>
+
+          <label for="new-password">Новый пароль</label>
+          <input id="new-password" type="password" formControlName="newPassword" autocomplete="new-password"
+                 aria-describedby="password-hint"/>
+          <p class="hint" id="password-hint">От 6 символов, включая строчную и заглавную латинские буквы, цифру и спецсимвол.</p>
+
+          <label for="confirm-password">Повторите новый пароль</label>
+          <input id="confirm-password" type="password" formControlName="confirmPassword" autocomplete="new-password"/>
+          <p class="error" *ngIf="passwordForm.controls.confirmPassword.touched && !passwordsMatch">
+            Пароли не совпадают
+          </p>
+
+          <button type="submit" [disabled]="passwordForm.invalid || !passwordsMatch">
+            {{ saving() === 'password' ? 'Сохранение…' : 'Изменить пароль' }}
+          </button>
+        </fieldset>
+      </form>
+    </section>
+  </ng-container>
+
+  <ng-template #profileStatus>
+    <div class="card" *ngIf="loadError() as error; else loading">
+      <p role="alert">{{ error }}</p>
+      <button type="button" (click)="loadProfile()">Повторить</button>
+    </div>
+    <ng-template #loading>
+      <p class="card" role="status">Загрузка профиля…</p>
+    </ng-template>
+  </ng-template>
+</div>

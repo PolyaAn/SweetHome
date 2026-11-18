@@ -1,21 +1,22 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MainManuService } from "../main-menu/services/main-manu.service";
 import { BaseComponent } from "../base/base.component";
-import { filter, takeUntil } from "rxjs";
-import { UserInfo } from "../main-menu/models/main-menu.model";
+import { catchError, filter, map, of, takeUntil } from "rxjs";
 import { MatIcon } from "@angular/material/icon";
-import { NgIf } from "@angular/common";
-import { Location } from "@angular/common";
-import { ActivatedRouteSnapshot, NavigationEnd, Router } from "@angular/router";
+import { AsyncPipe, Location, NgIf } from "@angular/common";
+import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink } from "@angular/router";
 import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
 import { AuthService } from "../../modules/auth/services/auth.service";
+import { ToastService } from "../../shared/services/toast.service";
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     MatIcon,
-    NgIf
+    NgIf,
+    AsyncPipe,
+    RouterLink,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -39,11 +40,15 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private ss: SharedService,
     private authService: AuthService,
+    private toastService: ToastService,
   ) {
     super();
   }
 
-  user: UserInfo | undefined;
+  readonly nickname$ = this.authService.getProfile().pipe(
+    map(profile => profile.name),
+    catchError(() => of(null))
+  );
   isMainPage: boolean = false;
   isMoviePage: boolean = false;
   isMovieListPage: boolean = false;
@@ -76,20 +81,6 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     this.watchHomeRoomTitle();
     this.watchHomeWidgetCount();
     this.routeWatcher();
-    this.getUserInfo();
-  }
-
-  private getUserInfo(): void {
-    this.mms.getUserInfo()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: (user: UserInfo) => {
-          this.user = user;
-          this.cdr.markForCheck();
-        },
-        error: () => {
-        },
-      });
   }
 
   private routeWatcher(): void {
@@ -218,7 +209,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   goBack(): void {
     const url = this.router.url.split('?')[0];
 
-    if (url === '/home' || url === '/wardrobe' || url === '/finance' || url === '/books') {
+    if (url === '/home' || url === '/wardrobe' || url === '/finance' || url === '/books' || url === '/profile') {
       this.router.navigate(['/main']);
       return;
     }
@@ -290,8 +281,12 @@ export class HeaderComponent extends BaseComponent implements OnInit {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: () => this.router.navigate(['/login']),
+        error: () => this.toastService.error('Не удалось выйти из аккаунта. Повторите попытку.'),
+      });
   }
 
   private setWardrobeRouteState(): void {

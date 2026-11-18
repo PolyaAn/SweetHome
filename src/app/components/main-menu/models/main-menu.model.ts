@@ -7,10 +7,6 @@ export interface MainWidget {
   size: number;
   hide: boolean;
 }
-export interface UserInfo {
-  name: string;
-}
-
 export enum MoveEnum {
   LEFT = 'left',
   RIGHT = 'right',

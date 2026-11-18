@@ -9,6 +9,11 @@ export interface RegisterResult {
   errorMessage?: string;
 }
 
+export interface AccountProfile {
+  name: string;
+  email: string | null;
+}
+
 export interface LoginResult {
   isAuth: boolean;
   errorMessage?: string;
@@ -61,11 +66,25 @@ export class AuthService {
     );
   }
 
-  logout(): void {
-    this.authSession.clear();
+  getProfile(): Observable<AccountProfile> {
+    return this.http.get<AccountProfile>(`${environment.apiHost}/api/Account/User`);
   }
 
-  private extractErrorMessage(error: HttpErrorResponse, fallbackMessage: string): string {
+  updateNickname(name: string): Observable<AccountProfile> {
+    return this.http.put<AccountProfile>(`${environment.apiHost}/api/Account/User`, { name });
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<void>(`${environment.apiHost}/api/Account/Password`, { currentPassword, newPassword });
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${environment.apiHost}/api/Account/Logout`, {}).pipe(
+      tap(() => this.authSession.clear())
+    );
+  }
+
+  extractErrorMessage(error: HttpErrorResponse, fallbackMessage: string): string {
     if (!error?.error) {
       return fallbackMessage;
     }

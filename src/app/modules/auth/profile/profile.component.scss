@@ -1,0 +1,85 @@
+@import '../../../styles/utils';
+@import '../../../styles/shared-styles';
+
+.profile {
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px;
+
+  @include adaptivePhone {
+    padding: 16px;
+  }
+}
+
+.card {
+  @include ui-glass-surface(20px);
+  margin: 0;
+  padding: 20px;
+  color: $color-text-main;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.email,
+.hint,
+.error {
+  margin: 0;
+  color: $color-text-soft;
+  overflow-wrap: anywhere;
+}
+
+.email {
+  margin-bottom: 16px;
+}
+
+.hint,
+.error {
+  font-size: 13px;
+}
+
+.error {
+  color: $color-accent-peach;
+}
+
+fieldset {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+label {
+  color: $color-sand-5;
+  font-size: 14px;
+}
+
+input {
+  @include ui-input-field;
+  min-width: 0;
+}
+
+input + label,
+.hint + label {
+  margin-top: 8px;
+}
+
+button {
+  @include ui-primary-button(12px);
+  justify-self: start;
+  min-height: 42px;
+  margin-top: 8px;
+  padding: 0 16px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}

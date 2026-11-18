@@ -1,7 +1,10 @@
 <div class="top">
   <div class="left">
     <ng-container *ngIf="isMainPage; else backButton">
-      {{ user?.name?.toUpperCase() }}
+      <a class="profile-link" routerLink="/profile" aria-label="Открыть профиль">
+        <mat-icon fontIcon="account_circle" aria-hidden="true"></mat-icon>
+        <span>{{ (nickname$ | async) || 'Профиль' }}</span>
+      </a>
     </ng-container>
     <ng-template #backButton>
       <div class="back-title-block">

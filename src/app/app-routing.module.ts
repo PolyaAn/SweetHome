@@ -39,6 +39,11 @@ const routes: Routes = [
     },
   },
   {
+    path: 'profile',
+    loadComponent: () => import('./modules/auth/profile/profile.component').then(m => m.ProfileComponent),
+    data: { title: 'Профиль' },
+  },
+  {
     path: 'movie',
     redirectTo: 'movies',
     pathMatch: 'full',

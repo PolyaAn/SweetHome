@@ -39,11 +39,39 @@
     }
 
     .left {
+      min-width: 0;
       font-weight: 700;
       text-shadow: 0 2px 12px $alpha-black-45;
     }
 
+    .profile-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      margin-right: 12px;
+      color: inherit;
+      text-decoration: none;
+      text-transform: none;
+
+      mat-icon {
+        flex-shrink: 0;
+        color: $color-accent-cream;
+      }
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+
     .right {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       gap: 8px;

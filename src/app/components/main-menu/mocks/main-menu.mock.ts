@@ -1,4 +1,4 @@
-import { MainWidget, UserInfo } from "../models/main-menu.model";
+import { MainWidget } from "../models/main-menu.model";
 
 export const MainWidgetsMock: MainWidget[] = [
   {
@@ -74,7 +74,3 @@ export const MainWidgetsMock: MainWidget[] = [
     hide: false,
   }
 ];
-
-export const UserInfoMock: UserInfo = {
-  name: 'Kika'
-};
