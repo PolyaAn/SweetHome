@@ -1,10 +1,22 @@
 <form #form="ngForm" (ngSubmit)="save(form)" novalidate>
   <div class="editor-heading">
-    <div><span class="eyebrow">МОЯ БИБЛИОТЕКА</span><h2 mat-dialog-title>{{ editing ? 'Редактировать книгу' : 'Новая книга' }}</h2></div>
-    <button type="button" class="icon-button" [disabled]="saving" (click)="requestClose()" aria-label="Закрыть"><mat-icon>close</mat-icon></button>
+    <h2 mat-dialog-title>{{ progressOnly ? 'Отметить страницу' : editing ? 'Карточка книги' : 'Добавить книгу' }}</h2>
+    <button type="button" class="icon-button" [disabled]="busy" (click)="requestClose()" aria-label="Закрыть"><span aria-hidden="true">×</span></button>
   </div>
   <mat-dialog-content>
-    <fieldset [disabled]="saving">
+    <fieldset [disabled]="busy || confirmDelete">
+      <ng-container *ngIf="progressOnly; else fullEditor">
+        <p class="progress-book">{{ book.title }} · {{ book.author }}</p>
+        <label>Прочитано страниц
+          <input #quickInput name="pagesRead" type="number" [(ngModel)]="book.pagesRead" required min="0" [max]="book.totalPages ?? 100000" step="1"
+            (focus)="quickInput.select()" #quickRead="ngModel" />
+        </label>
+        <p class="field-hint" *ngIf="book.totalPages !== null">Всего {{ book.totalPages.toLocaleString('ru-RU') }} стр.</p>
+        <p class="field-error" *ngIf="(submitted || quickRead.dirty) && (quickRead.invalid || pagesInvalid || progressInvalid)">
+          Укажите целое число от 0 до {{ (book.totalPages ?? 100000).toLocaleString('ru-RU') }}.
+        </p>
+      </ng-container>
+      <ng-template #fullEditor>
       <label>Название <span aria-hidden="true">*</span>
         <input name="title" [(ngModel)]="book.title" required maxlength="300" placeholder="Например, Мастер и Маргарита" autocomplete="off" [attr.aria-invalid]="submitted && !book.title.trim()" />
       </label>
@@ -25,6 +37,7 @@
       <p class="field-error" *ngIf="(submitted || total.dirty || read.dirty) && (total.invalid || read.invalid || pagesInvalid || progressInvalid)">Укажите целое число страниц: всего от 1 до 100 000, прочитано от 0 до общего количества.</p>
       <label>Моя оценка<select name="rating" [(ngModel)]="book.rating"><option [ngValue]="null">Без оценки</option><option *ngFor="let rating of [5,4,3,2,1]" [ngValue]="rating">{{ rating }} из 5</option></select></label>
       <label>Заметки<textarea name="notes" [(ngModel)]="book.notes" rows="3" maxlength="5000" placeholder="Впечатления, любимые цитаты или почему хочется прочитать"></textarea></label>
+      </ng-template>
     </fieldset>
     <p class="save-error" role="alert" *ngIf="error">{{ error }}</p>
     <a class="login-link" *ngIf="sessionExpired" href="/login" target="_blank" rel="noopener">Войти в новой вкладке ↗</a>
@@ -33,9 +46,16 @@
       <button type="button" class="secondary" (click)="confirmDiscard = false">Продолжить редактирование</button>
       <button type="button" class="secondary" [disabled]="saving" (click)="dialog.close()">Выйти без сохранения</button>
     </div>
+    <div #deleteNotice class="save-error discard-confirm" role="group" tabindex="-1" aria-label="Подтверждение удаления" *ngIf="confirmDelete">
+      <p>Удалить «{{ original?.title }}» из библиотеки?</p>
+      <button type="button" class="secondary" [disabled]="busy" (click)="confirmDelete = false">Оставить книгу</button>
+      <button type="button" class="danger" [disabled]="busy" (click)="remove()">{{ deleting ? 'Удаление…' : 'Удалить книгу' }}</button>
+    </div>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
-    <button type="button" class="secondary" (click)="requestClose()" [disabled]="saving">Отмена</button>
-    <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Сохранение…' : 'Сохранить книгу' }}</button>
+    <button type="button" class="secondary danger delete-action" *ngIf="editing && !progressOnly"
+      (click)="confirmDelete = true; confirmDiscard = false" [disabled]="busy || confirmDelete">Удалить</button>
+    <button type="button" class="secondary" (click)="requestClose()" [disabled]="busy">Отмена</button>
+    <button type="submit" class="primary" [disabled]="busy || confirmDelete">{{ saving ? 'Сохранение…' : progressOnly ? 'Сохранить' : 'Сохранить книгу' }}</button>
   </mat-dialog-actions>
 </form>

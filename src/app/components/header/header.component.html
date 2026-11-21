@@ -1,4 +1,4 @@
-<div class="top">
+<div class="top" [class.with-actions]="headerActions$ | async">
   <div class="left">
     <ng-container *ngIf="isMainPage; else backButton">
       <a class="profile-link" routerLink="/profile" aria-label="Открыть профиль">
@@ -8,13 +8,11 @@
     </ng-container>
     <ng-template #backButton>
       <div class="back-title-block">
-        <mat-icon
-          (click)="goBack()"
-          class="icon back-icon"
-          aria-hidden="false"
-          aria-label="Назад"
-          fontIcon="arrow_back">
-        </mat-icon>
+        <button type="button" (click)="goBack()" class="icon back-icon" aria-label="Назад">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+            <path d="M20 12.9H7.83l5.59 5.59L12 19.9l-8-8 8-8 1.41 1.41L7.83 10.9H20v2z"/>
+          </svg>
+        </button>
         <h1 class="page-title" *ngIf="!isFriendMoviesPage; else friendMoviesTitle">{{ pageTitle }}</h1>
         <ng-template #friendMoviesTitle>
           <div class="page-title-group">
@@ -26,6 +24,7 @@
     </ng-template>
   </div>
   <div class="right">
+    <ng-template [cdkPortalOutlet]="headerActions$ | async"></ng-template>
     <span class="page-meta" *ngIf="isFriendMoviesPage && friendMoviesTotal !== null">
       {{ friendMoviesTotal }} {{ friendMoviesCountLabel }}
     </span>

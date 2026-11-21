@@ -11,7 +11,15 @@ export class BooksApiService {
   constructor(private readonly http: HttpClient) {}
 
   list(query: string, status: BookStatus | '', sortBy: BookSort, page: number): Observable<BookList> {
-    let params = new HttpParams().set('page', page).set('pageSize', 24).set('sortBy', sortBy);
+    return this.getList(query, status, sortBy, page, 24);
+  }
+
+  latestReading(): Observable<BookList> {
+    return this.getList('', 'READING', 'UPDATED_AT', 1, 1);
+  }
+
+  private getList(query: string, status: BookStatus | '', sortBy: BookSort, page: number, pageSize: number): Observable<BookList> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize).set('sortBy', sortBy);
     if (query.trim()) params = params.set('query', query.trim());
     if (status) params = params.set('status', status);
     return this.http.get<BookList>(this.url, { params, withCredentials: true });
@@ -21,6 +29,10 @@ export class BooksApiService {
     return id
       ? this.http.put<Book>(`${this.url}/${encodeURIComponent(id)}`, book, { withCredentials: true })
       : this.http.post<Book>(this.url, book, { withCredentials: true });
+  }
+
+  get(id: string): Observable<Book> {
+    return this.http.get<Book>(`${this.url}/${encodeURIComponent(id)}`, { withCredentials: true });
   }
 
   delete(id: string): Observable<void> {

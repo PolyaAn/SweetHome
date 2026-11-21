@@ -107,6 +107,13 @@
 
     .back-icon {
       margin-left: -6px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      box-sizing: content-box;
+      color: $color-accent-cream;
+
+      svg { width: 100%; height: 100%; }
     }
 
     .page-title {
@@ -130,6 +137,15 @@
       @include adaptivePhone {
         gap: 6px;
       }
+    }
+
+    &.with-actions {
+      --header-padding-x: max(5vw, calc((100vw - 1220px) / 2));
+      background: #191b1b;
+
+      .page-title { font-size: 1rem; text-transform: none; letter-spacing: normal; }
+      @media (max-width: 720px) { --header-padding-x: 18px; }
+      @media (max-width: 360px) { --header-padding-x: 12px; }
     }
 
     .page-title-accent {

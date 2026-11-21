@@ -3,6 +3,7 @@ import { MainManuService } from "../main-menu/services/main-manu.service";
 import { BaseComponent } from "../base/base.component";
 import { catchError, filter, map, of, takeUntil } from "rxjs";
 import { MatIcon } from "@angular/material/icon";
+import { CdkPortalOutlet } from '@angular/cdk/portal';
 import { AsyncPipe, Location, NgIf } from "@angular/common";
 import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink } from "@angular/router";
 import { MovieViewMode, SharedService } from "../../shared/services/shared.service";
@@ -17,6 +18,7 @@ import { ToastService } from "../../shared/services/toast.service";
     NgIf,
     AsyncPipe,
     RouterLink,
+    CdkPortalOutlet,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -49,6 +51,7 @@ export class HeaderComponent extends BaseComponent implements OnInit {
     map(profile => profile.name),
     catchError(() => of(null))
   );
+  readonly headerActions$ = this.ss.headerActions$;
   isMainPage: boolean = false;
   isMoviePage: boolean = false;
   isMovieListPage: boolean = false;

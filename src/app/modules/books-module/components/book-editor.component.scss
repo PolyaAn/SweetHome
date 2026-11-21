@@ -3,8 +3,7 @@
 :host { display: block; color: $color-text-main; background: $color-bg-deep-1; }
 form { padding: 24px 12px 12px; }
 .editor-heading { display: flex; justify-content: space-between; align-items: center; padding: 0 12px 12px; gap: 12px; }
-.eyebrow { font-size: 10px; letter-spacing: .15em; color: $color-accent-soft; font-weight: 800; }
-h2[mat-dialog-title] { padding: 4px 0 0; margin: 0; color: inherit; font: 700 23px 'Manrope', sans-serif; }
+h2[mat-dialog-title] { padding: 4px 0 0; margin: 0; color: inherit; font: 400 clamp(1.5rem, 3vw, 2rem)/1.2 'PT Serif', Georgia, serif; }
 h2[mat-dialog-title]::before { display: none; }
 mat-dialog-content { max-height: 66vh; color: inherit !important; padding: 12px !important; }
 fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 16px; min-width: 0; }
@@ -15,10 +14,13 @@ input::placeholder, textarea::placeholder { color: $alpha-sand-70; font-size: 12
 select option { background: $color-bg-deep-1; color: $color-text-main; }
 textarea { resize: vertical; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-button { min-height: 42px; padding: 10px 16px; border-radius: 10px; border: 1px solid $alpha-white-15; cursor: pointer; font: 700 13px 'Manrope', sans-serif; }
+button { min-height: 44px; padding: 10px 16px; border-radius: 10px; border: 1px solid $alpha-white-15; cursor: pointer; font: 700 13px 'Manrope', sans-serif; }
 .primary { background: $color-accent-soft; color: $color-bg-deep-1; border-color: transparent; }
 .secondary, .icon-button { background: transparent; color: $color-text-main; }
-.icon-button { padding: 8px; line-height: 0; }
+.danger { background: transparent; color: $color-accent-peach; }
+.delete-action { margin-right: auto; }
+.progress-book { margin: 0; overflow-wrap: anywhere; color: $alpha-sand-72; }
+.icon-button { min-width: 44px; padding: 0; font: 400 1.6rem/1 'Segoe UI', sans-serif; }
 .field-hint { margin: -6px 0 0; color: $alpha-sand-72; font-size: 12px; }
 .field-error, .save-error { color: $color-accent-peach; font-size: 12px; margin: -6px 0 0; }
 .save-error { padding: 12px; border: 1px solid $alpha-accent-30; border-radius: 10px; margin: 12px 0 0; }

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { MatDialog } from "@angular/material/dialog";
 import { ComponentType } from "@angular/cdk/overlay";
+import { TemplatePortal } from '@angular/cdk/portal';
 import { BehaviorSubject } from "rxjs";
 
 export type MovieViewMode = 'list' | 'grid';
@@ -18,6 +19,7 @@ export class SharedService {
   readonly homeWidgetCount$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
   readonly friendMoviesOwnerNickname$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   readonly friendMoviesTotal$: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
+  readonly headerActions$ = new BehaviorSubject<TemplatePortal<unknown> | null>(null);
 
   get isPhone(): boolean {
     return window.innerWidth < 768;
