@@ -4,8 +4,15 @@ import { MainMenuComponent } from "./components/main-menu/main-menu.component";
 import { LoginComponent } from "./modules/auth/login/login.component";
 import { RegisterComponent } from "./modules/auth/register/register.component";
 import type { BooksComponent } from './modules/books-module/books.component';
+import type { CoinsComponent } from './modules/coins-module/coins.component';
 
 const routes: Routes = [
+  {
+    path: 'coins',
+    loadComponent: () => import('./modules/coins-module/coins.component').then(m => m.CoinsComponent),
+    data: { title: 'Монеты', activitySection: 'coins' },
+    canDeactivate: [(component: CoinsComponent) => component.canDeactivate()],
+  },
   {
     path: 'books',
     loadComponent: () => import('./modules/books-module/books.component').then(m => m.BooksComponent),

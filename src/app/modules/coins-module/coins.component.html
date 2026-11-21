@@ -1,0 +1,318 @@
+<svg class="icon-definitions" width="0" height="0" aria-hidden="true">
+  <symbol id="coins-icon-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.7"/><path d="M12 9v6"/></symbol>
+  <symbol id="coins-icon-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9" r="1.5"/><path d="m4 17 5-4 4 3 4-5 4 4"/></symbol>
+  <symbol id="coins-icon-stack" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 4 16 4 16 0V6M4 12v6c0 4 16 4 16 0v-6"/></symbol>
+  <symbol id="coins-icon-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5M7.5 10.5h6m-3-3v6"/></symbol>
+  <symbol id="coins-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="coins-icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></symbol>
+  <symbol id="coins-icon-filter" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></symbol>
+  <symbol id="coins-icon-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
+  <symbol id="coins-icon-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1m-1 6h1m-1 6h1"/></symbol>
+  <symbol id="coins-icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="coins-icon-edit" viewBox="0 0 24 24"><path d="m14 6 4 4m-13 8 1-4L17 3l4 4-11 11-5 1z"/></symbol>
+</svg>
+
+<section class="collection" aria-labelledby="collection-title">
+  <nav class="scopes" aria-label="Виды коллекции">
+    @for (option of scopes; track option.key) {
+      <button type="button" [attr.aria-pressed]="scope() === option.key" (click)="setScope(option.key)">
+        <svg class="icon" aria-hidden="true"><use [attr.href]="'#coins-icon-' + option.icon"></use></svg>
+        <span>{{ option.name }}</span>
+        @if (loadState() === 'ready') {
+          <span class="scope-count">{{ scopeCounts()[option.key] }}</span>
+        }
+      </button>
+    }
+  </nav>
+
+  <div class="catalog">
+    <header class="heading">
+      <h1 id="collection-title">Коллекция</h1>
+      <button #addButton class="primary" type="button" aria-haspopup="dialog" [disabled]="loadState() !== 'ready'" (click)="edit()">
+        <svg class="icon" aria-hidden="true"><use href="#coins-icon-plus"></use></svg>Добавить монету
+      </button>
+    </header>
+
+    @switch (loadState()) {
+      @case ('loading') {
+        <p class="state" role="status">Загружаем коллекцию…</p>
+      }
+      @case ('error') {
+        <div class="state" role="alert">
+          <p>Не удалось загрузить коллекцию. Проверьте соединение и попробуйте ещё раз.</p>
+          <button class="secondary" type="button" (click)="load()">Повторить</button>
+        </div>
+      }
+      @case ('unauthorized') {
+        <p class="state" role="alert">Войдите в аккаунт, чтобы открыть свою коллекцию.</p>
+      }
+      @case ('ready') {
+        <dl class="summary" aria-label="Сводка коллекции">
+          <div><dt>Позиций</dt><dd>{{ count() }}</dd></div>
+          <div><dt>Экземпляров</dt><dd>{{ quantity() }}</dd></div>
+          <div><dt>Стран</dt><dd>{{ countries().length }}</dd></div>
+        </dl>
+
+        <div class="toolbar">
+          <label class="search">
+            <svg class="icon" aria-hidden="true"><use href="#coins-icon-search"></use></svg>
+            <input type="search" placeholder="Название, страна, год" aria-label="Поиск по названию, стране, номиналу или году"
+              [ngModel]="query()" (ngModelChange)="setQuery($event)">
+          </label>
+          <button #filterButton class="secondary filters" type="button" aria-haspopup="dialog" (click)="openFilters()">
+            <svg class="icon" aria-hidden="true"><use href="#coins-icon-filter"></use></svg>Фильтры
+            @if (applied().length > 0) {
+              <span class="badge">{{ applied().length }}</span>
+            }
+          </button>
+          <select class="sort" aria-label="Сортировка монет" [ngModel]="sort()" (ngModelChange)="setSort($event)">
+            <option value="latest">Недавно добавленные</option>
+            <option value="oldest">Старые выпуски</option>
+            <option value="newest">Новые выпуски</option>
+            <option value="name">По названию</option>
+          </select>
+          <div class="view" role="group" aria-label="Вид коллекции">
+            <button type="button" aria-label="Плитки" [attr.aria-pressed]="view() === 'grid'" (click)="setView('grid')">
+              <svg class="icon" aria-hidden="true"><use href="#coins-icon-grid"></use></svg>
+            </button>
+            <button type="button" aria-label="Список" [attr.aria-pressed]="view() === 'list'" (click)="setView('list')">
+              <svg class="icon" aria-hidden="true"><use href="#coins-icon-list"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="results">
+          <span role="status">Показано {{ visible().length }} из {{ count() }}</span>
+          @if (hasQuery() || scope() !== 'all') {
+            <button class="text-button" type="button" (click)="resetQuery()">Сбросить всё</button>
+          }
+        </div>
+        @if (applied().length > 0) {
+          <div class="active-filters" role="group" aria-label="Применённые фильтры">
+            @for (chip of applied(); track chip.key) {
+              <button class="chip" type="button" [attr.aria-label]="'Снять фильтр «' + chip.label + '»'" (click)="removeFilter(chip.key)">
+                {{ chip.label }}<svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg>
+              </button>
+            }
+          </div>
+        }
+
+        @if (visible().length) {
+          <div class="cards" [class.list]="view() === 'list'">
+            @for (coin of visible(); track coin.id) {
+              <button class="card" type="button" aria-haspopup="dialog" (click)="openDetails(coin)">
+                <span class="card-art">
+                  @if (photoUrl(coin, 'obverse') || photoUrl(coin, 'reverse'); as url) {
+                    <img [src]="url" alt="" loading="lazy" decoding="async">
+                  } @else {
+                    <svg class="icon" aria-hidden="true"><use href="#coins-icon-image"></use></svg>
+                  }
+                </span>
+                <span class="card-meta">
+                  <span class="card-title">{{ coin.name }}</span>
+                  <span class="card-info">{{ info(coin) }}</span>
+                  <span class="tags">
+                    @if (coin.grade) {
+                      <span class="tag" [title]="gradeLabel(coin.grade)">{{ coin.grade }}</span>
+                    }
+                    @if (coin.quantity > 1) {
+                      <span class="copies"><span aria-hidden="true">×{{ coin.quantity }}</span><span class="cdk-visually-hidden">Экземпляров: {{ coin.quantity }}</span></span>
+                    }
+                  </span>
+                </span>
+              </button>
+            }
+          </div>
+          @if (visible().length < matching().length) {
+            <div class="more"><button class="secondary" type="button" (click)="showMore()">Показать ещё</button></div>
+          }
+        } @else {
+          <div class="state">
+            @if (!count()) {
+              <svg class="icon empty-icon" aria-hidden="true"><use href="#coins-icon-coin"></use></svg>
+              <h2>Коллекция пока пуста</h2>
+              <p>Добавьте первую монету и укажите, где она хранится.</p>
+              <button class="secondary" type="button" aria-haspopup="dialog" (click)="edit()">Добавить первую монету</button>
+            } @else if (hasQuery()) {
+              <h2>Монеты не найдены</h2>
+              <button class="secondary" type="button" (click)="resetQuery()">Сбросить поиск и фильтры</button>
+            } @else {
+              <h2>{{ scope() === 'missing' ? 'У всех монет есть фото' : 'Дубликатов пока нет' }}</h2>
+              <button class="secondary" type="button" (click)="setScope('all')">Показать все монеты</button>
+            }
+          </div>
+        }
+      }
+    }
+  </div>
+</section>
+
+<dialog #filterDialog aria-labelledby="coins-filter-title">
+  <div class="dialog-head">
+    <h2 id="coins-filter-title">Фильтры</h2>
+    <button class="icon-button" type="button" aria-label="Закрыть фильтры" (click)="filterDialog.close()"><svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg></button>
+  </div>
+  <form (ngSubmit)="applyFilters()">
+    <div class="fields">
+      <label class="full">Страна
+        <select name="country" [(ngModel)]="draftFilters.country">
+          <option value="">Все страны</option>
+          @for (country of countries(); track country[0]) {
+            <option [value]="country[0]">{{ country[1] }}</option>
+          }
+        </select>
+      </label>
+      <label class="full">Сохранность
+        <select name="grade" [(ngModel)]="draftFilters.grade">
+          <option value="">Любая сохранность</option>
+          @for (grade of grades; track grade.code) {
+            <option [value]="grade.code">{{ gradeLabel(grade.code) }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button class="text-button" type="button" (click)="resetDraftFilters()">Сбросить</button>
+      <button class="primary" type="submit">Применить</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog #detailsDialog aria-labelledby="coins-detail-title" (cancel)="closeDetailsOnEscape($event)">
+  <div class="dialog-head">
+    <h2 id="coins-detail-title">{{ activeCoin()?.name }}</h2>
+    <button class="icon-button" type="button" aria-label="Закрыть карточку" [disabled]="deleting()"
+      (click)="closeDetails(detailsDialog)"><svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg></button>
+  </div>
+  @if (activeCoin(); as coin) {
+    <div class="detail-images">
+      @for (side of sides; track side.key) {
+        <figure>
+          @if (photoUrl(coin, side.key); as url) {
+            <button class="card-art photo-zoom" type="button" [attr.aria-label]="side.zoomLabel"
+              aria-haspopup="dialog" (click)="openZoom(coin, side.label, url)">
+              <img [src]="url" alt="">
+              <span class="zoom-icon"><svg class="icon" aria-hidden="true"><use href="#coins-icon-zoom"></use></svg></span>
+            </button>
+          } @else {
+            <div class="card-art"><svg class="icon" aria-hidden="true"><use href="#coins-icon-image"></use></svg></div>
+          }
+          <figcaption>{{ side.label }}{{ photoUrl(coin, side.key) ? '' : ' · без фото' }}</figcaption>
+        </figure>
+      }
+    </div>
+    <dl class="detail-data">
+      <div><dt>Страна / эмитент</dt><dd>{{ coin.country || '—' }}</dd></div>
+      <div><dt>Год выпуска</dt><dd>{{ coin.year === null ? '—' : yearLabel(coin.year) }}</dd></div>
+      <div><dt>Номинал</dt><dd>{{ coin.value || '—' }}</dd></div>
+      <div><dt>Сохранность</dt><dd>{{ coin.grade ? gradeLabel(coin.grade) : '—' }}</dd></div>
+      <div><dt>Экземпляров</dt><dd>{{ coin.quantity }}</dd></div>
+      <div><dt>Место хранения</dt><dd>{{ coin.location || '—' }}</dd></div>
+      @if (coin.notes) {
+        <div class="full"><dt>Заметки</dt><dd>{{ coin.notes }}</dd></div>
+      }
+    </dl>
+    @if (detailsError()) {
+      <p class="error" role="alert">{{ detailsError() }}</p>
+    }
+    <div class="dialog-actions">
+      <button class="text-button danger leading" type="button" [disabled]="deleting()" (click)="remove(coin)">
+        {{ deleting() ? 'Удаляем…' : 'Удалить' }}
+      </button>
+      <button class="secondary" type="button" [disabled]="deleting()" (click)="edit(coin)">
+        <svg class="icon" aria-hidden="true"><use href="#coins-icon-edit"></use></svg>Редактировать
+      </button>
+    </div>
+  }
+</dialog>
+
+<dialog #zoomDialog class="zoom-dialog" aria-labelledby="coins-zoom-title" (close)="zoom.set(null)">
+  <div class="dialog-head">
+    <h2 id="coins-zoom-title">{{ zoom()?.side }} · {{ zoom()?.coin }}</h2>
+    <button class="icon-button" type="button" autofocus aria-label="Закрыть фото" (click)="zoomDialog.close()"><svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg></button>
+  </div>
+  @if (zoom(); as item) {
+    <img class="zoom-image" [src]="item.url" [alt]="item.side + ' монеты «' + item.coin + '»'">
+  }
+</dialog>
+
+<dialog #editorDialog class="editor-dialog" aria-labelledby="coins-editor-title" (cancel)="closeEditor($event)" (close)="cleanupEditor()">
+  <div class="dialog-head">
+    <h2 id="coins-editor-title">{{ editingId ? 'Редактировать монету' : 'Добавить монету' }}</h2>
+    <button class="icon-button" type="button" aria-label="Закрыть редактор" [disabled]="editorBusy()" (click)="closeEditor()">
+      <svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg>
+    </button>
+  </div>
+  <form ngNativeValidate (ngSubmit)="save()">
+    <div class="fields">
+      <label class="full">Название <span aria-hidden="true">*</span>
+        <input name="name" [(ngModel)]="draft.name" maxlength="96" placeholder="Например, Олимпиада-80" required autofocus>
+      </label>
+      <label>Страна / эмитент<input name="country" [(ngModel)]="draft.country" maxlength="60" placeholder="СССР" list="coins-countries"></label>
+      <label>Год выпуска<input name="year" [(ngModel)]="draft.year" type="number" min="-5000" max="9999" step="1" placeholder="1980"></label>
+      <label>Номинал<input name="value" [(ngModel)]="draft.value" maxlength="50" placeholder="1 рубль"></label>
+      <label>Сохранность
+        <select name="grade" [(ngModel)]="draft.grade">
+          <option [ngValue]="null">Не указана</option>
+          @for (grade of grades; track grade.code) {
+            <option [value]="grade.code">{{ gradeLabel(grade.code) }}</option>
+          }
+        </select>
+      </label>
+      <label>Экземпляров<input name="quantity" [(ngModel)]="draft.quantity" type="number" min="1" max="9999" step="1" required></label>
+      <label>Место хранения<input name="location" [(ngModel)]="draft.location" maxlength="120" placeholder="Альбом 1, № 4"></label>
+      <fieldset class="full">
+        <legend>Фото</legend>
+        <div class="photo-inputs">
+          @for (side of sides; track side.key) {
+            <div class="upload" [attr.data-side]="side.key">
+              <label>
+                <span>{{ side.label }}{{ draftPhotos()[side.key].preview ? ' · заменить' : '' }}</span>
+                <span class="photo-preview">
+                  @if (draftPhotos()[side.key].preview; as url) {
+                    <img [src]="url" alt="">
+                  } @else {
+                    <svg class="icon" aria-hidden="true"><use href="#coins-icon-image"></use></svg><span>Добавить фото</span>
+                  }
+                </span>
+                <input #file type="file" accept="image/*" [attr.aria-label]="(draftPhotos()[side.key].preview ? 'Заменить фото: ' : 'Добавить фото: ') + side.label"
+                  [disabled]="saving() || photoPending().includes(side.key)" (change)="upload($event, side.key)">
+              </label>
+              @if (draftPhotos()[side.key].preview) {
+                <button class="text-button" type="button" [disabled]="saving() || photoPending().includes(side.key)" [attr.aria-label]="'Убрать фото: ' + side.label"
+                  (click)="removePhoto(side.key, file)">Убрать фото</button>
+              }
+            </div>
+          }
+        </div>
+      </fieldset>
+      <label class="full">Заметки<textarea name="notes" [(ngModel)]="draft.notes" rows="3" maxlength="2000" placeholder="Монетный двор, разновидность или история покупки"></textarea></label>
+    </div>
+    <datalist id="coins-countries">
+      @for (country of countries(); track country[0]) { <option [value]="country[1]"></option> }
+    </datalist>
+    @if (editorError()) {
+      <p class="error" role="alert">{{ editorError() }}</p>
+    }
+    <div class="dialog-actions">
+      <button class="secondary" type="button" [disabled]="editorBusy()" (click)="closeEditor()">Отмена</button>
+      <button class="primary" type="submit" [disabled]="editorBusy()">
+        {{ saving() ? 'Сохраняем…' : photoPending().length ? 'Готовим фото…' : 'Сохранить' }}
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<dialog #confirmDialog class="confirm-dialog" aria-labelledby="coins-confirm-title" aria-describedby="coins-confirm-copy" (close)="finishConfirm()">
+  <div class="dialog-head">
+    <h2 id="coins-confirm-title">{{ confirm().title }}</h2>
+    <button class="icon-button" type="button" aria-label="Закрыть подтверждение" (click)="confirmDialog.close('cancel')"><svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg></button>
+  </div>
+  <p id="coins-confirm-copy" class="confirm-copy">{{ confirm().text }}</p>
+  <div class="dialog-actions">
+    <button class="secondary" type="button" autofocus (click)="confirmDialog.close('cancel')">{{ confirm().cancel }}</button>
+    <button class="danger-button" type="button" (click)="confirmDialog.close('accept')">{{ confirm().action }}</button>
+  </div>
+</dialog>
+
+<p class="cdk-visually-hidden" role="status">{{ notice() }}</p>
