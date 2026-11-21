@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthService, RegisterResult } from "../services/auth.service";
 import { ToastService } from "../../../shared/services/toast.service";
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -18,6 +19,8 @@ import { ToastService } from "../../../shared/services/toast.service";
 })
 export class RegisterComponent {
   private readonly passwordPattern: RegExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+  readonly submitting = signal(false);
+  readonly submitted = signal(false);
 
   constructor(
     private router: Router,
@@ -34,19 +37,25 @@ export class RegisterComponent {
   });
 
   submit(): void {
+    if (this.submitting() || this.submitted()) {
+      return;
+    }
+
     if (this.form.invalid || !this.passwordsMatch) {
       this.form.markAllAsTouched();
       return;
     }
 
+    this.submitting.set(true);
     this.authService.register(
       this.form.value.name,
       this.form.value.email,
       this.form.value.password,
       this.form.value.repeatPassword,
-    ).subscribe((result: RegisterResult) => {
+    ).pipe(finalize(() => this.submitting.set(false))).subscribe((result: RegisterResult) => {
       if (result.isRegistered) {
-        this.router.navigate(['/login']);
+        this.submitted.set(true);
+        this.form.reset();
         return;
       }
 

@@ -12,7 +12,17 @@ export interface RegisterResult {
 export interface AccountProfile {
   name: string;
   email: string | null;
+  isAdmin: boolean;
 }
+
+export interface RegistrationRequest {
+  id: string;
+  name: string;
+  email: string;
+  registeredAt: string | null;
+}
+
+export type RegistrationDecision = 'Approved' | 'Rejected';
 
 export interface LoginResult {
   isAuth: boolean;
@@ -76,6 +86,15 @@ export class AuthService {
 
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
     return this.http.put<void>(`${environment.apiHost}/api/Account/Password`, { currentPassword, newPassword });
+  }
+
+  getRegistrationRequests(): Observable<RegistrationRequest[]> {
+    return this.http.get<RegistrationRequest[]>(`${environment.apiHost}/api/Account/RegistrationRequests`);
+  }
+
+  reviewRegistration(userId: string, status: RegistrationDecision): Observable<void> {
+    const url = `${environment.apiHost}/api/Account/RegistrationRequests/${encodeURIComponent(userId)}`;
+    return this.http.put<void>(url, { status });
   }
 
   logout(): Observable<void> {

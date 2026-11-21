@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, timer } from 'rxjs';
 import { ToastService } from '../../../shared/services/toast.service';
-import { AccountProfile, AuthService } from '../services/auth.service';
+import { AccountProfile, AuthService, RegistrationDecision, RegistrationRequest } from '../services/auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -22,6 +22,10 @@ export class ProfileComponent implements OnInit {
   readonly profile = signal<AccountProfile | null>(null);
   readonly loadError = signal<string | null>(null);
   readonly saving = signal<'nickname' | 'password' | null>(null);
+  readonly registrationRequests = signal<RegistrationRequest[] | null>(null);
+  readonly requestsError = signal<string | null>(null);
+  readonly requestsLoading = signal(false);
+  readonly reviewingRequest = signal<string | null>(null);
 
   readonly nicknameForm = new FormGroup({
     name: new FormControl('', {
@@ -41,6 +45,11 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    timer(30_000, 30_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.profile()?.isAdmin) {
+        this.loadRegistrationRequests();
+      }
+    });
   }
 
   loadProfile(): void {
@@ -49,9 +58,59 @@ export class ProfileComponent implements OnInit {
       next: profile => {
         this.nicknameForm.reset({ name: profile.name });
         this.profile.set(profile);
+        if (profile.isAdmin) {
+          this.loadRegistrationRequests();
+        }
       },
       error: error => this.loadError.set(this.auth.extractErrorMessage(error, 'Не удалось загрузить профиль.')),
     });
+  }
+
+  loadRegistrationRequests(): void {
+    if (!this.profile()?.isAdmin || this.requestsLoading() || this.reviewingRequest()) {
+      return;
+    }
+
+    this.requestsLoading.set(true);
+    this.auth.getRegistrationRequests().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.requestsLoading.set(false)),
+    ).subscribe({
+      next: requests => {
+        this.requestsError.set(null);
+        this.registrationRequests.set(requests);
+      },
+      error: error => this.requestsError.set(
+        this.auth.extractErrorMessage(error, 'Не удалось загрузить заявки.'),
+      ),
+    });
+  }
+
+  reviewRegistration(request: RegistrationRequest, decision: RegistrationDecision): void {
+    if (this.requestsLoading() || this.reviewingRequest()) {
+      return;
+    }
+
+    this.reviewingRequest.set(request.id);
+    this.auth.reviewRegistration(request.id, decision).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.reviewingRequest.set(null)),
+    ).subscribe({
+      next: () => {
+        this.removeRegistrationRequest(request.id);
+        this.toast.success(decision === 'Approved' ? 'Заявка одобрена' : 'Заявка отклонена');
+      },
+      error: error => {
+        if (error.status === 404 || error.status === 409) {
+          this.removeRegistrationRequest(request.id);
+        }
+        this.toast.error(this.auth.extractErrorMessage(error, 'Не удалось обработать заявку.'));
+      },
+    });
+  }
+
+  private removeRegistrationRequest(id: string): void {
+    this.registrationRequests.update(requests => requests?.filter(request => request.id !== id) ?? null);
   }
 
   get canSaveNickname(): boolean {

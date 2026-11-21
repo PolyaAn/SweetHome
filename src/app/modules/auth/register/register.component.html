@@ -1,33 +1,42 @@
 <section class="register-page">
   <div class="register-card">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <label class="field-label" for="name">Логин (будет виден другим пользователям)</label>
-      <input id="name" type="text" formControlName="name" placeholder="Логин"/>
-      <div class="error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
-        Введите имя (минимум 2 символа)
-      </div>
+    <div *ngIf="submitted(); else registrationForm">
+      <h1>Заявка отправлена</h1>
+      <p class="subtitle" role="status">Вход станет доступен после одобрения администратором.</p>
+      <button type="button" (click)="goToLogin()">Перейти ко входу</button>
+    </div>
+    <ng-template #registrationForm>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label class="field-label" for="name">Логин (будет виден другим пользователям)</label>
+        <input id="name" type="text" formControlName="name" placeholder="Логин"/>
+        <div class="error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
+          Введите имя (минимум 2 символа)
+        </div>
 
-      <label class="field-label" for="email">Почта</label>
-      <input id="email" type="email" formControlName="email" placeholder="example@mail.com"/>
-      <div class="error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-        Введите корректную почту
-      </div>
+        <label class="field-label" for="email">Почта</label>
+        <input id="email" type="email" formControlName="email" placeholder="example@mail.com"/>
+        <div class="error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+          Введите корректную почту
+        </div>
 
-      <label class="field-label" for="password">Пароль</label>
-      <input id="password" type="password" formControlName="password" placeholder="Минимум 6 символов"/>
-      <div class="error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
-        Пароль должен содержать: минимум 6 символов, заглавную букву, строчную букву, цифра и спецсимвол
-      </div>
+        <label class="field-label" for="password">Пароль</label>
+        <input id="password" type="password" formControlName="password" placeholder="Минимум 6 символов"/>
+        <div class="error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+          Пароль должен содержать: минимум 6 символов, заглавную букву, строчную букву, цифра и спецсимвол
+        </div>
 
-      <label class="field-label" for="repeatPassword">Повторите пароль</label>
-      <input id="repeatPassword" type="password" formControlName="repeatPassword" placeholder="Повторите пароль"/>
-      <div class="error" *ngIf="form.get('repeatPassword')?.touched && !passwordsMatch">
-        Пароли не совпадают
-      </div>
+        <label class="field-label" for="repeatPassword">Повторите пароль</label>
+        <input id="repeatPassword" type="password" formControlName="repeatPassword" placeholder="Повторите пароль"/>
+        <div class="error" *ngIf="form.get('repeatPassword')?.touched && !passwordsMatch">
+          Пароли не совпадают
+        </div>
 
-      <div class="actions">
-        <button type="submit" [disabled]="form.invalid || !passwordsMatch">Создать аккаунт</button>
-      </div>
-    </form>
+        <div class="actions">
+          <button type="submit" [disabled]="submitting() || form.invalid || !passwordsMatch">
+            {{ submitting() ? 'Отправка…' : 'Отправить заявку' }}
+          </button>
+        </div>
+      </form>
+    </ng-template>
   </div>
 </section>

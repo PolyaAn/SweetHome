@@ -1,5 +1,42 @@
 <div class="profile">
   <ng-container *ngIf="profile() as account; else profileStatus">
+    <section *ngIf="account.isAdmin" class="card" aria-labelledby="registration-heading">
+      <div class="requests-header">
+        <h2 id="registration-heading">Заявки на регистрацию</h2>
+        <button type="button" class="secondary-button"
+                [disabled]="requestsLoading() || !!reviewingRequest()" (click)="loadRegistrationRequests()">
+          Обновить
+        </button>
+      </div>
+
+      @if (requestsError(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+      @if (registrationRequests(); as requests) {
+        <ul *ngIf="requests.length; else noRequests" class="requests">
+          @for (request of requests; track request.id) {
+            <li class="request">
+              <strong>{{ request.name }}</strong>
+              <span>{{ request.email }}</span>
+              <span *ngIf="request.registeredAt">{{ request.registeredAt | date:'dd.MM.yyyy, HH:mm' }}</span>
+              <fieldset class="request-actions" [disabled]="requestsLoading() || !!reviewingRequest()"
+                        [attr.aria-label]="'Заявка пользователя ' + request.name">
+                <button type="button" (click)="reviewRegistration(request, 'Approved')">Одобрить</button>
+                <button type="button" class="secondary-button"
+                        (click)="reviewRegistration(request, 'Rejected')">Отклонить</button>
+              </fieldset>
+              <span *ngIf="reviewingRequest() === request.id" role="status">Сохранение решения…</span>
+            </li>
+          }
+        </ul>
+        <ng-template #noRequests>
+          <p class="hint" role="status">Нет заявок на рассмотрении.</p>
+        </ng-template>
+      } @else if (requestsLoading()) {
+        <p class="hint" role="status">Загрузка заявок…</p>
+      }
+    </section>
+
     <section class="card" aria-labelledby="nickname-heading">
       <h2 id="nickname-heading">Личные данные</h2>
       <p class="email" *ngIf="account.email">{{ account.email }}</p>
