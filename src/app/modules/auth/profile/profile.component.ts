@@ -4,12 +4,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, timer } from 'rxjs';
 import { ToastService } from '../../../shared/services/toast.service';
+import { AdminMonitoringComponent } from './admin-monitoring/admin-monitoring.component';
 import { AccountProfile, AuthService, RegistrationDecision, RegistrationRequest } from '../services/auth.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AdminMonitoringComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

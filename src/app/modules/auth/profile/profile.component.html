@@ -37,6 +37,8 @@
       }
     </section>
 
+    <app-admin-monitoring *ngIf="account.isAdmin"></app-admin-monitoring>
+
     <section class="card" aria-labelledby="nickname-heading">
       <h2 id="nickname-heading">Личные данные</h2>
       <p class="email" *ngIf="account.email">{{ account.email }}</p>

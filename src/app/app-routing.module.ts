@@ -9,12 +9,13 @@ const routes: Routes = [
   {
     path: 'books',
     loadComponent: () => import('./modules/books-module/books.component').then(m => m.BooksComponent),
-    data: { title: 'Книги' },
+    data: { title: 'Книги', activitySection: 'books' },
     canDeactivate: [(component: BooksComponent) => component.canDeactivate()],
   },
   {
     path: 'main',
     component: MainMenuComponent,
+    data: { activitySection: 'main' },
     // canActivate: [AuthGuard],
     // children: [
     //   {
@@ -41,7 +42,7 @@ const routes: Routes = [
   {
     path: 'profile',
     loadComponent: () => import('./modules/auth/profile/profile.component').then(m => m.ProfileComponent),
-    data: { title: 'Профиль' },
+    data: { title: 'Профиль', activitySection: 'profile' },
   },
   {
     path: 'movie',
@@ -60,26 +61,31 @@ const routes: Routes = [
   },
   {
     path: 'movies',
+    data: { activitySection: 'movies' },
     loadChildren: () =>
       import('./modules/movie-module/movie-module.module').then((m) => m.MovieModuleModule),
   },
   {
     path: 'health-module',
+    data: { activitySection: 'health' },
     loadChildren: () =>
       import('./modules/health-module/health-module.module').then((m) => m.HealthModuleModule),
   },
   {
     path: 'home',
+    data: { activitySection: 'home' },
     loadChildren: () =>
       import('./modules/home-module/home-module.module').then((m) => m.HomeModuleModule),
   },
   {
     path: 'wardrobe',
+    data: { activitySection: 'wardrobe' },
     loadChildren: () =>
       import('./modules/wardrobe-module/wardrobe-module.module').then((m) => m.WardrobeModuleModule),
   },
   {
     path: 'finance',
+    data: { activitySection: 'finance' },
     loadChildren: () =>
       import('./modules/finance-module/finance-module.module').then((m) => m.FinanceModuleModule),
   },

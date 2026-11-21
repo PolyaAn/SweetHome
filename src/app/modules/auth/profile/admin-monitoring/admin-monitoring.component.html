@@ -1,0 +1,85 @@
+<section class="monitoring" aria-labelledby="monitoring-heading">
+  <header>
+    <h2 id="monitoring-heading">Мониторинг</h2>
+    <button type="button" [disabled]="loading()" (click)="refresh()">Обновить</button>
+  </header>
+
+  @if (loadError()) {
+    <p class="error" role="alert">Не удалось обновить мониторинг.</p>
+  }
+
+  @if (overview(); as data) {
+    <p class="muted">Сегодня {{ data.day | date:'dd.MM.yyyy' }} · обновлено в {{ data.updatedAt | date:'HH:mm:ss':moscowTime }} МСК</p>
+    <dl class="metrics">
+      <div>
+        <dt>DAU · сегодня</dt>
+        <dd>{{ data.dau }}</dd>
+      </div>
+      <div>
+        <dt>MAU · 30 дней</dt>
+        <dd>{{ data.mau }}</dd>
+      </div>
+    </dl>
+
+    <h3>Разделы за 30 дней</h3>
+    @if (data.sections.length) {
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Раздел</th>
+            <th scope="col">Посетители</th>
+            <th scope="col">Визиты</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of data.sections; track entry.section) {
+            <tr>
+              <th scope="row">{{ sectionNames[entry.section] || entry.section }}</th>
+              <td>{{ entry.users }}</td>
+              <td>{{ entry.visits }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="muted">Пока нет посещений.</p>
+    }
+
+    <h3>Активные сегодня</h3>
+    @if (data.activeToday.length) {
+      <ul class="scroll-list">
+        @for (user of data.activeToday; track user.id) {
+          <li class="user">
+            <strong>{{ user.name || user.id }}</strong>
+            <time [attr.datetime]="user.lastSeenAt">{{ user.lastSeenAt | date:'HH:mm':moscowTime }}</time>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="muted">Сегодня ещё не было активности.</p>
+    }
+
+    <h3>Последние ошибки API</h3>
+    @if (data.errors.length) {
+      <ul class="scroll-list">
+        @for (error of data.errors; track error.id) {
+          <li class="failure">
+            <div class="failure-heading">
+              <strong>HTTP {{ error.statusCode }}</strong>
+              <time [attr.datetime]="error.occurredAt">{{ error.occurredAt | date:'dd.MM.yyyy, HH:mm:ss':moscowTime }}</time>
+            </div>
+            <code>{{ error.method }} {{ error.route }}</code>
+            @if (error.exceptionType) {
+              <span>{{ error.exceptionType }}</span>
+            }
+            <small>ID запроса {{ error.traceId }}</small>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="muted">Ошибок сервера пока нет.</p>
+    }
+  } @else if (loading()) {
+    <p class="muted" role="status">Загрузка мониторинга…</p>
+  }
+</section>

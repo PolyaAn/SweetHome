@@ -25,7 +25,8 @@ export class CredentialsInterceptor implements HttpInterceptor {
           error instanceof HttpErrorResponse &&
           error.status === 401 &&
           isApiRequest &&
-          !this.isAuthRequest(req.url)
+          !this.isAuthRequest(req.url) &&
+          !req.url.endsWith('/api/Activity/Visits')
         ) {
           this.authSession.clear();
           this.router.navigate(['/login']);
