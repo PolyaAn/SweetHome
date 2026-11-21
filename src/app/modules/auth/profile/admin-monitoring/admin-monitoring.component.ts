@@ -47,6 +47,7 @@ export class AdminMonitoringComponent implements OnInit {
     wardrobe: 'Гардероб',
     finance: 'Финансы',
     books: 'Книги',
+    coins: 'Монеты',
     profile: 'Профиль',
   };
 
