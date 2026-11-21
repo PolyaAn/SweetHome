@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ToastService } from '../../shared/services/toast.service';
 import { Coin, CoinFields, CoinSave, CoinsApiService, PhotoChange, PhotoSide } from './coins-api.service';
-import { prepareCoinPhoto } from './prepare-coin-photo';
+import { CoinPhotoCrop, drawCoinPhoto, openCoinPhoto, prepareCoinPhoto } from './prepare-coin-photo';
 
 type Scope = 'all' | 'missing' | 'duplicates';
 type Sort = 'latest' | 'oldest' | 'newest' | 'name';
@@ -15,6 +15,7 @@ type Filters = { country: string; grade: string };
 type PhotoDraft = { preview: string | null; change?: PhotoChange };
 
 const pageSize = 48;
+const centeredCrop: CoinPhotoCrop = { x: 0, y: 0, zoom: 1 };
 const viewPreference = 'sweethome-coins-view';
 const collator = new Intl.Collator('ru');
 const normalize = (value: string) => value.trim().toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
@@ -45,9 +46,12 @@ export class CoinsComponent implements OnInit {
   private readonly api = inject(CoinsApiService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly filterDialog = viewChild.required<ElementRef<HTMLDialogElement>>('filterDialog');
   private readonly detailsDialog = viewChild.required<ElementRef<HTMLDialogElement>>('detailsDialog');
   private readonly editorDialog = viewChild.required<ElementRef<HTMLDialogElement>>('editorDialog');
+  private readonly cropDialog = viewChild.required<ElementRef<HTMLDialogElement>>('cropDialog');
+  private readonly cropCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('cropCanvas');
   private readonly confirmDialog = viewChild.required<ElementRef<HTMLDialogElement>>('confirmDialog');
   private readonly zoomDialog = viewChild.required<ElementRef<HTMLDialogElement>>('zoomDialog');
   private readonly addButton = viewChild.required<ElementRef<HTMLButtonElement>>('addButton');
@@ -58,6 +62,7 @@ export class CoinsComponent implements OnInit {
   private readonly visibleLimit = signal(pageSize);
   private draftBaseline = '';
   private editorVersion = 0;
+  private cropDrag: { pointer: number; x: number; y: number } | null = null;
   private confirmResolve: ((result: boolean) => void) | null = null;
 
   readonly scopes: { key: Scope; name: string; icon: string }[] = [
@@ -117,6 +122,10 @@ export class CoinsComponent implements OnInit {
   readonly saving = signal(false);
   readonly deleting = signal(false);
   readonly photoPending = signal<PhotoSide[]>([]);
+  readonly cropSource = signal<{ image: ImageBitmap; side: PhotoSide; opener: HTMLInputElement } | null>(null);
+  readonly crop = signal(centeredCrop);
+  readonly applyingCrop = signal(false);
+  readonly cropError = signal('');
   readonly editorBusy = computed(() => this.saving() || this.photoPending().length > 0);
   readonly editorError = signal('');
   readonly detailsError = signal('');
@@ -134,6 +143,7 @@ export class CoinsComponent implements OnInit {
     this.destroyRef.onDestroy(() => {
       this.editorVersion++;
       this.releaseDraftPhotos();
+      this.cropSource()?.image.close();
       this.confirmResolve?.(false);
     });
   }
@@ -250,22 +260,113 @@ export class CoinsComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const photo = input.files?.[0];
     input.value = '';
-    if (!photo || this.photoPending().includes(side) || this.saving()) return;
+    if (!photo || this.editorBusy()) return;
     const version = this.editorVersion;
     this.photoPending.update(items => [...items, side]);
     this.editorError.set('');
     try {
-      const result = await prepareCoinPhoto(photo);
+      const image = await openCoinPhoto(photo);
+      if (version !== this.editorVersion) {
+        image.close();
+        return;
+      }
+      this.crop.set(centeredCrop);
+      this.cropError.set('');
+      this.cropSource.set({ image, side, opener: input });
+      this.redrawCrop();
+      this.cropDialog().nativeElement.showModal();
+    } catch {
+      if (version === this.editorVersion) {
+        this.finishCrop(false);
+        this.editorError.set('Не удалось открыть фото. Выберите JPG, PNG или WebP размером до 12 МБ.');
+      }
+    }
+  }
+
+  setCropZoom(zoom: number): void {
+    this.crop.update(crop => ({ ...crop, zoom }));
+    this.redrawCrop();
+  }
+
+  startCropDrag(event: PointerEvent, canvas: HTMLCanvasElement): void {
+    if (!event.isPrimary || event.button !== 0 || this.applyingCrop()) return;
+    this.cropDrag = { pointer: event.pointerId, x: event.clientX, y: event.clientY };
+    canvas.setPointerCapture(event.pointerId);
+  }
+
+  dragCrop(event: PointerEvent, canvas: HTMLCanvasElement): void {
+    const drag = this.cropDrag;
+    if (!drag || drag.pointer !== event.pointerId) return;
+    const width = canvas.getBoundingClientRect().width;
+    this.moveCrop((event.clientX - drag.x) / width, (event.clientY - drag.y) / width);
+    this.cropDrag = { pointer: drag.pointer, x: event.clientX, y: event.clientY };
+  }
+
+  endCropDrag(event: PointerEvent): void {
+    if (this.cropDrag?.pointer === event.pointerId) this.cropDrag = null;
+  }
+
+  cropKey(event: KeyboardEvent): void {
+    const step = event.shiftKey ? 0.12 : 0.035;
+    switch (event.key) {
+      case 'ArrowLeft': this.moveCrop(-step, 0); break;
+      case 'ArrowRight': this.moveCrop(step, 0); break;
+      case 'ArrowUp': this.moveCrop(0, -step); break;
+      case 'ArrowDown': this.moveCrop(0, step); break;
+      default: return;
+    }
+    event.preventDefault();
+  }
+
+  async applyCrop(): Promise<void> {
+    const source = this.cropSource();
+    if (!source || this.applyingCrop()) return;
+    this.applyingCrop.set(true);
+    this.cropError.set('');
+    const version = this.editorVersion;
+    try {
+      const result = await prepareCoinPhoto(source.image, this.crop());
       if (version !== this.editorVersion) {
         URL.revokeObjectURL(result.preview);
         return;
       }
-      this.setPhoto(side, { preview: result.preview, change: { data: result.data } });
+      this.setPhoto(source.side, { preview: result.preview, change: { data: result.data } });
+      this.cropDialog().nativeElement.close();
     } catch {
-      if (version === this.editorVersion) this.editorError.set('Не удалось открыть фото. Выберите JPG, PNG или WebP размером до 12 МБ.');
+      if (version === this.editorVersion) this.cropError.set('Не удалось обрезать фото. Попробуйте ещё раз.');
     } finally {
-      if (version === this.editorVersion) this.photoPending.update(items => items.filter(key => key !== side));
+      this.applyingCrop.set(false);
     }
+  }
+
+  finishCrop(restoreFocus = true): void {
+    const source = this.cropSource();
+    source?.image.close();
+    const canvas = this.cropCanvas().nativeElement;
+    canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+    this.cropSource.set(null);
+    this.cropDrag = null;
+    this.photoPending.set([]);
+    if (source && restoreFocus) {
+      afterNextRender(() => source.opener.focus({ preventScroll: true }), { injector: this.injector });
+    }
+  }
+
+  private moveCrop(dx: number, dy: number): void {
+    const source = this.cropSource();
+    if (!source || this.applyingCrop()) return;
+    const { width, height } = source.image;
+    const crop = this.crop();
+    const side = Math.min(width, height) / crop.zoom;
+    const shift = (position: number, offset: number, dimension: number) =>
+      dimension === side ? 0 : Math.max(-1, Math.min(1, position - offset * side * 2 / (dimension - side)));
+    this.crop.set({ ...crop, x: shift(crop.x, dx, width), y: shift(crop.y, dy, height) });
+    this.redrawCrop();
+  }
+
+  private redrawCrop(): void {
+    const source = this.cropSource();
+    if (source) drawCoinPhoto(this.cropCanvas().nativeElement, source.image, this.crop(), true);
   }
 
   removePhoto(side: PhotoSide, input: HTMLInputElement): void {

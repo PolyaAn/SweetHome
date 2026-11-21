@@ -349,7 +349,7 @@ dialog {
 }
 
 dialog::backdrop { background: #100b09c7; }
-.confirm-dialog { width: min(440px, calc(100% - 24px)); }
+.confirm-dialog, .crop-dialog { width: min(440px, calc(100% - 24px)); }
 
 .dialog-head, .dialog-actions {
   display: flex;
@@ -432,6 +432,14 @@ legend { margin-bottom: 4px; padding: 0; }
 
 .zoom-dialog { width: min(920px, calc(100% - 24px)); }
 .zoom-image { display: block; width: 100%; max-height: calc(100dvh - 115px); object-fit: contain; background: #1e1813; }
+.crop-preview {
+  width: min(100%, 340px, 48dvh);
+  height: auto;
+  justify-self: center;
+  background: #19130f;
+  cursor: move;
+  touch-action: none;
+}
 .confirm-copy { padding: 16px 19px; overflow-wrap: anywhere; }
 .error { color: var(--danger); padding: 0 19px 14px; }
 

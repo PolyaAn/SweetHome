@@ -276,10 +276,10 @@
                   }
                 </span>
                 <input #file type="file" accept="image/*" [attr.aria-label]="(draftPhotos()[side.key].preview ? 'Заменить фото: ' : 'Добавить фото: ') + side.label"
-                  [disabled]="saving() || photoPending().includes(side.key)" (change)="upload($event, side.key)">
+                  [disabled]="editorBusy()" (change)="upload($event, side.key)">
               </label>
               @if (draftPhotos()[side.key].preview) {
-                <button class="text-button" type="button" [disabled]="saving() || photoPending().includes(side.key)" [attr.aria-label]="'Убрать фото: ' + side.label"
+                <button class="text-button" type="button" [disabled]="editorBusy()" [attr.aria-label]="'Убрать фото: ' + side.label"
                   (click)="removePhoto(side.key, file)">Убрать фото</button>
               }
             </div>
@@ -301,6 +301,34 @@
       </button>
     </div>
   </form>
+</dialog>
+
+<dialog #cropDialog class="crop-dialog" aria-labelledby="coins-crop-title" (close)="finishCrop()"
+  (cancel)="applyingCrop() ? $event.preventDefault() : null">
+  <div class="dialog-head">
+    <h2 id="coins-crop-title">Обрезать фото · {{ cropSource()?.side === 'obverse' ? 'Аверс' : 'Реверс' }}</h2>
+    <button class="icon-button" type="button" aria-label="Закрыть обрезку" [disabled]="applyingCrop()" (click)="cropDialog.close()">
+      <svg class="icon" aria-hidden="true"><use href="#coins-icon-close"></use></svg>
+    </button>
+  </div>
+  <div class="fields">
+    <p id="coins-crop-help" class="full">Расположите монету в круге. Фото можно перемещать пальцем, мышью или стрелками.</p>
+    <canvas #cropCanvas class="crop-preview full" width="480" height="480" tabindex="0" autofocus
+      aria-label="Положение фото" aria-describedby="coins-crop-help"
+      (pointerdown)="startCropDrag($event, cropCanvas)" (pointermove)="dragCrop($event, cropCanvas)"
+      (lostpointercapture)="endCropDrag($event)" (keydown)="cropKey($event)"></canvas>
+    <label class="full">Масштаб
+      <input #cropZoom type="range" min="1" max="4" step=".01" [value]="crop().zoom"
+        [disabled]="applyingCrop()" (input)="setCropZoom(cropZoom.valueAsNumber)">
+    </label>
+  </div>
+  @if (cropError()) {
+    <p class="error" role="alert">{{ cropError() }}</p>
+  }
+  <div class="dialog-actions">
+    <button class="secondary" type="button" [disabled]="applyingCrop()" (click)="cropDialog.close()">Отмена</button>
+    <button class="primary" type="button" [disabled]="applyingCrop()" (click)="applyCrop()">{{ applyingCrop() ? 'Обрезаем…' : 'Применить' }}</button>
+  </div>
 </dialog>
 
 <dialog #confirmDialog class="confirm-dialog" aria-labelledby="coins-confirm-title" aria-describedby="coins-confirm-copy" (close)="finishConfirm()">
