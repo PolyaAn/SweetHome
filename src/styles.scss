@@ -4,11 +4,34 @@
 html,
 body {
   height: 100%;
+  // Disable double-tap zoom while preserving scrolling and pinch zoom.
+  touch-action: manipulation;
+}
+
+html {
+  background: #0b1720;
 }
 
 body {
   margin: 0;
   font-family: 'Manrope', 'Trebuchet MS', sans-serif;
+}
+
+@media (display-mode: standalone) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+@media (pointer: coarse) {
+  input:not([type]),
+  input:is([type='text'], [type='search'], [type='email'], [type='password'], [type='tel'], [type='url'], [type='number'], [type='date']),
+  textarea,
+  select {
+    // iOS zooms when a field with small text receives focus.
+    font-size: max(16px, 1em) !important;
+  }
 }
 
 .modern-form-dialog .mat-mdc-dialog-surface {

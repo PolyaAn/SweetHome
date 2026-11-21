@@ -227,9 +227,9 @@ $mat-alpha-warn-87: rgba(244, 67, 54, 0.87);
 
 @mixin ui-mobile-float-panel {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 14px;
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   padding: 10px;
   border-radius: 16px;
@@ -292,9 +292,9 @@ $mat-alpha-warn-87: rgba(244, 67, 54, 0.87);
   @media only screen and (max-width: 767px) {
     display: block;
     position: fixed;
-    left: 16px;
-    right: 16px;
-    bottom: 0;
+    left: calc(16px + env(safe-area-inset-left, 0px));
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: env(safe-area-inset-bottom, 0px);
     height: $height;
     background: linear-gradient(180deg, $alpha-white-00, $alpha-white-1);
     pointer-events: none;

@@ -2,17 +2,17 @@
 
 .toast-container {
   position: fixed;
-  right: 16px;
-  top: 92px;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  top: calc(var(--app-header-height) + 16px);
   z-index: 140;
   display: grid;
   gap: 8px;
   width: min(360px, calc(100vw - 32px));
 
   @media only screen and (max-width: 767px) {
-    right: 12px;
-    left: 12px;
-    top: 76px;
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    top: calc(var(--app-header-height) + 12px);
     width: auto;
   }
 }

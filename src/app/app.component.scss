@@ -1,16 +1,22 @@
 :host {
-  --app-header-height: 76px;
+  --app-toolbar-height: 76px;
+  --app-header-height: calc(var(--app-toolbar-height) + env(safe-area-inset-top, 0px));
 
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   height: 100vh;
+  height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   overflow: hidden;
+  background: #0a1118;
 }
 
 .app-content {
-  height: 100vh;
-  box-sizing: border-box;
-  padding-top: var(--app-header-height);
+  flex: 1;
+  min-height: 0;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   overflow: auto;
   background:
     radial-gradient(circle at 50% -12%, rgba(71, 116, 145, 0.18), transparent 36%),
@@ -18,19 +24,17 @@
 }
 
 .app-content.no-header {
-  padding-top: 0;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 @media only screen and (max-width: 767px) {
   :host {
-    --app-header-height: 64px;
+    --app-toolbar-height: 64px;
   }
+}
 
+@media (display-mode: standalone) {
   .app-content {
-    padding-top: var(--app-header-height);
-  }
-
-  .app-content.no-header {
-    padding-top: 0;
+    overscroll-behavior-y: none;
   }
 }
